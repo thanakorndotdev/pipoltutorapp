@@ -1,0 +1,93 @@
+# Relative paths below resolve against this file's directory (docker/),
+# so the build context is `..` — the repo root.
+#
+# Credentials come from docker/.env, which compose loads automatically because
+# it sits next to this file. Copy docker/.env.example to get started.
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: app_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Required for HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      # Static admin dashboard; `bun run build` in frontend/admin first.
+      - ../frontend/admin/out:/srv/admin:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    container_name: app_frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    # No exposed host ports needed; Caddy handles incoming traffic
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: app_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:?set POSTGRES_USER in docker/.env}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env}@postgres:5432/${POSTGRES_DB:?set POSTGRES_DB in docker/.env}
+      PORT: ${BACKEND_PORT:-3001}
+      # Dev-only login shortcut (x-dev-user-email header). Keep 0 outside local dev.
+      ALLOW_DEV_AUTH: ${ALLOW_DEV_AUTH:-0}
+      # Who may PUT /settings/exam. Empty means nobody.
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      # x-admin-key header for PUT /settings/exam. Empty disables it.
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
+      # Question figures from POST /admin/uploads (src/routes/uploads.ts).
+      UPLOAD_DIR: /app/uploads
+      # Google OAuth (src/routes/auth.ts). PUBLIC_URL is what the browser hits
+      # (Caddy), so the callback is <PUBLIC_URL>/api/auth/google/callback.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      PUBLIC_URL: ${PUBLIC_URL_DOCKER:-https://localhost}
+      # Omise (src/payments/omise.ts). Register <PUBLIC_URL>/api/webhooks/omise in the Omise dashboard.
+      OMISE_PUBLIC_KEY: ${OMISE_PUBLIC_KEY:-}
+      OMISE_SECRET_KEY: ${OMISE_SECRET_KEY:-}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: app_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in docker/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in docker/.env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Runs once, only when the data volume is empty. Schema itself comes
+      # from drizzle migrations, not from here.
+      - ../db/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Bound to 127.0.0.1 so the DB is not reachable from the network.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+  uploads_data:

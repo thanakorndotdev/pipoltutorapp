@@ -1,0 +1,154 @@
+{
+  "name": "PIPOL TUTOR Builder",
+  "id": "pipol-tutor-builder",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figma"
+  ],
+  "menu": [
+    {
+      "name": "— ทั้งหมด 13 เพจ —",
+      "command": "all"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "01 หน้าแรก",
+      "command": "s01"
+    },
+    {
+      "name": "02 รู้จักพี่ที",
+      "command": "s02"
+    },
+    {
+      "name": "03 เข้าสู่ระบบ",
+      "command": "s03"
+    },
+    {
+      "name": "04 เมนูหลัก",
+      "command": "s04"
+    },
+    {
+      "name": "05 คอร์ส & ข้อสอบ",
+      "command": "s05"
+    },
+    {
+      "name": "06 รายละเอียดคอร์ส",
+      "command": "s06"
+    },
+    {
+      "name": "07 ชำระเงิน",
+      "command": "s07"
+    },
+    {
+      "name": "08 ชำระเงินสำเร็จ",
+      "command": "s08"
+    },
+    {
+      "name": "09 ทำข้อสอบ",
+      "command": "s09"
+    },
+    {
+      "name": "10 สรุปคะแนน",
+      "command": "s10"
+    },
+    {
+      "name": "11 ดูดวง — กรอกข้อมูล",
+      "command": "s11"
+    },
+    {
+      "name": "12 ดูดวง — ชำระเงิน",
+      "command": "s12"
+    },
+    {
+      "name": "13 ดูดวง — คำทำนาย",
+      "command": "s13"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "จัดเรียงเพจใหม่",
+      "command": "tidy"
+    },
+    {
+      "name": "ตรวจหาเฟรมที่ทับกัน",
+      "command": "audit"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "🌙 ธีมกลางคืน",
+      "menu": [
+        {
+          "name": "— ทั้งหมด 13 เพจ (กลางคืน) —",
+          "command": "dark-all"
+        },
+        {
+          "separator": true
+        },
+        {
+          "name": "01 หน้าแรก",
+          "command": "dark-s01"
+        },
+        {
+          "name": "02 รู้จักพี่ที",
+          "command": "dark-s02"
+        },
+        {
+          "name": "03 เข้าสู่ระบบ",
+          "command": "dark-s03"
+        },
+        {
+          "name": "04 เมนูหลัก",
+          "command": "dark-s04"
+        },
+        {
+          "name": "05 คอร์ส & ข้อสอบ",
+          "command": "dark-s05"
+        },
+        {
+          "name": "06 รายละเอียดคอร์ส",
+          "command": "dark-s06"
+        },
+        {
+          "name": "07 ชำระเงิน",
+          "command": "dark-s07"
+        },
+        {
+          "name": "08 ชำระเงินสำเร็จ",
+          "command": "dark-s08"
+        },
+        {
+          "name": "09 ทำข้อสอบ",
+          "command": "dark-s09"
+        },
+        {
+          "name": "10 สรุปคะแนน",
+          "command": "dark-s10"
+        },
+        {
+          "name": "11 ดูดวง — กรอกข้อมูล",
+          "command": "dark-s11"
+        },
+        {
+          "name": "12 ดูดวง — ชำระเงิน",
+          "command": "dark-s12"
+        },
+        {
+          "name": "13 ดูดวง — คำทำนาย",
+          "command": "dark-s13"
+        }
+      ]
+    }
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ],
+    "reasoning": "The plugin only draws frames in the current file. It makes no network requests."
+  }
+}

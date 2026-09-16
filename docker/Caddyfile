@@ -1,0 +1,22 @@
+# For local development
+localhost {
+    # Forward all API traffic to ElysiaJS backend; handle_path strips the
+    # /api prefix so the backend keeps its bare routes (/health, /orders, ...).
+    handle_path /api/* {
+        reverse_proxy backend:3001
+    }
+
+    # Admin dashboard: a static export of frontend/admin (basePath /admin),
+    # bind-mounted at /srv/admin. Build it on the host first:
+    #   cd frontend/admin && bun run build
+    handle /admin* {
+        root * /srv
+        try_files {path} {path}/ =404
+        file_server
+    }
+
+    # Forward all other traffic to Next.js frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

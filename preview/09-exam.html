@@ -1,0 +1,671 @@
+<title>หน้าทำข้อสอบ PIPOL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Anuphan:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=swap">
+
+<style>
+:root{
+  /* product palette — same tokens as figma-plugin/code.js */
+  --page:#F5F7FC; --card:#FFFFFF;
+  --brand:#3A5BD9; --brand-dark:#1E2F86; --brand-50:#EEF2FF;
+  /* the brand ramp for filled bands and panels — a token pair, not two loose values */
+  --brand-grad-a:#121D52; --brand-grad-b:#3A5BD9;
+  --accent:#FF6B35; --accent-dark:#E5551C; --accent-50:#FFEDE4;
+  --mystic:#7C3AED; --mystic-50:#F0E9FF;
+  --teal:#12B5A5; --green:#16A34A; --green-50:#E4F6EA;
+  --red:#EF4444; --amber-50:#FEF3DC; --amber-ink:#7C4A03; --amber-icon:#B45309;
+  --ink:#111C3E; --ink2:#46557A; --ink3:#8493B4;
+  --border:#E3E9F4; --border-strong:#CBD6EA;
+
+  /* shell — the frame around the mockup, theme-aware */
+  --shell-bg:#EDF0F7;
+  --shell-ink:#111C3E;
+  --shell-ink2:#46557A;
+  --shell-line:#D7DEEC;
+  --shell-panel:#FFFFFF;
+
+  /* text sitting on a brand/accent/status fill */
+  --on-fill:#FFFFFF;
+
+  --sh-s:0 2px 6px rgba(17,28,62,.06);
+  --sh-m:0 14px 30px -8px rgba(17,28,62,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --shell-bg:#0B111C;
+    --shell-ink:#EEF2FF;
+    --shell-ink2:#8C99B8;
+    --shell-line:#2A3547;
+    --shell-panel:#1A2233;
+    /* night mode — 60% #111827 ground / 30% #C5D4FF periwinkle / 10% #FFE3A3 warm yellow */
+    --page:#111827; --card:#1A2233;
+    --brand:#C5D4FF; --brand-dark:#C5D4FF; --brand-50:#1B2540;
+    /* the ramp does not follow --brand into the periwinkle: a band painted with it
+       would light up the page. It stays an elevated navy above the #111827 ground. */
+    --brand-grad-a:#1A2340; --brand-grad-b:#2C3E6B;
+    --accent:#FFE3A3; --accent-dark:#F0CE86; --accent-50:#2B2618;
+    --mystic:#CBB4FF; --mystic-50:#241C3A;
+    --teal:#86DCD0; --green:#7ED598; --green-50:#16301F;
+    --red:#FF9494; --amber-50:#2E2718; --amber-ink:#FFE3A3; --amber-icon:#FFD37A;
+    --ink:#EEF2FF; --ink2:#B9C4E0; --ink3:#8C99B8;
+    --border:#2A3547; --border-strong:#3A4761;
+    --on-fill:#111827;
+    --sh-s:0 2px 6px rgba(0,0,0,.45);
+    --sh-m:0 14px 30px -8px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+    --shell-bg:#0B111C;
+    --shell-ink:#EEF2FF;
+    --shell-ink2:#8C99B8;
+    --shell-line:#2A3547;
+    --shell-panel:#1A2233;
+    /* night mode — 60% #111827 ground / 30% #C5D4FF periwinkle / 10% #FFE3A3 warm yellow */
+    --page:#111827; --card:#1A2233;
+    --brand:#C5D4FF; --brand-dark:#C5D4FF; --brand-50:#1B2540;
+    /* the ramp does not follow --brand into the periwinkle: a band painted with it
+       would light up the page. It stays an elevated navy above the #111827 ground. */
+    --brand-grad-a:#1A2340; --brand-grad-b:#2C3E6B;
+    --accent:#FFE3A3; --accent-dark:#F0CE86; --accent-50:#2B2618;
+    --mystic:#CBB4FF; --mystic-50:#241C3A;
+    --teal:#86DCD0; --green:#7ED598; --green-50:#16301F;
+    --red:#FF9494; --amber-50:#2E2718; --amber-ink:#FFE3A3; --amber-icon:#FFD37A;
+    --ink:#EEF2FF; --ink2:#B9C4E0; --ink3:#8C99B8;
+    --border:#2A3547; --border-strong:#3A4761;
+    --on-fill:#111827;
+    --sh-s:0 2px 6px rgba(0,0,0,.45);
+    --sh-m:0 14px 30px -8px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--shell-bg);
+  color:var(--shell-ink);
+  font-family:"Anuphan",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.78;
+  -webkit-font-smoothing:antialiased;
+}
+.sym{
+  font-family:"Material Symbols Rounded";
+  font-weight:400;
+  font-style:normal;
+  line-height:1;
+  letter-spacing:normal;
+  text-transform:none;
+  white-space:nowrap;
+  direction:ltr;
+  font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 24;
+  user-select:none;
+  flex:none;
+}
+.fill{font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24}
+
+/* ---------------------------------------------------------------- shell */
+.wrap{max-width:1440px;margin:0 auto;padding:40px 24px 72px;display:flex;flex-direction:column;gap:32px}
+
+.intro{display:flex;flex-direction:column;gap:20px}
+.eyebrow{
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:12.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--mystic);line-height:1.4;
+}
+.intro h1{
+  font-family:"Mitr",sans-serif;font-weight:600;font-size:clamp(28px,3.4vw,40px);
+  line-height:1.3;margin:0;text-wrap:balance;max-width:22ch;
+}
+.intro p{margin:0;color:var(--shell-ink2);max-width:62ch;font-size:16.5px}
+
+.moves{
+  display:grid;gap:14px;
+  grid-template-columns:repeat(auto-fit,minmax(232px,1fr));
+}
+.move{
+  background:var(--shell-panel);border:1px solid var(--shell-line);
+  border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;
+}
+.move .sym{font-size:22px;color:var(--mystic)}
+.move b{font-family:"Mitr",sans-serif;font-weight:500;font-size:15px;line-height:1.45}
+.move span{font-size:14px;color:var(--shell-ink2);line-height:1.65}
+
+.frame-label{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:13.5px;color:var(--shell-ink2);
+}
+.frame-label code{
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:13px;
+  background:var(--mystic-50);color:var(--mystic);
+  padding:4px 11px;border-radius:999px;
+}
+
+/* ---------------------------------------------------------------- screen */
+.screen-scroll{overflow-x:auto;border-radius:26px}
+.screen{
+  min-width:1120px;
+  background:var(--page);color:var(--ink);
+  border-radius:26px;overflow:hidden;
+  border:1px solid var(--shell-line);
+  box-shadow:0 30px 56px -18px rgba(17,28,62,.22);
+}
+
+/* exam bar */
+.exambar{
+  background:var(--card);
+  display:flex;align-items:center;gap:18px;
+  padding:14px 40px;
+}
+.who{display:flex;align-items:center;gap:12px}
+.avatar{
+  width:46px;height:46px;border-radius:999px;flex:none;
+  background:linear-gradient(135deg,var(--mystic),var(--brand));
+  color:var(--on-fill);display:grid;place-items:center;
+  font-family:"Mitr",sans-serif;font-weight:600;font-size:19px;
+}
+.who-name{display:flex;align-items:center;gap:8px}
+.who-name b{font-family:"Mitr",sans-serif;font-weight:600;font-size:16px;line-height:1.3}
+.who-sub{font-size:12.5px;color:var(--ink3);line-height:1.4}
+.grow{flex:1 1 auto;min-width:8px}
+
+.pill{
+  display:inline-flex;align-items:center;gap:8px;flex:none;
+  border-radius:999px;padding:8px 16px;
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:13.5px;line-height:1.4;
+  white-space:nowrap;
+}
+.pill .sym{font-size:17px}
+.pill.streak{background:var(--accent-50);color:var(--accent-dark)}
+.pill.xp{background:var(--mystic-50);color:var(--mystic)}
+.pill.lv{background:var(--mystic-50);color:var(--mystic);padding:4px 12px;font-size:12.5px}
+.pill.saved{background:var(--green-50);color:var(--green);font-family:"Anuphan",sans-serif;font-weight:400}
+.pill.timer{
+  background:var(--accent-50);color:var(--accent-dark);
+  font-size:17px;font-weight:500;padding:9px 16px;
+  font-variant-numeric:tabular-nums;
+}
+.pill.timer .sym{font-size:19px}
+.pill.quit{
+  background:var(--card);color:var(--ink2);
+  border:1.5px solid var(--border-strong);padding:8px 16px;
+  font-size:14.5px;cursor:pointer;
+}
+
+/* subject tabs */
+.subjects{
+  background:var(--card);
+  display:flex;align-items:center;gap:10px;
+  padding:0 40px 14px;
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  display:inline-flex;align-items:center;gap:9px;flex:none;
+  border-radius:999px;padding:9px 18px;cursor:pointer;
+  background:var(--page);border:1.5px solid var(--border);
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:14.5px;line-height:1.3;
+  color:var(--ink2);white-space:nowrap;
+  transition:border-color .15s,background .15s;
+}
+.tab .sym{font-size:18px;color:var(--ink3)}
+.tab .count{font-family:"Anuphan",sans-serif;font-weight:400;font-size:13px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.tab:hover{border-color:var(--border-strong)}
+.tab.on{background:var(--brand-50);border-color:var(--brand);color:var(--brand-dark)}
+.tab.on .sym,.tab.on .count{color:var(--brand)}
+.subjects .hint{font-size:13px;color:var(--ink3);white-space:nowrap}
+
+/* body grid */
+.stage{display:flex;gap:28px;align-items:flex-start;padding:26px 40px 56px}
+.col-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:18px}
+.rail{flex:0 0 330px;width:330px}
+
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:26px;padding:24px;box-shadow:var(--sh-s);
+}
+
+/* quest track */
+.quest{display:flex;flex-direction:column;gap:14px}
+.quest-head{display:flex;align-items:center;gap:12px}
+.quest-head .sym{font-size:24px;color:var(--mystic)}
+.quest-head h2{font-family:"Mitr",sans-serif;font-weight:600;font-size:18px;line-height:1.35;margin:0}
+.quest-head .next{
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:15px;color:var(--mystic);white-space:nowrap;
+}
+.track{height:14px;border-radius:99px;background:var(--page);overflow:hidden}
+.track i{display:block;height:100%;border-radius:99px;background:var(--mystic);width:68%}
+.checks{display:flex;justify-content:space-between;align-items:flex-start}
+.check{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.check .dot{
+  width:44px;height:44px;border-radius:999px;display:grid;place-items:center;
+  background:var(--page);border:1.5px solid var(--border);
+}
+.check .dot .sym{font-size:23px;color:var(--ink3)}
+.check.done .dot{background:var(--green-50);border-color:var(--green-50)}
+.check.done .dot .sym{color:var(--green)}
+.check.next .dot{background:var(--mystic-50);border:2px solid var(--mystic)}
+.check.next .dot .sym{color:var(--mystic)}
+.check b{font-family:"Mitr",sans-serif;font-weight:500;font-size:13px;line-height:1.4;color:var(--ink2)}
+.check.lock b{color:var(--ink3)}
+
+/* coach message */
+.coach{
+  background:var(--amber-50);border-radius:20px;padding:16px 18px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.coach>.sym:first-child{font-size:22px;color:var(--amber-icon)}
+.coach .txt{flex:1 1 auto}
+.coach b{
+  display:block;font-family:"Mitr",sans-serif;font-weight:500;font-size:15.5px;
+  line-height:1.45;color:var(--amber-ink);
+}
+.coach span{display:block;font-size:15px;line-height:1.65;color:var(--amber-ink)}
+.coach .close{font-size:20px;color:var(--ink3);cursor:pointer;background:none;border:0;padding:0}
+
+/* question */
+.q{padding:34px;border-radius:28px;box-shadow:var(--sh-m)}
+.q-head{display:flex;align-items:center;gap:14px}
+.q-head h3{font-family:"Mitr",sans-serif;font-weight:600;font-size:22px;line-height:1.25;margin:0;white-space:nowrap}
+.tag{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--brand-50);color:var(--brand-dark);
+  border-radius:999px;padding:8px 16px;white-space:nowrap;
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:13.5px;line-height:1.4;
+}
+.tag .sym{font-size:17px}
+.flagbtn{
+  display:inline-flex;align-items:center;gap:8px;flex:none;cursor:pointer;
+  background:var(--card);border:1.5px solid var(--border-strong);
+  border-radius:999px;padding:9px 18px;color:var(--ink2);
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:14.5px;line-height:1.3;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.flagbtn .sym{font-size:19px}
+.flagbtn[aria-pressed="true"]{background:#FDE8E8;border-color:var(--red);color:var(--red)}
+
+.stem{font-size:20px;line-height:1.85;margin:18px 0}
+.figslot{
+  background:var(--page);border:1px solid var(--border-strong);border-radius:18px;
+  padding:22px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;
+}
+.figslot .sym{font-size:26px;color:var(--ink3)}
+.figslot span{font-size:13.5px;color:var(--ink3)}
+
+.options{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.opt{
+  display:flex;align-items:center;gap:16px;width:100%;text-align:start;
+  background:var(--card);border:1.5px solid var(--border);border-radius:20px;
+  padding:16px 20px;cursor:pointer;font:inherit;color:inherit;
+  transition:border-color .14s,background .14s,transform .14s;
+}
+.opt:hover{border-color:var(--border-strong);transform:translateX(2px)}
+.opt .key{
+  width:42px;height:42px;border-radius:14px;flex:none;display:grid;place-items:center;
+  background:var(--page);border:1px solid var(--border);color:var(--ink2);
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:17px;
+  transition:background .14s,color .14s,border-color .14s;
+}
+.opt .val{flex:1 1 auto;font-size:17.5px;font-variant-numeric:tabular-nums}
+.opt .tick{font-size:24px;color:var(--brand);opacity:0;transition:opacity .14s}
+.opt[aria-pressed="true"]{background:var(--brand-50);border-color:var(--brand);border-width:2px;padding:15px 19px}
+.opt[aria-pressed="true"] .key{background:var(--brand);border-color:var(--brand);color:var(--on-fill)}
+.opt[aria-pressed="true"] .tick{opacity:1}
+.opt:focus-visible,.tab:focus-visible,.flagbtn:focus-visible,.btn:focus-visible,.cellbtn:focus-visible{
+  outline:3px solid var(--mystic);outline-offset:2px;
+}
+
+.qnav{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+  border-radius:999px;padding:16px 26px;border:0;
+  font-family:"Mitr",sans-serif;font-weight:500;font-size:16px;line-height:1.3;
+  white-space:nowrap;transition:transform .14s,filter .14s;
+}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.btn .sym{font-size:20px}
+.btn.ghost{background:var(--card);border:1.5px solid var(--border-strong);color:var(--ink);padding:14.5px 24.5px}
+.btn.brand{background:var(--brand);color:var(--on-fill);box-shadow:var(--sh-m)}
+.btn.primary{background:var(--accent);color:var(--on-fill);box-shadow:var(--sh-m)}
+.clearbtn{
+  display:inline-flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;
+  color:var(--ink3);font-family:"Mitr",sans-serif;font-weight:500;font-size:14.5px;
+}
+.clearbtn .sym{font-size:18px}
+.kbhint{margin:12px 0 0;text-align:center;font-size:13px;color:var(--ink3);line-height:1.55}
+
+.secure{
+  background:var(--brand-50);border-radius:20px;padding:15px 18px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.secure .sym{font-size:21px;color:var(--brand)}
+.secure b{display:block;font-family:"Mitr",sans-serif;font-weight:500;font-size:15.5px;line-height:1.45}
+.secure span{display:block;font-size:15px;line-height:1.65;color:var(--ink2)}
+
+/* rail */
+.rail .card{display:flex;flex-direction:column;gap:18px;padding:22px;border-radius:28px}
+.ringwrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.ring{position:relative;width:156px;height:156px}
+.ring svg{transform:rotate(-90deg);display:block}
+.ring .mid{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;
+}
+.ring .mid b{
+  font-family:"Mitr",sans-serif;font-weight:600;font-size:41px;line-height:1.18;
+  font-variant-numeric:tabular-nums;
+}
+.ring .mid span{font-size:15px;color:var(--ink3);line-height:1.35}
+.ringwrap .note{font-size:13.5px;color:var(--ink3);text-align:center;line-height:1.55}
+
+.level{background:var(--mystic-50);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.level-head{display:flex;align-items:center;gap:9px}
+.level-head .sym{font-size:19px;color:var(--mystic)}
+.level-head b{font-family:"Mitr",sans-serif;font-weight:500;font-size:15px;line-height:1.35}
+.level-head .xpnum{margin-inline-start:auto;font-size:13px;color:var(--mystic);font-variant-numeric:tabular-nums}
+.level .bar{height:9px;border-radius:99px;background:rgba(124,58,237,.14);overflow:hidden}
+.level .bar i{display:block;height:100%;border-radius:99px;background:var(--mystic);width:80%}
+.level small{font-size:12.5px;color:var(--ink2);line-height:1.55}
+
+.palette{display:flex;flex-wrap:wrap;gap:5px}
+.cellbtn{
+  width:23px;height:23px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid var(--border);background:var(--page);color:var(--ink3);
+  font-family:"Mitr",sans-serif;font-weight:400;font-size:9.5px;line-height:1;
+  padding:0;cursor:pointer;font-variant-numeric:tabular-nums;
+}
+.cellbtn.done{background:var(--green);border-color:var(--green);color:var(--on-fill)}
+.cellbtn.flagged{background:var(--red);border-color:var(--red);color:var(--on-fill)}
+.cellbtn.here{background:var(--brand);border-color:var(--brand);color:var(--on-fill)}
+
+.legend{display:flex;flex-direction:column;gap:9px}
+.legend div{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink2)}
+.legend i{width:16px;height:16px;border-radius:5px;display:block;flex:none}
+
+.pre{background:var(--page);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.pre>b{font-family:"Mitr",sans-serif;font-weight:500;font-size:14.5px;line-height:1.4}
+.pre div{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--ink2);line-height:1.55}
+.pre div .sym{font-size:17px}
+.rail .btn.primary{justify-content:center;width:100%}
+.submitnote{font-size:12.5px;color:var(--ink3);text-align:center;line-height:1.5}
+
+.slimfoot{
+  background:#0C1533;padding:26px 40px;
+  display:flex;justify-content:space-between;align-items:center;gap:26px;
+  font-size:13.5px;color:#93A2C9;line-height:1.6;
+}
+.footnote{
+  border-top:1px solid var(--shell-line);padding-top:20px;
+  font-size:14px;color:var(--shell-ink2);max-width:70ch;line-height:1.7;
+}
+.footnote b{font-family:"Mitr",sans-serif;font-weight:500;color:var(--shell-ink)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+  .opt:hover,.btn:hover{transform:none}
+}
+</style>
+
+<div class="wrap">
+
+  <section class="intro">
+    <p class="eyebrow">PIPOL TUTOR · เฟรม 09</p>
+    <h1>ทำหน้าสอบให้เด็ก ป.6 อยากอยู่ต่อ ไม่ใช่แค่ทนจนหมดเวลา</h1>
+    <p>หน้าขาย 01–08 คุยกับพ่อแม่ โทนน้ำเงินองค์กรถูกแล้ว ไม่ต้องแตะ แต่หน้านี้เด็กอยู่นานสุดในเว็บ เลยเปลี่ยนทะเบียนภาษาเฉพาะโซนนี้ โดยยังไม่ทิ้งของที่พ่อแม่จ่ายเงินซื้อ — จับเวลา บันทึกอัตโนมัติ และเฉลยที่ไม่หลุดมาถึงเบราว์เซอร์</p>
+
+    <div class="moves">
+      <div class="move">
+        <span class="sym">flag_circle</span>
+        <b>ด่านแทนแถบเปอร์เซ็นต์</b>
+        <span>25 / 50 / 75 / 100 ข้อ มีหมุดให้ถึง เด็กเห็นเป้าถัดไปที่ไปถึงได้ใน 7 ข้อ ไม่ใช่เส้นยาวอีก 32 ข้อ</span>
+      </div>
+      <div class="move">
+        <span class="sym">bolt</span>
+        <b>เลเวลกับ XP อยู่ข้างสนาม</b>
+        <span>สะสมจากความพยายาม ไม่ใช่จากความถูก — เฉลยอยู่บนเซิร์ฟเวอร์ หน้าเว็บจึงให้รางวัลได้โดยไม่รู้คำตอบ</span>
+      </div>
+      <div class="move">
+        <span class="sym">donut_large</span>
+        <b>วงแหวนแทนแถบยาว</b>
+        <span>ตัวเลข 68 อ่านจบในสายตาเดียว วงแหวนกินพื้นที่แนวตั้งน้อยกว่า เหลือที่ให้ตารางธง 100 ช่อง</span>
+      </div>
+      <div class="move">
+        <span class="sym">touch_app</span>
+        <b>ปุ่มใหญ่ขึ้น มือเด็กเล็กกว่ามือผู้ใหญ่</b>
+        <span>ตัวเลือกสูงขึ้นเป็น 74px ช่อง ก ข ค ง 42px ติ๊กถูกขึ้นทันทีที่เลือก</span>
+      </div>
+      <div class="move">
+        <span class="sym">sentiment_very_satisfied</span>
+        <b>กล่องโค้ชพูดเหมือนพี่ ไม่ใช่ระบบ</b>
+        <span>“อีก 48 นาที กำลังดีเลย” แทน “เหลือเวลาอีก 48 นาที” ข้อมูลเท่าเดิม น้ำเสียงต่างกันคนละเรื่อง</span>
+      </div>
+      <div class="move">
+        <span class="sym">school</span>
+        <b>แถบ 5 วิชาที่เคยหายไป</b>
+        <span>หัวหน้าจอเขียนว่า 5 วิชามาตลอด แต่ไม่เคยมีที่ไหนให้กดข้ามวิชา ตอนนี้มีแล้วพร้อมยอดรายวิชา</span>
+      </div>
+    </div>
+  </section>
+
+  <p class="frame-label">
+    <code>PT · 09 ทำข้อสอบ</code>
+    <span>เดสก์ท็อป 1440 · กดเลือกคำตอบ ปักธง และสลับวิชาได้จริงในตัวอย่างนี้</span>
+  </p>
+
+  <div class="screen-scroll">
+  <div class="screen">
+
+    <!-- exam bar -->
+    <div class="exambar">
+      <div class="who">
+        <div class="avatar">ป</div>
+        <div>
+          <div class="who-name">
+            <b>น้องปุ๊กกี้</b>
+            <span class="pill lv"><span class="sym fill">workspace_premium</span>เลเวล 7</span>
+          </div>
+          <div class="who-sub">ชุดข้อสอบเสมือนจริง ชุดที่ 1 · 100 ข้อ</div>
+        </div>
+      </div>
+      <div class="grow"></div>
+      <span class="pill streak"><span class="sym fill">local_fire_department</span>ทำติดกัน 5 วัน</span>
+      <span class="pill xp"><span class="sym fill">bolt</span>+240 XP วันนี้</span>
+      <span class="pill saved"><span class="sym">cloud_done</span>เซฟให้แล้ว</span>
+      <span class="pill timer"><span class="sym">timer</span>48:12</span>
+      <button class="pill quit" type="button"><span class="sym">pause_circle</span>พักไว้ก่อน</button>
+    </div>
+
+    <!-- subject tabs -->
+    <div class="subjects">
+      <button class="tab on" type="button"><span class="sym">functions</span>คณิตศาสตร์<span class="count">24/30</span></button>
+      <button class="tab" type="button"><span class="sym">science</span>วิทยาศาสตร์<span class="count">21/30</span></button>
+      <button class="tab" type="button"><span class="sym">extension</span>ความสามารถทั่วไป<span class="count">12/15</span></button>
+      <button class="tab" type="button"><span class="sym">menu_book</span>ภาษาไทย<span class="count">8/15</span></button>
+      <button class="tab" type="button"><span class="sym">translate</span>ภาษาอังกฤษ<span class="count">3/10</span></button>
+      <div class="grow"></div>
+      <span class="hint">ข้ามไปวิชาไหนก่อนก็ได้ คำตอบเก็บแยกตามวิชา</span>
+    </div>
+
+    <div class="stage">
+      <div class="col-left">
+
+        <!-- quest track -->
+        <div class="card quest">
+          <div class="quest-head">
+            <span class="sym fill">flag_circle</span>
+            <h2>ด่านวันนี้</h2>
+            <div class="grow"></div>
+            <span class="next">อีก 7 ข้อถึงด่าน 75 ข้อ</span>
+          </div>
+          <div class="track"><i></i></div>
+          <div class="checks">
+            <div class="check done"><span class="dot"><span class="sym fill">check_circle</span></span><b>ครบ 25 ข้อ</b></div>
+            <div class="check done"><span class="dot"><span class="sym fill">check_circle</span></span><b>ครบ 50 ข้อ</b></div>
+            <div class="check next"><span class="dot"><span class="sym fill">bolt</span></span><b>อีก 7 ข้อ</b></div>
+            <div class="check lock"><span class="dot"><span class="sym">emoji_events</span></span><b>จบชุด</b></div>
+          </div>
+        </div>
+
+        <!-- coach -->
+        <div class="coach">
+          <span class="sym fill">sentiment_very_satisfied</span>
+          <div class="txt">
+            <b>อีก 48 นาที กำลังดีเลย</b>
+            <span>เหลืออีก 32 ข้อ ข้อไหนยากข้ามไปก่อนได้ เดี๋ยวค่อยวนกลับมาเก็บ</span>
+          </div>
+          <button class="close sym" type="button" aria-label="ปิดข้อความ">close</button>
+        </div>
+
+        <!-- question -->
+        <div class="card q">
+          <div class="q-head">
+            <h3>ข้อ 12</h3>
+            <span class="tag"><span class="sym">functions</span>คณิตศาสตร์ · สมการเชิงเส้น</span>
+            <div class="grow"></div>
+            <button class="flagbtn" type="button" aria-pressed="false" id="flag">
+              <span class="sym">flag</span>ปักธงไว้ทบทวน
+            </button>
+          </div>
+
+          <p class="stem">ถ้า 3x + 7 = 25 แล้วค่าของ x² − 2x เท่ากับข้อใด</p>
+
+          <div class="figslot">
+            <span class="sym">image</span>
+            <span>พื้นที่สำหรับรูปประกอบโจทย์ (ถ้ามี) — รองรับรูปภาพและตาราง</span>
+          </div>
+
+          <div class="options" id="options">
+            <button class="opt" type="button" aria-pressed="false" data-key="ก">
+              <span class="key">ก</span><span class="val">18</span><span class="sym fill tick">check_circle</span>
+            </button>
+            <button class="opt" type="button" aria-pressed="true" data-key="ข">
+              <span class="key">ข</span><span class="val">24</span><span class="sym fill tick">check_circle</span>
+            </button>
+            <button class="opt" type="button" aria-pressed="false" data-key="ค">
+              <span class="key">ค</span><span class="val">30</span><span class="sym fill tick">check_circle</span>
+            </button>
+            <button class="opt" type="button" aria-pressed="false" data-key="ง">
+              <span class="key">ง</span><span class="val">36</span><span class="sym fill tick">check_circle</span>
+            </button>
+          </div>
+
+          <div class="qnav">
+            <button class="btn ghost" type="button"><span class="sym">arrow_back</span>ข้อก่อนหน้า</button>
+            <button class="clearbtn" type="button" id="clear"><span class="sym">backspace</span>ล้างคำตอบข้อนี้</button>
+            <button class="btn brand" type="button">ข้อถัดไป<span class="sym">arrow_forward</span></button>
+          </div>
+          <p class="kbhint">เคล็ดลับ: กดปุ่ม ก ข ค ง บนคีย์บอร์ดเลือกคำตอบได้ กดลูกศรซ้ายขวาเปลี่ยนข้อ</p>
+        </div>
+
+        <!-- security -->
+        <div class="secure">
+          <span class="sym fill">lock</span>
+          <div>
+            <b>เฉลยไม่ถูกส่งมาที่เครื่องของน้อง</b>
+            <span>ระบบตรวจคำตอบบนเซิร์ฟเวอร์ทั้งหมด เปิด F12 หรือดูซอร์สโค้ดก็ไม่พบเฉลย</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- rail -->
+      <aside class="rail">
+        <div class="card">
+          <div class="ringwrap">
+            <div class="ring">
+              <svg width="156" height="156" viewBox="0 0 156 156" aria-hidden="true">
+                <circle cx="78" cy="78" r="70" fill="none" stroke="#F5F7FC" stroke-width="16"></circle>
+                <circle cx="78" cy="78" r="70" fill="none" stroke="#3A5BD9" stroke-width="16"
+                        stroke-linecap="round" stroke-dasharray="439.8"
+                        stroke-dashoffset="140.7"></circle>
+              </svg>
+              <div class="mid"><b>68</b><span>จาก 100 ข้อ</span></div>
+            </div>
+            <p class="note">ตอบแล้ว 68 ข้อ · ปักธงไว้ 7 ข้อ</p>
+          </div>
+
+          <div class="level">
+            <div class="level-head">
+              <span class="sym fill">bolt</span>
+              <b>เลเวล 7</b>
+              <span class="xpnum">240 / 300 XP</span>
+            </div>
+            <div class="bar"><i></i></div>
+            <small>อีก 60 XP ขึ้นเลเวล 8 ปลดกรอบโปรไฟล์ใหม่</small>
+          </div>
+
+          <div class="palette" id="palette"></div>
+
+          <div class="legend">
+            <div><i style="background:#F5F7FC;border:1px solid #E3E9F4"></i>ยังไม่ได้ทำ</div>
+            <div><i style="background:#16A34A"></i>ตอบแล้ว</div>
+            <div><i style="background:#EF4444"></i>ปักธงไว้ทบทวน</div>
+            <div><i style="background:#3A5BD9"></i>ข้อที่กำลังทำอยู่</div>
+          </div>
+
+          <div class="pre">
+            <b>ก่อนส่ง เช็กให้ครบ</b>
+            <div><span class="sym">radio_button_unchecked</span>ยังไม่ได้ตอบ 32 ข้อ</div>
+            <div><span class="sym fill" style="color:#EF4444">flag</span>ปักธงรอทบทวน 7 ข้อ</div>
+            <div><span class="sym" style="color:#E5551C">timer</span>เหลือเวลา 48:12 หมดเวลาระบบส่งให้เอง</div>
+          </div>
+
+          <button class="btn primary" type="button"><span class="sym">task_alt</span>ส่งคำตอบและตรวจ</button>
+          <p class="submitnote">ส่งได้เมื่อทำครบทุกข้อ หรือเมื่อหมดเวลา</p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="slimfoot">
+      <span>© 2568 PIPOL TUTOR — สงวนลิขสิทธิ์ทุกประการ</span>
+      <span>ออกแบบสำหรับนักเรียนที่ตั้งใจสอบเข้า จภ.</span>
+    </div>
+
+  </div>
+  </div>
+
+  <p class="footnote">
+    <b>ยังไม่ได้ทำในรอบนี้:</b> เฟรมมือถือ 430px และโหมดกลางคืน — ทั้งสองอย่างต้องรื้อผังคอลัมน์กับตารางธง 100 ช่องใหม่ ไม่ใช่แค่เปลี่ยนสี เลยแยกเป็นรอบถัดไป ตัวเลขทุกตัวบนหน้านี้เป็นเนื้อหาสมมติสำหรับงานออกแบบ ยังไม่ใช่ข้อมูลจริงจากผู้สอน
+  </p>
+</div>
+
+<script>
+(function(){
+  var flags = {4:1,9:1,15:1,23:1,31:1,44:1,57:1};
+  var pal = document.getElementById('palette');
+  for (var n = 1; n <= 100; n++) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cellbtn' + (n === 12 ? ' here' : flags[n] ? ' flagged' : n <= 68 ? ' done' : '');
+    b.textContent = n;
+    b.setAttribute('aria-label', 'ข้อ ' + n);
+    pal.appendChild(b);
+  }
+
+  var opts = Array.prototype.slice.call(document.querySelectorAll('#options .opt'));
+  function pick(el){
+    opts.forEach(function(o){ o.setAttribute('aria-pressed', String(o === el)); });
+  }
+  opts.forEach(function(o){ o.addEventListener('click', function(){ pick(o); }); });
+
+  document.getElementById('clear').addEventListener('click', function(){ pick(null); });
+
+  var flag = document.getElementById('flag');
+  flag.addEventListener('click', function(){
+    var on = flag.getAttribute('aria-pressed') !== 'true';
+    flag.setAttribute('aria-pressed', String(on));
+    flag.lastChild.textContent = on ? 'ปักธงไว้แล้ว' : 'ปักธงไว้ทบทวน';
+  });
+
+  document.querySelectorAll('.subjects .tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.subjects .tab').forEach(function(x){ x.classList.remove('on'); });
+      t.classList.add('on');
+    });
+  });
+
+  document.querySelector('.coach .close').addEventListener('click', function(){
+    document.querySelector('.coach').style.display = 'none';
+  });
+
+  document.addEventListener('keydown', function(e){
+    var i = ['ก','ข','ค','ง'].indexOf(e.key);
+    if (i > -1) { pick(opts[i]); }
+  });
+})();
+</script>
