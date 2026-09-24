@@ -1,5 +1,9 @@
-# For local development
-localhost {
+# Site address comes from SITE_ADDRESS in docker/.env (default: localhost).
+# Production: SITE_ADDRESS="pipoltutor.org, www.pipoltutor.org" — Caddy then
+# fetches Let's Encrypt certs for each name once DNS points at this server.
+{$SITE_ADDRESS:localhost} {
+    encode zstd gzip
+
     # Forward all API traffic to ElysiaJS backend; handle_path strips the
     # /api prefix so the backend keeps its bare routes (/health, /orders, ...).
     handle_path /api/* {

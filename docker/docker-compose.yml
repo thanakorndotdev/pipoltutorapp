@@ -8,6 +8,9 @@ services:
     image: caddy:2-alpine
     container_name: app_caddy
     restart: unless-stopped
+    environment:
+      # Read by the Caddyfile as {$SITE_ADDRESS}; empty falls back to localhost.
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
     ports:
       - "80:80"
       - "443:443"
