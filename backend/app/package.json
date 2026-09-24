@@ -1,0 +1,25 @@
+{
+  "name": "app",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "bun run src/db/seed.ts",
+    "e2e:session": "bun run src/db/e2e-session.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "elysia": "latest",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.10"
+  },
+  "module": "src/index.js"
+}
