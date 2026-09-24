@@ -44,8 +44,9 @@ export type Pack = {
   id: string;
   slug: string;
   title: string;
-  productId: string | null;
-  productTitle?: string | null;
+  /** Products that unlock the pack; empty means free. */
+  productIds: string[];
+  unlockedBy: { id: string; title: string }[];
   questionCount: number;
   durationSeconds: number;
   createdAt: string;
@@ -56,7 +57,7 @@ export type Pack = {
 export type PackInput = {
   slug: string;
   title: string;
-  productId: string | null;
+  productIds: string[];
   questionCount: number;
   durationSeconds: number;
 };
@@ -79,6 +80,14 @@ export type Product = {
   slug: string;
   kind: "course" | "exam_pack" | "bundle" | "fortune";
   title: string;
+  description?: string | null;
+  priceSatang: number;
+  active: boolean;
+};
+
+export type ProductInput = {
+  title: string;
+  description: string | null;
   priceSatang: number;
   active: boolean;
 };

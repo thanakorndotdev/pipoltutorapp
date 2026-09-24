@@ -1,0 +1,9 @@
+# Host-side artifacts must never enter an image: macOS native modules
+# segfault Bun inside the alpine build stage.
+**/node_modules
+**/.next
+**/out
+**/.git
+**/.env
+**/.env.*
+!**/.env.example

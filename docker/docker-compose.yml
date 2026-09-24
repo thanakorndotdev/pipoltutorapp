@@ -30,6 +30,12 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      # Server-side fetches (lib/api.ts, lib/auth.ts) go straight to the
+      # backend container, not through Caddy.
+      BACKEND_URL: http://backend:3001
+    depends_on:
+      backend:
+        condition: service_started
     # No exposed host ports needed; Caddy handles incoming traffic
 
   backend:
@@ -57,6 +63,10 @@ services:
       # Omise (src/payments/omise.ts). Register <PUBLIC_URL>/api/webhooks/omise in the Omise dashboard.
       OMISE_PUBLIC_KEY: ${OMISE_PUBLIC_KEY:-}
       OMISE_SECRET_KEY: ${OMISE_SECRET_KEY:-}
+      # Cloudflare Workers AI for ดูดวง (src/ai/cloudflare.ts). Empty = rule-based fallback.
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_AI_MODEL: ${CLOUDFLARE_AI_MODEL:-}
     volumes:
       - uploads_data:/app/uploads
     depends_on:

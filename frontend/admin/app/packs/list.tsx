@@ -27,7 +27,7 @@ export function PackList() {
       .then(([p, prod, s]) => {
         if (cancelled) return;
         setPacks(p.packs);
-        setProducts(prod.filter((x) => x.active && x.kind !== "fortune"));
+        setProducts(prod.filter((x) => x.active && x.kind !== "fortune").sort((a, b) => a.priceSatang - b.priceSatang));
         setMultiplier(s.timeMultiplierPercent);
         setError(null);
       })
@@ -97,7 +97,7 @@ export function PackList() {
                     <dt className="text-ink3">นักเรียนได้ ({multiplier}%)</dt>
                     <dd className="tabular">{formatClock(Math.round((p.durationSeconds * multiplier) / 100))}</dd>
                     <dt className="text-ink3">ปลดล็อกด้วย</dt>
-                    <dd>{p.productTitle ?? "ชุดฟรี"}</dd>
+                    <dd>{p.unlockedBy.length > 0 ? p.unlockedBy.map((x) => x.title).join(" / ") : "ชุดฟรี"}</dd>
                   </dl>
                   <div className="mt-auto flex flex-wrap gap-2 border-t border-border pt-3">
                     <Link href={`/packs/edit/?id=${p.id}`} className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[12px] bg-brand px-3 text-[14px] font-medium text-on-fill hover:bg-brand-dark">
