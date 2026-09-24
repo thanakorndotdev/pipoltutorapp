@@ -14,7 +14,7 @@ description: Start, verify, and tear down the PIPOL TUTOR local stack (Caddy + N
 | `docker/Caddyfile` | Routes `/api/*` to `backend:3001`, everything else to `frontend:3000`, on `localhost`. |
 | `backend/app` | Bun + Elysia + Drizzle. Container entrypoint runs `bun run db:migrate && bun run start`. |
 | `frontend/pipoltutor-app` | Next.js 16 + React 19 + Tailwind v4, built at image build time. |
-| `frontend/admin` | Admin dashboard. Next.js 16 **static export** (`output: "export"`, `basePath: "/admin"`), no server of its own. Caddy bind-mounts `frontend/admin/out` at `/srv/admin`; build it on the host first. |
+| `frontend/admin` | Admin dashboard. Next.js 16 **static export** (`output: "export"`, `basePath: "/admin"`), no server of its own. **Not deployed** (removed from Caddy and compose 2026-09-24); run it with `bun run dev` on :3002. |
 | `db/init.sql` | Runs once on an empty Postgres volume. Extensions only — tables come from drizzle migrations. |
 
 ## First run
@@ -30,11 +30,10 @@ Compose fails fast with `set POSTGRES_USER in docker/.env` if the env file is mi
 
 ```bash
 cd frontend/admin
-bun run build                 # writes out/ — Caddy serves it at https://localhost/admin/
-bun run dev                   # host dev loop on :3002, proxies /api/* to :3001
+bun run dev                   # :3002, proxies /api/* to BACKEND_URL (default :3001)
 ```
 
-Static, so a change is live after `bun run build` (no container rebuild). Authenticated with `ADMIN_API_KEY` from `docker/.env` (sent as `x-admin-key`; the backend reads it via `hostEnv()` on the host too). Routes: `/admin/` stats, `/admin/questions/` bank, `/admin/packs/` + `/admin/packs/edit/?id=` picker, `/admin/settings/` exam date & time multiplier.
+Not deployed: Caddy has no `/admin` route and compose mounts nothing, so `https://localhost/admin/` is a Next.js 404. The admin API under `/api/admin/*` stays live. Authenticated with `ADMIN_API_KEY` from `docker/.env` (sent as `x-admin-key`; the backend reads it via `hostEnv()` on the host too). Routes: `/admin/` stats, `/admin/questions/` bank, `/admin/packs/` + `/admin/packs/edit/?id=` picker, `/admin/settings/` exam date & time multiplier.
 
 ## Everyday commands
 

@@ -6,14 +6,8 @@ localhost {
         reverse_proxy backend:3001
     }
 
-    # Admin dashboard: a static export of frontend/admin (basePath /admin),
-    # bind-mounted at /srv/admin. Build it on the host first:
-    #   cd frontend/admin && bun run build
-    handle /admin* {
-        root * /srv
-        try_files {path} {path}/ =404
-        file_server
-    }
+    # The admin dashboard is not deployed; run it locally with
+    # `cd frontend/admin && bun run dev` (http://localhost:3002/admin/).
 
     # Forward all other traffic to Next.js frontend
     handle {

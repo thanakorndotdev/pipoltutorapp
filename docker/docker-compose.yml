@@ -14,8 +14,6 @@ services:
       - "443:443/udp" # Required for HTTP/3 (QUIC)
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      # Static admin dashboard; `bun run build` in frontend/admin first.
-      - ../frontend/admin/out:/srv/admin:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

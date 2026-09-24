@@ -23,13 +23,16 @@ sales pages, checkout, payment success (auto-unlock + LINE group invite link), e
 report, and a fortune-telling ("ดูดวง") module — form, checkout, plus prediction result.
 
 ## Commercial truth
-- Exam pack: 590 THB. Full course: 4,900 THB. Course + all packs: 5,200 THB.
-- Payment gateway not yet chosen. Paid access unlocks automatically and issues a LINE group link.
+- Exam pack: 590 THB. Full course: 4,900 THB. Course + all packs: 5,200 THB. These are the seeded
+  starting prices; the live prices are whatever the admin sets under สินค้าและราคา (DB is the truth).
+- Payment gateway: Omise (Opn Payments), PromptPay QR and card. Paid access unlocks automatically via
+  an entitlement, and the success page shows the LINE link (admin-editable text `brand.line_url`).
 - Login is Google OAuth only.
 
 ## Constraints
 - Responsive: phone and desktop both first-class.
-- Deliverable right now is Figma design only; no application code yet.
+- The app is built (backend, student site, admin dashboard); see README.md. The Figma file remains the
+  design truth for visuals.
 - Thai typography must hold at every size (tone marks and upper/lower vowels stack above and below
   the baseline, so line height and font choice matter more than in Latin-only work).
 
@@ -39,10 +42,13 @@ for the design and must be replaced before launch:
 - Instructor name "พี่พิพล", the claim that he is a จภ. alumnus, and his biography.
 - All numbers used as proof: 6 cohorts, 120+ students, 40 seats per cohort, pass rates.
 - All testimonials and student names.
-- The exam date 25 January 2569 and the countdown built on it.
-- The fortune-telling module's prediction rules (the client owes these).
-- The fortune-telling price (99 THB per reading, 249 THB for a 3-reading pack, 20 THB course-member
-  discount). The client has not set a price for this module; these numbers exist only so the checkout
-  screen has something to show.
+- The exam date and the countdown built on it. Stored in exam_settings and editable in admin
+  (วันสอบและเวลา); the seeded date is a placeholder.
+- The fortune-telling module's prediction rules (the client owes these). Today the reading is
+  rule-based facts plus Cloudflare Workers AI prose, falling back to rule text when AI is off.
+- The fortune-telling topics and prices: ดูดวงการสอบ 99 THB, ดูดวงเลือกสนามสอบ 149 THB, ดูดวงรวม 199 THB.
+  Topic names and prices were invented by the developer; the client has not confirmed either. Admin can
+  change prices and add or retire topics. The earlier 3-reading pack and 20 THB course-member discount
+  were never built (the pack product is inactive).
 - The parent-consent gate on the fortune checkout, which assumes the client wants a parent to confirm
   any purchase made by a student under 15.
