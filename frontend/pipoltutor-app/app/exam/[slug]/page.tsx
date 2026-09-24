@@ -1,10 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { SlimFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Band, Button, Card, Icon } from "@/components/ui";
 import { fetchExamPack, type ExamPack } from "@/lib/api";
-import { sessionHeaders } from "@/lib/auth";
+import { getSessionUser, sessionHeaders } from "@/lib/auth";
 import { ExamClient } from "./exam-client";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -20,7 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 /**
  * The runner for one pack. A pack the student has not unlocked renders the
  * locked screen instead of the runner — advisory only, the backend refuses
- * POST /attempts for it regardless.
+ * POST /attempts for it regardless. The runner itself needs a session:
+ * questions come only from an attempt, and attempts belong to a user.
  */
 export default async function ExamPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -31,6 +32,9 @@ export default async function ExamPage({ params }: { params: Promise<{ slug: str
     if (error instanceof Error && error.message.endsWith("404")) notFound();
     throw error;
   }
+
+  const user = await getSessionUser();
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/exam/${slug}`)}`);
 
   if (!pack.unlocked) {
     return (
@@ -61,7 +65,7 @@ export default async function ExamPage({ params }: { params: Promise<{ slug: str
   return (
     <>
       <main className="flex flex-1 flex-col">
-        <ExamClient allowedSeconds={pack.allowedSeconds} />
+        <ExamClient packId={pack.id} packTitle={pack.title} studentName={user.displayName ?? user.email} />
       </main>
       <SlimFooter />
     </>

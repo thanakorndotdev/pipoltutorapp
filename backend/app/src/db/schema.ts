@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -300,7 +300,13 @@ export const attempts = pgTable(
     /** { "<topic>": { correct: n, total: n } } filled in at grading time. */
     topicBreakdown: jsonb("topic_breakdown"),
   },
-  (t) => [index("attempts_user_id_idx").on(t.userId)]
+  (t) => [
+    index("attempts_user_id_idx").on(t.userId),
+    /** At most one open attempt per user and pack, so a double start cannot split answers. */
+    uniqueIndex("attempts_open_user_pack_key")
+      .on(t.userId, t.packId)
+      .where(sql`${t.status} = 'in_progress'`),
+  ]
 );
 
 export const attemptAnswers = pgTable(

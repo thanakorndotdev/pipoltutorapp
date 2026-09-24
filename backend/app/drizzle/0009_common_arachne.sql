@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "attempts_open_user_pack_key" ON "attempts" USING btree ("user_id","pack_id") WHERE "attempts"."status" = 'in_progress';
