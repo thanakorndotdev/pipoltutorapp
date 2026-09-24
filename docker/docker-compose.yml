@@ -5,7 +5,10 @@
 # it sits next to this file. Copy docker/.env.example to get started.
 services:
   caddy:
-    image: caddy:2-alpine
+    # caddy:2-alpine plus the admin dashboard's static export (/admin/).
+    build:
+      context: ..
+      dockerfile: docker/caddy.Dockerfile
     container_name: app_caddy
     restart: unless-stopped
     environment:

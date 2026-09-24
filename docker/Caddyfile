@@ -10,8 +10,15 @@
         reverse_proxy backend:3001
     }
 
-    # The admin dashboard is not deployed; run it locally with
-    # `cd frontend/admin && bun run dev` (http://localhost:3002/admin/).
+    # Admin dashboard: static export baked into the caddy image
+    # (caddy.Dockerfile) at /srv/admin. Built with basePath /admin, so the
+    # files under /srv/admin have no /admin prefix — handle_path strips it.
+    redir /admin /admin/ 308
+    handle_path /admin/* {
+        root * /srv/admin
+        try_files {path} {path}/index.html {path}.html
+        file_server
+    }
 
     # Forward all other traffic to Next.js frontend
     handle {
