@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { MsgBox } from "@/components/msg-box";
 import { Button, Icon } from "@/components/ui";
 import {
   ExamApiError,
@@ -20,6 +21,8 @@ import { formatClock } from "@/lib/format";
 const MILESTONES = [25, 50, 75, 100];
 const SUBJECT_ORDER: QuestionSubject[] = ["math", "science", "general_aptitude", "thai", "english"];
 const RETRY_MS = 2000;
+/** The time warning pops once when this many seconds remain. */
+const WARN_SECONDS = 5 * 60;
 
 type Props = {
   packId: string;
@@ -30,6 +33,8 @@ type Props = {
 /** One question's state as the server stores it. */
 type Entry = { selectedChoice: string | null; flagged: boolean };
 type SaveState = "saved" | "saving" | "offline";
+/** Which message box is up, if any. */
+type Msg = "confirm" | "warn" | "timeup" | "closed" | null;
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -45,6 +50,8 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const [deadline, setDeadline] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [saveState, setSaveState] = useState<SaveState>("saved");
+  const [msg, setMsg] = useState<Msg>(null);
+  const warned = useRef(false);
 
   // Autosave queue: latest unsent state per question, drained one request
   // at a time so writes for a question never arrive out of order.
@@ -87,6 +94,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
           if (error instanceof ExamApiError && error.status === 409) {
             // Closed on the server (time up or already submitted).
             pending.current.clear();
+            setMsg("closed");
             void finish(attemptId);
             return;
           }
@@ -119,6 +127,8 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
         setAttemptId(attempt.id);
         setQuestions(data.questions);
         setEntries(restored);
+        // A resume that already starts inside the warning window skips the popup.
+        warned.current = data.attempt.secondsLeft <= WARN_SECONDS;
         setDeadline(Date.now() + data.attempt.secondsLeft * 1000);
         setSecondsLeft(data.attempt.secondsLeft);
         setPhase("ready");
@@ -140,7 +150,13 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
     const tick = () => {
       const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       setSecondsLeft(left);
-      if (left === 0) void finish(attemptId);
+      if (left === 0) {
+        setMsg("timeup");
+        void finish(attemptId);
+      } else if (left <= WARN_SECONDS && !warned.current) {
+        warned.current = true;
+        setMsg("warn");
+      }
     };
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
@@ -490,12 +506,39 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
             <p className="flex items-start gap-2"><Icon name="timer" size={17} className="text-accent-dark" />เหลือเวลา {timer} หมดเวลาระบบส่งให้เอง</p>
           </div>
 
-          <Button icon="task_alt" className="w-full" disabled={!canSubmit} onClick={() => void finish(attemptId)}>
+          <Button icon="task_alt" className="w-full" disabled={!canSubmit} onClick={() => setMsg("confirm")}>
             {phase === "submitting" ? "กำลังส่งคำตอบ…" : "ส่งคำตอบและตรวจ"}
           </Button>
           <p className="text-center text-[12.5px] text-ink3">ส่งได้เมื่อทำครบทุกข้อ หรือเมื่อหมดเวลา</p>
         </aside>
       </div>
+
+      <MsgBox
+        open={msg === "confirm" && phase === "ready"}
+        tone={flagCount > 0 ? "warn" : "info"}
+        title="ส่งคำตอบและตรวจเลยไหม"
+        onClose={() => setMsg(null)}
+        actions={[
+          { label: "กลับไปทบทวน", kind: "ghost", icon: "arrow_back", onClick: () => setMsg(null) },
+          { label: "ยืนยันส่งคำตอบ", icon: "task_alt", onClick: () => { setMsg(null); void finish(attemptId); } },
+        ]}
+      >
+        <p>ตอบแล้ว {answeredCount}/{total} ข้อ เหลือเวลา {timer}</p>
+        {flagCount > 0 ? <p className="text-red">ยังปักธงรอทบทวนไว้ {flagCount} ข้อ</p> : null}
+        <p>ส่งแล้วแก้คำตอบไม่ได้</p>
+      </MsgBox>
+      <MsgBox
+        open={msg === "warn" && phase === "ready"}
+        tone="warn"
+        title={`เหลือเวลาอีก ${Math.ceil(secondsLeft / 60)} นาที`}
+        onClose={() => setMsg(null)}
+        actions={[{ label: "ทำต่อ", icon: "edit", onClick: () => setMsg(null) }]}
+      >
+        <p>ตอบแล้ว {answeredCount}/{total} ข้อ{flagCount > 0 ? ` · ปักธงไว้ ${flagCount} ข้อ` : ""} หมดเวลาระบบจะส่งคำตอบที่เซฟไว้ให้อัตโนมัติ</p>
+      </MsgBox>
+      <MsgBox open={msg === "timeup" || msg === "closed"} tone="danger" title={msg === "timeup" ? "หมดเวลาแล้ว" : "ชุดนี้ปิดรับคำตอบแล้ว"}>
+        <p>กำลังส่งคำตอบที่เซฟไว้และตรวจคะแนน รอสักครู่…</p>
+      </MsgBox>
     </div>
   );
 }

@@ -72,6 +72,14 @@ function bypassesPaywall(user: { role: UserRole } | null) {
   return user !== null && (user.role === "admin" || user.role === "dev" || user.role === "test");
 }
 
+/**
+ * Finished attempts a student may have per pack ("ทำซ้ำได้ 3 ครั้ง" on the
+ * site). Besides matching the offer, the cap stops a student from mapping
+ * the answer key by submitting throwaway attempts and reading each review.
+ * Staff bypass it like the paywall.
+ */
+export const MAX_ATTEMPTS_PER_PACK = 3;
+
 /** A pack is open when it is free or any unlocking product is entitled. */
 function isUnlocked(productIds: string[], owned: Set<string>) {
   return productIds.length === 0 || productIds.some((id) => owned.has(id));
@@ -281,6 +289,17 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       const timing = await packTiming(pack);
       if (open) {
         return { attempt: { ...attemptView(open), ...timing }, resumed: true };
+      }
+
+      if (!bypassesPaywall(user)) {
+        const [{ used }] = await db
+          .select({ used: count() })
+          .from(attempts)
+          .where(and(eq(attempts.userId, user.id), eq(attempts.packId, pack.id)));
+        if (used >= MAX_ATTEMPTS_PER_PACK) {
+          set.status = 403;
+          return { error: `ทำชุดนี้ครบ ${MAX_ATTEMPTS_PER_PACK} ครั้งแล้ว ดูผลและเฉลยย้อนหลังได้ที่หน้าผลสอบ` };
+        }
       }
 
       // attempts_open_user_pack_key allows one open attempt per user and

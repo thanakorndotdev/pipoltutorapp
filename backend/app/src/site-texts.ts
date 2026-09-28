@@ -17,6 +17,8 @@ export type SiteTextSlot = {
   kind: SiteTextKind;
   hint?: string;
   default: string;
+  /** Never served by the public GET /site/texts; read only through a gated route. */
+  private?: boolean;
 };
 
 const T = "พี่ที";
@@ -34,7 +36,11 @@ export const SITE_TEXT_SLOTS: readonly SiteTextSlot[] = [
   // ── brand ──
   S("brand.tutor_name", "ชื่อผู้สอน", "brand", T, "text", "ใช้ในเมนู \"รู้จัก…\" และข้อความที่อ้างถึงผู้สอน"),
   S("brand.tagline", "คำโปรยใต้โลโก้", "brand", "ติวเข้า ม.1 จภ."),
-  S("brand.line_url", "ลิงก์กลุ่ม/บัญชี LINE", "brand", "https://line.me/R/ti/p/@pipoltutor", "text", "ลิงก์เต็ม ขึ้นต้นด้วย https://"),
+  S("brand.line_url", "ลิงก์บัญชี LINE (สาธารณะ)", "brand", "https://line.me/R/ti/p/@pipoltutor", "text", "ลิงก์ทักแชต แสดงให้ทุกคนเห็น ขึ้นต้นด้วย https://"),
+  {
+    ...S("private.line_group_url", "ลิงก์เชิญเข้ากลุ่ม LINE ของคอร์ส (เฉพาะผู้ซื้อ)", "brand", "", "text", "ส่งให้เฉพาะบัญชีที่ชำระเงินแล้ว ไม่แสดงบนหน้าเว็บสาธารณะ เว้นว่าง = ใช้ลิงก์บัญชี LINE แทน"),
+    private: true,
+  },
 
   // ── home: hero ──
   S("home.hero_pill", "หน้าแรก — ป้ายเหนือหัวข้อ", "home", "เปิดรับสมัครแล้ว"),
@@ -141,6 +147,12 @@ export const SITE_TEXT_SLOTS: readonly SiteTextSlot[] = [
 ];
 
 export const SITE_TEXT_DEFAULTS: Record<string, string> = Object.fromEntries(SITE_TEXT_SLOTS.map((s) => [s.key, s.default]));
+
+const PRIVATE_TEXT_KEYS = new Set(SITE_TEXT_SLOTS.filter((s) => s.private).map((s) => s.key));
+
+export function isPrivateTextKey(key: string): boolean {
+  return PRIVATE_TEXT_KEYS.has(key);
+}
 
 export function isSiteTextKey(key: string): boolean {
   return key in SITE_TEXT_DEFAULTS;

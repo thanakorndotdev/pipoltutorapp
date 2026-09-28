@@ -5,6 +5,7 @@ import { fetchExamSettings } from "@/lib/api";
 import { LINE_URL, TUTOR_NAME } from "@/lib/content";
 import { getCopy } from "@/lib/site-texts";
 import { getSessionUser } from "@/lib/auth";
+import { fetchLineInvite } from "@/lib/orders";
 
 export const metadata = { title: "เมนูหลัก · PIPOL TUTOR" };
 
@@ -21,7 +22,9 @@ export default async function DashboardPage() {
   const user = await getSessionUser();
   const firstName = user?.displayName?.trim().split(/\s+/)[0] || user?.email;
   const tutor = c.t("brand.tutor_name", TUTOR_NAME);
-  const lineUrl = c.t("brand.line_url", LINE_URL);
+  // Buyers get the private group invite; everyone else the public chat link.
+  const lineInvite = await fetchLineInvite();
+  const lineUrl = lineInvite ?? c.t("brand.line_url", LINE_URL);
   let daysLeft: number | null = null;
   try {
     daysLeft = (await fetchExamSettings()).daysLeft;
@@ -66,7 +69,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-5">
               <MenuCard icon="shopping_bag" tileClass="bg-amber-50 text-amber-icon" title="ซื้อคอร์ส / ชุดข้อสอบ" desc="ดูรายการที่ยังไม่ได้ซื้อ" meta="ดูคอร์สและราคา" href="/courses" />
               <MenuCard icon="auto_awesome" tileClass="bg-mystic-50 text-mystic" title="ดูดวงแนวทางสอบ" desc="กรอกข้อมูลเพื่อดูคำทำนาย" meta="ดูรายละเอียด" href="/fortune" />
-              <MenuCard icon="forum" tileClass="bg-green-50 text-green" title="กลุ่ม LINE" desc={`เข้ากลุ่มถาม${tutor}ได้ตลอด`} meta="เปิดใน LINE" href={lineUrl} />
+              <MenuCard icon="forum" tileClass="bg-green-50 text-green" title={lineInvite ? "กลุ่ม LINE" : "LINE"} desc={lineInvite ? `เข้ากลุ่มถาม${tutor}ได้ตลอด` : `ทักถาม${tutor}ได้ก่อนสมัคร`} meta="เปิดใน LINE" href={lineUrl} />
             </div>
           </div>
         </Band>

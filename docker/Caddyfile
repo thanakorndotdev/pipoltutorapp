@@ -4,6 +4,18 @@
 {$SITE_ADDRESS:localhost} {
     encode zstd gzip
 
+    # Baseline hardening for every response. HSTS only matters once the site
+    # is on a real domain; browsers ignore it for localhost.
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        -Server
+        -X-Powered-By
+    }
+
     # Forward all API traffic to ElysiaJS backend; handle_path strips the
     # /api prefix so the backend keeps its bare routes (/health, /orders, ...).
     handle_path /api/* {

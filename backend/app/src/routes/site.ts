@@ -4,7 +4,7 @@ import { Elysia, t } from "elysia";
 import { db } from "../db";
 import { siteAssets, siteTexts } from "../db/schema";
 import { SITE_ASSET_SLOTS, isSiteAssetKey } from "../site-assets";
-import { SITE_TEXT_DEFAULTS, SITE_TEXT_SLOTS, isSiteTextKey } from "../site-texts";
+import { SITE_TEXT_DEFAULTS, SITE_TEXT_SLOTS, isPrivateTextKey, isSiteTextKey } from "../site-texts";
 import { adminGuard } from "./admin/guard";
 
 export type SiteAssetValue = { imageUrl: string; alt: string; updatedAt: Date };
@@ -30,11 +30,12 @@ const keyParam = t.Object({ key: t.String({ minLength: 1, maxLength: 80 }) });
 export const siteRoutes = new Elysia({ prefix: "/site" })
   /** Public: only the slots that have an image, keyed by slot. */
   .get("/assets", async () => ({ assets: await loadAssets() }))
-  /** Public: every registered text, override applied over its default. */
+  /** Public: every registered text, override applied over its default. Private slots are left out. */
   .get("/texts", async () => {
     const overrides = await loadTextOverrides();
     const texts: Record<string, string> = { ...SITE_TEXT_DEFAULTS };
     for (const [k, v] of Object.entries(overrides)) texts[k] = v.value;
+    for (const k of Object.keys(texts)) if (isPrivateTextKey(k)) delete texts[k];
     return { texts };
   });
 

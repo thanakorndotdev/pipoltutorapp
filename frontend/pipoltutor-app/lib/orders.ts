@@ -78,3 +78,19 @@ export async function fetchMyEntitlements(): Promise<Entitlement[]> {
     return [];
   }
 }
+
+/**
+ * Server components: the private LINE group invite for a paying user, or
+ * null (signed out, nothing bought yet, backend unreachable).
+ */
+export async function fetchLineInvite(): Promise<string | null> {
+  const h = await sessionHeader();
+  if (!h) return null;
+  try {
+    const res = await fetch(`${BACKEND_URL}/entitlements/line-invite`, { cache: "no-store", headers: h });
+    if (!res.ok) return null;
+    return ((await res.json()) as { url: string }).url || null;
+  } catch {
+    return null;
+  }
+}

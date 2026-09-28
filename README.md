@@ -1,5 +1,7 @@
 # PIPOL TUTOR
 
+**Version 1.0.1** (2026-09-28). The version is set in `backend/app/package.json`, `frontend/pipoltutor-app/package.json` and `frontend/admin/package.json`, and the API reports it on `GET /api/health`. Bump all three together. See [Changelog](#changelog).
+
 A single-tutor website that sells prep for the จภ. (Princess Chulabhorn Science High School) M.1 entrance exam. It has courses, timed mock exams graded on the server, and a paid fortune-telling (ดูดวง) module. The site is in Thai. Product background, pricing and placeholder assumptions are in [PRODUCT.md](PRODUCT.md).
 
 ## Repository layout
@@ -361,3 +363,16 @@ The detailed rules live in `.claude/skills/*/SKILL.md`:
 - `drizzle-migrate`: the schema-change workflow
 
 Money is always stored as **integer satang** (`priceSatang`, `amountSatang`) and shown as whole baht.
+
+## Changelog
+
+### 1.0.1 (2026-09-28)
+
+Patch against quotation QT-2026-0001, plus security fixes.
+
+- **Exam message box.** The exam screen now has a modal message box (`components/msg-box.tsx`). It asks for confirmation before submitting and warns if flagged questions remain. It also warns when 5 minutes are left, and blocks the screen with a notice when time runs out or the server has already closed the attempt.
+- **Private LINE group link.** The link is set by an admin in the private site-text slot `private.line_group_url`. `GET /api/entitlements/line-invite` returns it only to an account with a live course or exam-pack entitlement, and the first hand-off is stamped on `users.line_invite_sent_at`. Private slots are left out of the public `GET /api/site/texts`. The success page and the dashboard show the link to buyers. If the slot is empty, the public `brand.line_url` is used.
+- **Attempt cap.** A student can take each pack 3 times (`MAX_ATTEMPTS_PER_PACK`), which matches the "ทำซ้ำได้ 3 ครั้ง" offer. Before this there was no limit, so a student could work out the answer key by submitting throwaway attempts and reading each review. Staff roles are exempt.
+- **Upload hardening.** An admin image upload must start with real PNG, JPEG, GIF or WebP bytes that match its declared type. Uploaded files are served with `X-Content-Type-Options: nosniff`.
+- **Security headers.** Caddy now sends HSTS, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and `Permissions-Policy` headers, and drops the `Server` header.
+- **Health endpoint.** `GET /health` no longer returns the database driver's error text. The error is logged instead.

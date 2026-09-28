@@ -14,6 +14,7 @@ import { paymentsRoutes, webhookRoutes } from "./routes/payments";
 import { settingsRoutes } from "./routes/settings";
 import { adminSiteRoutes, siteRoutes } from "./routes/site";
 import { adminUploadsRoutes, uploadsRoutes } from "./routes/uploads";
+import { APP_VERSION } from "./version";
 
 const port = Number(process.env.PORT ?? 3001);
 
@@ -22,14 +23,12 @@ const app = new Elysia()
   .get("/health", async ({ set }) => {
     try {
       await ping();
-      return { status: "ok", db: "up" };
+      return { status: "ok", db: "up", version: APP_VERSION };
     } catch (error) {
+      // The driver message can name the host, user or database; log it, don't serve it.
+      console.error("health: db ping failed:", error instanceof Error ? error.message : String(error));
       set.status = 503;
-      return {
-        status: "degraded",
-        db: "down",
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return { status: "degraded", db: "down", version: APP_VERSION };
     }
   })
   .get("/products", () =>
@@ -57,5 +56,5 @@ const app = new Elysia()
   .listen(port);
 
 console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 PIPOL TUTOR API v${APP_VERSION} running at ${app.server?.hostname}:${app.server?.port}`
 );

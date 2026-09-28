@@ -8,7 +8,7 @@ import { Band, Button, Card, Icon } from "@/components/ui";
 import { fetchExamSettings, fetchProducts } from "@/lib/api";
 import { EXAM_DATE_LABEL, LINE_URL, TUTOR_NAME } from "@/lib/content";
 import { formatBaht, formatThaiDate, formatThaiDateTime } from "@/lib/format";
-import { fetchMyOrder, syncMyOrder, type Order } from "@/lib/orders";
+import { fetchLineInvite, fetchMyOrder, syncMyOrder, type Order } from "@/lib/orders";
 import { getCopy } from "@/lib/site-texts";
 
 export const metadata = { title: "ชำระเงินสำเร็จ · PIPOL TUTOR" };
@@ -49,6 +49,8 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
   if (order && product?.kind === "fortune") redirect(`/fortune/result?order=${encodeURIComponent(order.id)}`);
 
   const paid = order?.status === "paid";
+  // Private group link, served by the backend only to a paying account.
+  const lineInvite = paid ? await fetchLineInvite() : null;
   const rows: [string, string][] = [
     ["หมายเลขคำสั่งซื้อ", order ? order.id.slice(0, 8).toUpperCase() : EMPTY],
     ["รายการ", product?.title ?? EMPTY],
@@ -82,14 +84,14 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
                     : "ยังไม่ได้รับการยืนยันจากธนาคาร ถ้าเพิ่งสแกน QR รอสักครู่แล้วรีเฟรชหน้านี้"}
             </p>
 
-            {paid ? (
+            {paid && lineInvite ? (
               <div className="flex w-full flex-col gap-4 rounded-[24px] bg-gradient-to-br from-line to-[#04A445] p-[26px] shadow-m sm:flex-row sm:items-center">
                 <Icon name="forum" size={38} fill className="text-white" />
                 <div className="flex-1">
                   <p className="font-display text-[19px] font-medium leading-[1.4] text-white">เข้ากลุ่ม LINE ของคอร์ส</p>
                   <p className="text-[14.5px] text-[#DFF7E9]">ลิงก์นี้ใช้ได้เฉพาะบัญชีที่ชำระเงินแล้ว กรุณาเข้ากลุ่มภายใน 7 วัน</p>
                 </div>
-                <Button href={lineUrl} kind="light" icon="open_in_new" size="sm">เข้ากลุ่มเลย</Button>
+                <Button href={lineInvite} kind="light" icon="open_in_new" size="sm">เข้ากลุ่มเลย</Button>
               </div>
             ) : null}
 
