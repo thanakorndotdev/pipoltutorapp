@@ -6,13 +6,12 @@ import { useEffect, useState } from "react";
 import { PackForm } from "@/components/pack-form";
 import { Button, Card, Empty, Modal, Note, PageHeader, Spinner, Tag } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
-import { formatClock } from "@/lib/format";
-import type { ExamSettings, Pack, PackInput, Product } from "@/lib/types";
+import { formatClock, formatThaiDateTime } from "@/lib/format";
+import { fmtPoints, type ExamSettings, type Pack, type PackInput } from "@/lib/types";
 
 export function PackList() {
   const { api } = useAdmin();
   const [packs, setPacks] = useState<Pack[] | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
   const [multiplier, setMultiplier] = useState(100);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Pack | null | "new">(null);
@@ -23,11 +22,10 @@ export function PackList() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([api<{ packs: Pack[] }>("/admin/packs"), api<Product[]>("/products"), api<ExamSettings>("/settings/exam")])
-      .then(([p, prod, s]) => {
+    Promise.all([api<{ packs: Pack[] }>("/admin/packs"), api<ExamSettings>("/settings/exam")])
+      .then(([p, s]) => {
         if (cancelled) return;
         setPacks(p.packs);
-        setProducts(prod.filter((x) => x.active && x.kind !== "fortune").sort((a, b) => a.priceSatang - b.priceSatang));
         setMultiplier(s.timeMultiplierPercent);
         setError(null);
       })
@@ -62,7 +60,7 @@ export function PackList() {
     <>
       <PageHeader
         title="ชุดข้อสอบ"
-        sub="แต่ละชุดประกอบจากคลังข้อสอบ กด “เลือกข้อสอบ” เพื่อจัดข้อเข้าชุดและเรียงลำดับ"
+        sub="ข้อสอบทุกชุดทำฟรี แต่ละชุดประกอบจากคลังข้อสอบ กด “เลือกข้อสอบ” เพื่อจัดข้อ ตอน และลำดับ"
         actions={
           <Button icon="add" onClick={() => setEditing("new")}>
             สร้างชุดใหม่
@@ -84,9 +82,12 @@ export function PackList() {
                       <h2 className="truncate text-[17px] font-semibold">{p.title}</h2>
                       <p className="text-[13px] text-ink3">{p.slug}</p>
                     </div>
-                    <Tag tone={full ? "green" : p.assigned === 0 ? "red" : "amber"}>
-                      {p.assigned} / {p.questionCount} ข้อ
-                    </Tag>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <Tag tone={full ? "green" : p.assigned === 0 ? "red" : "amber"}>
+                        {p.assigned} / {p.questionCount} ข้อ
+                      </Tag>
+                      <Tag tone={p.published ? "teal" : "neutral"}>{p.published ? "เผยแพร่" : "ซ่อนอยู่"}</Tag>
+                    </div>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-page">
                     <div className={`h-full rounded-full ${full ? "bg-green" : "bg-accent"}`} style={{ width: `${Math.min(100, (p.assigned / p.questionCount) * 100)}%` }} />
@@ -96,8 +97,16 @@ export function PackList() {
                     <dd className="tabular">{Math.round(p.durationSeconds / 60)} นาที</dd>
                     <dt className="text-ink3">นักเรียนได้ ({multiplier}%)</dt>
                     <dd className="tabular">{formatClock(Math.round((p.durationSeconds * multiplier) / 100))}</dd>
-                    <dt className="text-ink3">ปลดล็อกด้วย</dt>
-                    <dd>{p.unlockedBy.length > 0 ? p.unlockedBy.map((x) => x.title).join(" / ") : "ชุดฟรี"}</dd>
+                    <dt className="text-ink3">คะแนนเต็ม</dt>
+                    <dd className="tabular">{fmtPoints(p.totalPoints ?? 0)}</dd>
+                    <dt className="text-ink3">ทำได้</dt>
+                    <dd>{p.maxAttempts === null ? "ไม่จำกัด" : `${p.maxAttempts} ครั้ง`}</dd>
+                    <dt className="text-ink3">เปิด / ปิดรับ</dt>
+                    <dd className="text-[13.5px]">
+                      {p.opensAt ? formatThaiDateTime(p.opensAt) : "ทันที"} – {p.closesAt ? formatThaiDateTime(p.closesAt) : "ไม่ปิด"}
+                    </dd>
+                    <dt className="text-ink3">ทำไปแล้ว</dt>
+                    <dd className="tabular">{p.attempts ?? 0} ครั้ง</dd>
                   </dl>
                   <div className="mt-auto flex flex-wrap gap-2 border-t border-border pt-3">
                     <Link href={`/packs/edit/?id=${p.id}`} className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[12px] bg-brand px-3 text-[14px] font-medium text-on-fill hover:bg-brand-dark">
@@ -105,6 +114,12 @@ export function PackList() {
                         checklist
                       </span>
                       เลือกข้อสอบ
+                    </Link>
+                    <Link href={`/results/?pack=${p.id}`} className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[12px] border-[1.5px] border-border-strong bg-card px-3 text-[14px] font-medium text-ink hover:bg-page">
+                      <span className="sym" style={{ fontSize: 17 }} aria-hidden>
+                        leaderboard
+                      </span>
+                      ผลสอบ
                     </Link>
                     <Button kind="ghost" size="sm" icon="edit" onClick={() => setEditing(p)}>
                       แก้ไขชุด
@@ -126,7 +141,7 @@ export function PackList() {
       ) : null}
       {editing !== null ? (
         <Modal title={editing === "new" ? "สร้างชุดข้อสอบ" : "แก้ไขชุดข้อสอบ"} onClose={() => setEditing(null)}>
-          <PackForm initial={editing === "new" ? null : editing} products={products} onSubmit={save} onCancel={() => setEditing(null)} />
+          <PackForm initial={editing === "new" ? null : editing} onSubmit={save} onCancel={() => setEditing(null)} />
         </Modal>
       ) : null}
     </>

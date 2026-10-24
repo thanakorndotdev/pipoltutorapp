@@ -71,6 +71,20 @@
       "when": 1790245218008,
       "tag": "0009_common_arachne",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792809612153,
+      "tag": "0010_exam_v2",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792809627237,
+      "tag": "0011_exam_v2_drop_old",
+      "breakpoints": true
     }
   ]
 }

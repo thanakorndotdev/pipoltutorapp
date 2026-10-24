@@ -6,7 +6,7 @@ import { currentUser, isBootstrapAdminEmail } from "../auth";
 import { db } from "../db";
 import { hostEnv } from "../db/env";
 import { users } from "../db/schema";
-import { SESSION_COOKIE, SESSION_DAYS, cookieSecure, createSession, deleteSession, publicUrl, readCookie } from "../sessions";
+import { SESSION_COOKIE, SESSION_DAYS, cookieSecure, createSession, deleteSession, profileComplete, publicUrl, readCookie } from "../sessions";
 
 /**
  * Google OAuth 2.0 (authorization code) without a client library.
@@ -74,7 +74,10 @@ type GoogleProfile = { sub: string; email?: string; email_verified?: boolean; na
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
   /** Who is signed in, or null. The frontend layout calls this once per request. */
-  .get("/me", async ({ headers }) => ({ user: await currentUser(headers) }))
+  .get("/me", async ({ headers }) => {
+    const user = await currentUser(headers);
+    return { user: user ? { ...user, profileComplete: profileComplete(user) } : null };
+  })
 
   .get(
     "/google",

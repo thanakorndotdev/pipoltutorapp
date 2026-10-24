@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -63,6 +64,21 @@ export const questionSubject = pgEnum("question_subject", [
   "english",
 ]);
 
+/**
+ * How a question is answered: one choice (radio), several choices
+ * (checkbox), or a typed answer (เติมคำ).
+ */
+export const questionType = pgEnum("question_type", ["single", "multiple", "short"]);
+export const QUESTION_TYPES = questionType.enumValues;
+
+/**
+ * How a "multiple" question is marked. "exact" gives full points only for
+ * the exact set of correct choices; "partial" gives a share per correct
+ * choice minus wrong picks (see src/scoring.ts). Other types are always exact.
+ */
+export const scoringMode = pgEnum("scoring_mode", ["exact", "partial"]);
+export const SCORING_MODES = scoringMode.enumValues;
+
 /** The 18 จภ. campuses a student can apply to; values live in src/campuses.ts. */
 export const pcshsCampus = pgEnum("pcshs_campus", PCSHS_CAMPUS_CODES);
 
@@ -75,6 +91,15 @@ export const users = pgTable(
     displayName: text("display_name"),
     avatarUrl: text("avatar_url"),
     role: userRole("role").notNull().default("student"),
+    /**
+     * Student profile filled in once after the first Google login. All four
+     * are required before an exam can start; attempts copy them at start so
+     * a later edit does not rewrite history.
+     */
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    nickname: text("nickname"),
+    campus: pcshsCampus("campus"),
     lineInviteSentAt: timestamp("line_invite_sent_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -194,6 +219,21 @@ export const examPacks = pgTable(
     title: text("title").notNull(),
     questionCount: integer("question_count").notNull().default(100),
     durationSeconds: integer("duration_seconds").notNull(),
+    /** คำชี้แจง shown on the instructions screen before the timer starts. */
+    description: text("description"),
+    /** Finished attempts a student may have; null means unlimited. Reset attempts do not count. */
+    maxAttempts: integer("max_attempts").default(1),
+    /** Window in which an attempt may start. Null = no bound on that side. */
+    opensAt: timestamp("opens_at", { withTimezone: true }),
+    /**
+     * Hard deadline: no attempt starts after it and every open attempt's
+     * expiresAt is capped at it.
+     */
+    closesAt: timestamp("closes_at", { withTimezone: true }),
+    /** Hidden packs are invisible to students; staff can still open them to test. */
+    published: boolean("published").notNull().default(false),
+    /** Whether a student may see per-question review and explanations after submitting. */
+    showReview: boolean("show_review").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -228,9 +268,9 @@ export const packProducts = pgTable(
  * The question bank. A question belongs to no pack by itself; pack_questions
  * places it into one or more packs at a position.
  *
- * `correctChoice` never leaves the server on student-facing paths: grading
- * runs server-side so the answer key is not reachable from the browser. Only
- * the admin API (x-admin-key) may read or write it.
+ * The key (`correctChoices`, `acceptedAnswers`) never leaves the server on
+ * student-facing paths: grading runs server-side so it is not reachable from
+ * the browser. Only the admin API may read or write it.
  */
 export const questions = pgTable(
   "questions",
@@ -241,9 +281,20 @@ export const questions = pgTable(
     topic: text("topic").notNull(),
     prompt: text("prompt").notNull(),
     imageUrl: text("image_url"),
-    /** [{ key: "a", text: "..." }, ...] */
+    type: questionType("type").notNull().default("single"),
+    /** Points for a fully correct answer; decimals allowed (e.g. 1.5). */
+    points: numeric("points", { precision: 8, scale: 2, mode: "number" }).notNull().default(1),
+    /** Only meaningful for "multiple"; single and short are always exact. */
+    scoring: scoringMode("scoring").notNull().default("exact"),
+    /** [{ key: "a", text: "..." }, ...]; empty for "short". */
     choices: jsonb("choices").notNull(),
-    correctChoice: text("correct_choice").notNull(),
+    /** Correct choice keys: one for "single", one or more for "multiple", empty for "short". */
+    correctChoices: text("correct_choices").array().notNull().default(sql`'{}'::text[]`),
+    /**
+     * Accepted typed answers for "short", compared exactly: case, spaces and
+     * number format all count ("0.5" and "0.50" differ). Add each variant.
+     */
+    acceptedAnswers: text("accepted_answers").array().notNull().default(sql`'{}'::text[]`),
     explanation: text("explanation"),
     /** Inactive questions stay in the bank but cannot be added to a pack. */
     active: boolean("active").notNull().default(true),
@@ -272,6 +323,8 @@ export const packQuestions = pgTable(
       .notNull()
       .references(() => questions.id, { onDelete: "restrict" }),
     position: integer("position").notNull(),
+    /** ตอน label, e.g. "ตอนที่ 1 ปรนัย". Null means the pack is not split into sections. */
+    section: text("section"),
   },
   (t) => [
     uniqueIndex("pack_questions_pack_position_key").on(t.packId, t.position),
@@ -296,9 +349,27 @@ export const attempts = pgTable(
     /** Deadline computed at start; the server, not the client, owns the clock. */
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
-    score: integer("score"),
+    /** Points earned; decimals possible with partial or fractional points. */
+    score: numeric("score", { precision: 10, scale: 2, mode: "number" }),
+    /** Sum of the pack's question points at grading time. */
+    maxScore: numeric("max_score", { precision: 10, scale: 2, mode: "number" }),
     /** { "<topic>": { correct: n, total: n } } filled in at grading time. */
     topicBreakdown: jsonb("topic_breakdown"),
+    /** 1-based count of this user's attempts on the pack, reset ones included. */
+    attemptNo: integer("attempt_no").notNull().default(1),
+    /**
+     * Profile as it was when the attempt started, so exports and history keep
+     * the name and campus the student sat under.
+     */
+    studentFirstName: text("student_first_name"),
+    studentLastName: text("student_last_name"),
+    studentNickname: text("student_nickname"),
+    studentCampus: pcshsCampus("student_campus"),
+    studentEmail: text("student_email"),
+    /** Set when an admin resets the student's quota; the attempt is kept but no longer counts. */
+    resetAt: timestamp("reset_at", { withTimezone: true }),
+    /** [{ score, maxScore, at }] — scores replaced by a regrade, oldest first. */
+    scoreHistory: jsonb("score_history"),
   },
   (t) => [
     index("attempts_user_id_idx").on(t.userId),
@@ -319,9 +390,14 @@ export const attemptAnswers = pgTable(
     questionId: uuid("question_id")
       .notNull()
       .references(() => questions.id, { onDelete: "cascade" }),
-    selectedChoice: text("selected_choice"),
+    /** Picked choice keys for single/multiple; empty when none. */
+    selectedChoices: text("selected_choices").array().notNull().default(sql`'{}'::text[]`),
+    /** Typed answer for "short", stored exactly as entered. */
+    textAnswer: text("text_answer"),
     state: answerState("state").notNull().default("untouched"),
+    /** True only for full points; null until graded. */
     isCorrect: boolean("is_correct"),
+    pointsAwarded: numeric("points_awarded", { precision: 8, scale: 2, mode: "number" }),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

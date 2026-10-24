@@ -11,6 +11,7 @@ import { attemptsRoutes, examPacksRoutes } from "./routes/exam";
 import { fortuneRoutes } from "./routes/fortune";
 import { ordersRoutes } from "./routes/orders";
 import { paymentsRoutes, webhookRoutes } from "./routes/payments";
+import { profileRoutes } from "./routes/profile";
 import { settingsRoutes } from "./routes/settings";
 import { adminSiteRoutes, siteRoutes } from "./routes/site";
 import { adminUploadsRoutes, uploadsRoutes } from "./routes/uploads";
@@ -46,6 +47,7 @@ const app = new Elysia()
   .use(paymentsRoutes)
   .use(webhookRoutes)
   .use(settingsRoutes)
+  .use(profileRoutes)
   .use(examPacksRoutes)
   .use(attemptsRoutes)
   .use(adminRoutes)

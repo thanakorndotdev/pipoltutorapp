@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { hostEnv } from "./db/env";
 import { users, type UserRole } from "./db/schema";
-import { SESSION_COOKIE, readCookie, userForToken, type SessionUser } from "./sessions";
+import { SESSION_COOKIE, readCookie, sessionUserColumns, userForToken, type SessionUser } from "./sessions";
 
 export type { SessionUser } from "./sessions";
 
@@ -32,7 +32,7 @@ export async function currentUser(
   const email = headers[DEV_HEADER]?.trim().toLowerCase();
   if (!email) return null;
 
-  const cols = { id: users.id, email: users.email, displayName: users.displayName, avatarUrl: users.avatarUrl, role: users.role };
+  const cols = sessionUserColumns;
   const [existing] = await db.select(cols).from(users).where(eq(users.email, email)).limit(1);
   if (existing) return existing;
 

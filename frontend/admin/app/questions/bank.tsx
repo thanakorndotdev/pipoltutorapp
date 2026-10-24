@@ -6,7 +6,7 @@ import { QuestionForm } from "@/components/question-form";
 import { Button, Card, Empty, Modal, Note, PageHeader, SUBJECT_TONE, Spinner, Tag, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
 import { formatThaiDateShort } from "@/lib/format";
-import { SUBJECTS, subjectLabel, type Question, type QuestionInput, type Subject } from "@/lib/types";
+import { SUBJECTS, fmtPoints, subjectLabel, typeMeta, type Question, type QuestionInput, type Subject } from "@/lib/types";
 
 type Filters = { subject: Subject | ""; q: string; active: "" | "true" | "false" };
 type Topics = { subject: Subject; topic: string; n: number }[];
@@ -162,19 +162,30 @@ export function QuestionBank() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag tone={SUBJECT_TONE[q.subject]}>{subjectLabel(q.subject)}</Tag>
                   <Tag>{q.topic}</Tag>
+                  <Tag tone="teal">{typeMeta(q.type).short}{q.type === "multiple" && q.scoring === "partial" ? " · บางส่วน" : ""}</Tag>
+                  <Tag tone="amber">{fmtPoints(q.points)} คะแนน</Tag>
                   {!q.active ? <Tag tone="red">ปิดใช้งาน</Tag> : null}
                   {q.usedInPacks ? <Tag tone="green">อยู่ใน {q.usedInPacks} ชุด</Tag> : null}
                   <span className="ml-auto text-[12.5px] text-ink3">แก้ไข {formatThaiDateShort(q.updatedAt)}</span>
                 </div>
                 <p className="text-[15.5px]">{q.prompt}</p>
-                <ol className="grid grid-cols-1 gap-1.5 text-[14.5px] sm:grid-cols-2">
-                  {q.choices.map((c) => (
-                    <li key={c.key} className={`flex gap-2 rounded-[10px] px-2.5 py-1 ${c.key === q.correctChoice ? "bg-green-50 font-medium text-green" : "text-ink2"}`}>
-                      <span className="w-5 shrink-0">{c.key}.</span>
-                      <span>{c.text}</span>
-                    </li>
-                  ))}
-                </ol>
+                {q.type === "short" ? (
+                  <p className="flex flex-wrap items-center gap-1.5 text-[14.5px] text-ink2">
+                    คำตอบที่ยอมรับ:
+                    {q.acceptedAnswers.map((a) => (
+                      <code key={a} className="rounded-[8px] bg-green-50 px-2 py-0.5 font-medium text-green">{a}</code>
+                    ))}
+                  </p>
+                ) : (
+                  <ol className="grid grid-cols-1 gap-1.5 text-[14.5px] sm:grid-cols-2">
+                    {q.choices.map((c) => (
+                      <li key={c.key} className={`flex gap-2 rounded-[10px] px-2.5 py-1 ${q.correctChoices.includes(c.key) ? "bg-green-50 font-medium text-green" : "text-ink2"}`}>
+                        <span className="w-5 shrink-0">{c.key}.</span>
+                        <span>{c.text}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
                 <div className="flex flex-wrap gap-2 border-t border-border pt-3">
                   <Button kind="ghost" size="sm" icon="edit" onClick={() => setEditing(q)}>
                     แก้ไข

@@ -14,14 +14,29 @@ export const subjectLabel = (id: Subject) => SUBJECTS.find((s) => s.id === id)?.
 
 export type Choice = { key: string; text: string };
 
+/** single = radio (ปรนัย), multiple = checkbox (หลายตัวเลือก), short = เติมคำตอบ. */
+export type QuestionType = "single" | "multiple" | "short";
+export type ScoringMode = "exact" | "partial";
+
+export const QUESTION_TYPES: { id: QuestionType; label: string; short: string; icon: string }[] = [
+  { id: "single", label: "ปรนัย เลือก 1 ข้อ (radio)", short: "ปรนัย", icon: "radio_button_checked" },
+  { id: "multiple", label: "เลือกได้หลายข้อ (checkbox)", short: "หลายตัวเลือก", icon: "check_box" },
+  { id: "short", label: "เติมคำตอบ", short: "เติมคำ", icon: "edit_note" },
+];
+export const typeMeta = (id: QuestionType) => QUESTION_TYPES.find((t) => t.id === id) ?? QUESTION_TYPES[0];
+
 export type Question = {
   id: string;
   subject: Subject;
   topic: string;
   prompt: string;
   imageUrl: string | null;
+  type: QuestionType;
+  points: number;
+  scoring: ScoringMode;
   choices: Choice[];
-  correctChoice: string;
+  correctChoices: string[];
+  acceptedAnswers: string[];
   explanation: string | null;
   active: boolean;
   createdAt: string;
@@ -34,8 +49,12 @@ export type QuestionInput = {
   topic: string;
   prompt: string;
   imageUrl: string | null;
+  type: QuestionType;
+  points: number;
+  scoring: ScoringMode;
   choices: Choice[];
-  correctChoice: string;
+  correctChoices: string[];
+  acceptedAnswers: string[];
   explanation: string | null;
   active: boolean;
 };
@@ -44,35 +63,99 @@ export type Pack = {
   id: string;
   slug: string;
   title: string;
-  /** Products that unlock the pack; empty means free. */
-  productIds: string[];
-  unlockedBy: { id: string; title: string }[];
+  /** คำชี้แจง shown before the timer starts. */
+  description: string | null;
   questionCount: number;
   durationSeconds: number;
+  /** null = unlimited. */
+  maxAttempts: number | null;
+  opensAt: string | null;
+  /** Hard deadline. */
+  closesAt: string | null;
+  published: boolean;
+  showReview: boolean;
   createdAt: string;
   assigned: number;
+  totalPoints?: number;
   attempts?: number;
+  /** Students mid-attempt right now; structure edits wait for zero. */
+  liveAttempts?: number;
 };
 
 export type PackInput = {
   slug: string;
   title: string;
-  productIds: string[];
+  description: string | null;
   questionCount: number;
   durationSeconds: number;
+  maxAttempts: number | null;
+  opensAt: string | null;
+  closesAt: string | null;
+  published: boolean;
+  showReview: boolean;
 };
 
 /** A question as it sits in a pack (admin projection, includes the key). */
 export type PackQuestion = {
   position: number;
+  section: string | null;
   id: string;
   subject: Subject;
   topic: string;
+  type: QuestionType;
+  points: number;
   prompt: string;
   imageUrl: string | null;
   choices: Choice[];
-  correctChoice: string;
+  correctChoices: string[];
+  acceptedAnswers: string[];
   active: boolean;
+};
+
+export type AttemptStatus = "in_progress" | "submitted" | "expired";
+
+export const ATTEMPT_STATUS: Record<AttemptStatus, { label: string; tone: "amber" | "green" | "brand" }> = {
+  in_progress: { label: "กำลังทำ", tone: "amber" },
+  submitted: { label: "ส่งแล้ว", tone: "green" },
+  expired: { label: "หมดเวลา", tone: "brand" },
+};
+
+/** One attempt in the admin results table; profile fields are the snapshot taken at start. */
+export type AdminAttempt = {
+  id: string;
+  userId: string;
+  packId: string;
+  attemptNo: number;
+  status: AttemptStatus;
+  startedAt: string;
+  expiresAt: string;
+  submittedAt: string | null;
+  score: number | null;
+  maxScore: number | null;
+  resetAt: string | null;
+  scoreHistory: { score: number | null; maxScore: number | null; at: string }[] | null;
+  firstName: string | null;
+  lastName: string | null;
+  nickname: string | null;
+  campus: string | null;
+  email: string | null;
+};
+
+export type AttemptDetail = {
+  attempt: AdminAttempt & { pack: { title: string; slug: string } };
+  questions: (Omit<PackQuestion, "id" | "subject" | "topic" | "active" | "imageUrl"> & {
+    questionId: string;
+    scoring: ScoringMode;
+    selectedChoices: string[];
+    textAnswer: string | null;
+    pointsAwarded: number | null;
+    answeredAt: string | null;
+  })[];
+};
+
+export type RegradeResult = {
+  checked: number;
+  changes: { attemptId: string; oldScore: number | null; newScore: number; oldMaxScore: number | null; newMaxScore: number }[];
 };
 
 export type Product = {
@@ -173,7 +256,36 @@ export type AdminUser = {
   displayName: string | null;
   avatarUrl: string | null;
   role: UserRole;
+  firstName?: string | null;
+  lastName?: string | null;
+  nickname?: string | null;
+  campus?: string | null;
   createdAt?: string;
 };
 
 export type UsersResponse = { users: AdminUser[]; roles: UserRole[]; counts: Partial<Record<UserRole, number>> };
+
+/** Same 18 codes as the backend's pcshs_campus enum, for labels only. */
+export const CAMPUS_LABEL: Record<string, string> = {
+  chiang_rai: "จภ. เชียงราย",
+  phitsanulok: "จภ. พิษณุโลก",
+  lopburi: "จภ. ลพบุรี",
+  loei: "จภ. เลย",
+  mukdahan: "จภ. มุกดาหาร",
+  buriram: "จภ. บุรีรัมย์",
+  pathum_thani: "จภ. ปทุมธานี",
+  chonburi: "จภ. ชลบุรี",
+  phetchaburi: "จภ. เพชรบุรี",
+  nakhon_si_thammarat: "จภ. นครศรีธรรมราช",
+  trang: "จภ. ตรัง",
+  satun: "จภ. สตูล",
+  lampang: "จภ. ลำปาง",
+  kamphaeng_phet: "จภ. กำแพงเพชร",
+  kalasin: "จภ. กาฬสินธุ์",
+  ubon_ratchathani: "จภ. อุบลราชธานี",
+  suphan_buri: "จภ. สุพรรณบุรี",
+  sa_kaeo: "จภ. สระแก้ว",
+};
+
+export const fmtPoints = (n: number | null | undefined) =>
+  n === null || n === undefined ? "—" : Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, "");

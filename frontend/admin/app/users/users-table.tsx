@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Empty, Icon, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
 import { formatThaiDateTime } from "@/lib/format";
-import { ROLES, roleMeta, type AdminUser, type UserRole, type UsersResponse } from "@/lib/types";
+import { ROLES, roleMeta, type AdminUser, type UserRole, type UsersResponse, CAMPUS_LABEL } from "@/lib/types";
 
 export function UsersTable() {
   const { api, auth } = useAdmin();
@@ -127,6 +127,11 @@ function UserRow({ user, self, onSaved }: { user: AdminUser; self: boolean; onSa
             {user.email}
             {user.createdAt ? ` · สมัคร ${formatThaiDateTime(user.createdAt)}` : ""}
           </p>
+          {user.firstName ? (
+            <p className="truncate text-[13.5px] text-ink2">
+              {user.firstName} {user.lastName} ({user.nickname}) · {user.campus ? (CAMPUS_LABEL[user.campus] ?? user.campus) : "—"}
+            </p>
+          ) : null}
         </div>
         <Tag tone={meta.tone}>{meta.label}</Tag>
         <label className="flex items-center gap-2 text-[14px] text-ink2">

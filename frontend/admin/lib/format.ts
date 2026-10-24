@@ -46,3 +46,17 @@ export function formatClock(totalSeconds: number): string {
 }
 
 export const formatNumber = (n: number) => thb.format(n);
+
+/** ISO instant -> Bangkok wall clock "YYYY-MM-DDTHH:mm" for <input type="datetime-local">. */
+const isoLocal = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Asia/Bangkok",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+export const toBangkokLocal = (iso: string) => isoLocal.format(new Date(iso)).replace(" ", "T");
+
+/** "YYYY-MM-DDTHH:mm" typed as Bangkok time -> ISO with offset, or null when blank. */
+export const fromBangkokLocal = (local: string) => (local ? `${local}:00+07:00` : null);

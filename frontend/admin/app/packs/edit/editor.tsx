@@ -6,10 +6,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Button, Card, Empty, Icon, Note, PageHeader, SUBJECT_TONE, Spinner, Tag, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
-import { SUBJECTS, subjectLabel, type Pack, type PackQuestion, type Question, type Subject } from "@/lib/types";
+import { SUBJECTS, fmtPoints, subjectLabel, typeMeta, type Pack, type PackQuestion, type Question, type Subject } from "@/lib/types";
 
-/** Bank rows and pack rows share this shape for the picker. */
-type Item = Pick<Question, "id" | "subject" | "topic" | "prompt" | "active">;
+/** Bank rows and pack rows share this shape for the picker; `section` is the ตอน label in this pack. */
+type Item = Pick<Question, "id" | "subject" | "topic" | "prompt" | "active" | "type" | "points"> & { section: string };
+
+const signature = (items: Item[]) => items.map((s) => `${s.id}:${s.section.trim()}`).join();
 
 export function PackEditor() {
   const params = useSearchParams();
@@ -18,7 +20,7 @@ export function PackEditor() {
 
   const [pack, setPack] = useState<Pack | null>(null);
   const [selected, setSelected] = useState<Item[]>([]);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [savedIds, setSavedIds] = useState("");
   const [bank, setBank] = useState<Item[] | null>(null);
   const [subject, setSubject] = useState<Subject | "">("");
   const [topic, setTopic] = useState("");
@@ -37,10 +39,10 @@ export function PackEditor() {
       .then(([comp, list]) => {
         if (cancelled) return;
         setPack(comp.pack);
-        const items = comp.questions.map(({ id, subject, topic, prompt, active }) => ({ id, subject, topic, prompt, active }));
+        const items = comp.questions.map(({ id, subject, topic, prompt, active, type, points, section }) => ({ id, subject, topic, prompt, active, type, points, section: section ?? "" }));
         setSelected(items);
-        setSavedIds(items.map((i) => i.id));
-        setBank(list.questions.map(({ id, subject, topic, prompt, active }) => ({ id, subject, topic, prompt, active })));
+        setSavedIds(signature(items));
+        setBank(list.questions.map(({ id, subject, topic, prompt, active, type, points }) => ({ id, subject, topic, prompt, active, type, points, section: "" })));
         setError(null);
       })
       .catch((e) => !cancelled && setError(errorMessage(e)));
@@ -50,7 +52,9 @@ export function PackEditor() {
   }, [api, id]);
 
   const selectedIds = useMemo(() => new Set(selected.map((s) => s.id)), [selected]);
-  const dirty = useMemo(() => selected.map((s) => s.id).join() !== savedIds.join(), [selected, savedIds]);
+  const dirty = useMemo(() => signature(selected) !== savedIds, [selected, savedIds]);
+  const totalPoints = useMemo(() => selected.reduce((a, s) => a + s.points, 0), [selected]);
+  const sections = useMemo(() => Array.from(new Set(selected.map((s) => s.section.trim()).filter(Boolean))), [selected]);
 
   const topics = useMemo(() => {
     const src = bank ?? [];
@@ -68,12 +72,17 @@ export function PackEditor() {
     );
   }, [bank, selectedIds, subject, topic, q]);
 
+  /** New rows join the ตอน of the last row, so building section by section is one click each. */
   const add = (item: Item) => {
-    setSelected((s) => [...s, item]);
+    setSelected((s) => [...s, { ...item, section: s[s.length - 1]?.section ?? "" }]);
     setSaved(false);
   };
   const addAll = () => {
-    setSelected((s) => [...s, ...available]);
+    setSelected((s) => [...s, ...available.map((a) => ({ ...a, section: s[s.length - 1]?.section ?? "" }))]);
+    setSaved(false);
+  };
+  const setSection = (itemId: string, section: string) => {
+    setSelected((s) => s.map((x) => (x.id === itemId ? { ...x, section } : x)));
     setSaved(false);
   };
   const remove = (itemId: string) => {
@@ -113,9 +122,12 @@ export function PackEditor() {
     setSaving(true);
     setError(null);
     try {
-      const r = await api<{ pack: Pack }>(`/admin/packs/${id}/questions`, { method: "PUT", json: { questionIds: selected.map((s) => s.id) } });
+      const r = await api<{ pack: Pack }>(`/admin/packs/${id}/questions`, {
+        method: "PUT",
+        json: { items: selected.map((s) => ({ questionId: s.id, section: s.section.trim() || null })) },
+      });
       setPack(r.pack);
-      setSavedIds(selected.map((s) => s.id));
+      setSavedIds(signature(selected));
       setSaved(true);
     } catch (e) {
       setError(errorMessage(e));
@@ -135,7 +147,7 @@ export function PackEditor() {
     <>
       <PageHeader
         title={pack.title}
-        sub={`เลือกข้อจากคลังทางซ้ายเข้าชุดทางขวา · เป้าหมาย ${pack.questionCount} ข้อ`}
+        sub={`เลือกข้อจากคลังทางซ้ายเข้าชุดทางขวา · เป้าหมาย ${pack.questionCount} ข้อ · ใส่ชื่อตอนให้แต่ละข้อได้`}
         actions={
           <>
             <Link href="/packs/" className="inline-flex min-h-[44px] items-center gap-2 rounded-[12px] border-[1.5px] border-border-strong bg-card px-4 text-[15px] font-medium text-ink">
@@ -150,7 +162,11 @@ export function PackEditor() {
       {error ? <Note tone="error">{error}</Note> : null}
       {saved && !dirty ? <Note tone="ok">บันทึกชุดแล้ว {selected.length} ข้อ</Note> : null}
       {over ? <Note tone="warn">เลือกเกินเป้าหมาย {selected.length - pack.questionCount} ข้อ บันทึกได้ แต่ควรเอาออกให้พอดี</Note> : null}
-      {pack.attempts ? <Note tone="warn">มีนักเรียนทำชุดนี้ไปแล้ว {pack.attempts} ครั้ง การเปลี่ยนข้อจะกระทบรอบที่กำลังทำอยู่</Note> : null}
+      {pack.liveAttempts ? (
+        <Note tone="warn">มีนักเรียนกำลังทำชุดนี้อยู่ {pack.liveAttempts} คน — เพิ่ม/ลบ/ย้ายข้อได้เมื่อทุกคนส่งแล้ว (แก้ข้อความหรือเฉลยที่ “คลังข้อสอบ” ได้ตามปกติ)</Note>
+      ) : pack.attempts ? (
+        <Note tone="warn">มีนักเรียนทำชุดนี้ไปแล้ว {pack.attempts} ครั้ง เปลี่ยนข้อแล้วกด “ตรวจใหม่” ที่หน้าผลสอบเพื่อคำนวณคะแนนเดิมใหม่</Note>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Bank */}
@@ -203,6 +219,7 @@ export function PackEditor() {
                       <span className="mb-1 flex flex-wrap gap-1.5">
                         <Tag tone={SUBJECT_TONE[b.subject]}>{subjectLabel(b.subject)}</Tag>
                         <Tag>{b.topic}</Tag>
+                        <Tag tone="teal">{typeMeta(b.type).short} · {fmtPoints(b.points)}</Tag>
                       </span>
                       <span className="line-clamp-2 block text-[14.5px] leading-[1.7]">{b.prompt}</span>
                     </span>
@@ -217,9 +234,12 @@ export function PackEditor() {
         <Card className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 className="text-[16px] font-semibold">ในชุดนี้</h2>
-            <Tag tone={selected.length === pack.questionCount ? "green" : over ? "red" : "amber"}>
-              {selected.length} / {pack.questionCount} ข้อ
-            </Tag>
+            <div className="flex gap-1.5">
+              <Tag tone="brand">เต็ม {fmtPoints(Math.round(totalPoints * 100) / 100)} คะแนน</Tag>
+              <Tag tone={selected.length === pack.questionCount ? "green" : over ? "red" : "amber"}>
+                {selected.length} / {pack.questionCount} ข้อ
+              </Tag>
+            </div>
           </div>
           <div className="flex flex-wrap gap-1.5 text-[13px] text-ink2">
             {counts.map((c) => (
@@ -239,6 +259,11 @@ export function PackEditor() {
               เอาออกทั้งหมด
             </Button>
           </div>
+          <datalist id="pack-sections">
+            {sections.map((x) => (
+              <option key={x} value={x} />
+            ))}
+          </datalist>
           <ol className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto pr-1">
             {selected.length === 0 ? (
               <li>
@@ -252,8 +277,18 @@ export function PackEditor() {
                     <div className="mb-1 flex flex-wrap gap-1.5">
                       <Tag tone={SUBJECT_TONE[s.subject]}>{subjectLabel(s.subject)}</Tag>
                       <Tag>{s.topic}</Tag>
+                      <Tag tone="teal">{typeMeta(s.type).short} · {fmtPoints(s.points)}</Tag>
                     </div>
                     <p className="line-clamp-2 text-[14.5px] leading-[1.7]">{s.prompt}</p>
+                    <input
+                      aria-label={`ตอนของข้อ ${i + 1}`}
+                      list="pack-sections"
+                      placeholder="ตอน (ไม่บังคับ) เช่น ตอนที่ 1 ปรนัย"
+                      className={`${inputClass} mt-1.5 min-h-[34px] py-1 text-[13.5px]`}
+                      value={s.section}
+                      maxLength={120}
+                      onChange={(e) => setSection(s.id, e.target.value)}
+                    />
                   </div>
                   <div className="flex shrink-0 flex-col">
                     <Button kind="subtle" size="sm" icon="keyboard_arrow_up" title="เลื่อนขึ้น" disabled={i === 0} onClick={() => move(i, i - 1)} />

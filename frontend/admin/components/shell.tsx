@@ -11,6 +11,7 @@ const NAV = [
   { href: "/", label: "ภาพรวม", icon: "dashboard" },
   { href: "/questions/", label: "คลังข้อสอบ", icon: "quiz" },
   { href: "/packs/", label: "ชุดข้อสอบ", icon: "inventory_2" },
+  { href: "/results/", label: "ผลสอบ", icon: "leaderboard" },
   { href: "/products/", label: "สินค้าและราคา", icon: "sell" },
   { href: "/settings/", label: "วันสอบและเวลา", icon: "event" },
   { href: "/images/", label: "รูปภาพเว็บไซต์", icon: "image" },
@@ -78,7 +79,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </aside>
-      <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">{children}</div>
       </main>
     </div>

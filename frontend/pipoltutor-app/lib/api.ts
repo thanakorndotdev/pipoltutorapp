@@ -44,36 +44,55 @@ export async function fetchExamSettings(): Promise<ExamSettings> {
   return (await res.json()) as ExamSettings;
 }
 
-/** GET /exam-packs/:slug — pack metadata and timing; never carries questions. */
+export type PackAvailability = "upcoming" | "open" | "closed";
+
+/** GET /exam-packs — pack metadata, window and the session user's attempt count. Never questions. */
 export type ExamPack = {
   id: string;
   slug: string;
   title: string;
-  /** Products that unlock the pack; empty means free. */
-  productIds: string[];
-  /** For the session user (cookie forwarded); advisory only — POST /attempts is the gate. */
-  unlocked: boolean;
+  /** คำชี้แจง written by the admin. */
+  description: string | null;
   questionCount: number;
   durationSeconds: number;
+  /** null = unlimited. */
+  maxAttempts: number | null;
+  opensAt: string | null;
+  /** Hard deadline: attempts end here even with time left. */
+  closesAt: string | null;
+  published: boolean;
+  showReview: boolean;
+  availability: PackAvailability;
+  /** Attempts used by the session user (reset ones excluded). */
+  attemptsUsed: number;
+  /** The session user's running attempt, if any. */
+  openAttemptId: string | null;
   timeMultiplierPercent: number;
   allowedSeconds: number;
 };
 
-/**
- * `headers` carries the session cookie (see sessionHeaders() in lib/auth) so
- * `unlocked` reflects the signed-in student; without it every paid pack reads
- * as locked.
- */
-export async function fetchExamPack(slug: string, headers?: HeadersInit): Promise<ExamPack> {
+/** GET /exam-packs/:slug adds what the instructions screen shows. */
+export type ExamPackDetail = ExamPack & {
+  summary: {
+    questions: number;
+    totalPoints: number;
+    /** In paper order; a pack without ตอน labels is one section with an empty title. */
+    sections: { title: string; questions: number; points: number }[];
+    types: { single: number; multiple: number; short: number };
+  };
+};
+
+/** `headers` carries the session cookie (see sessionHeaders() in lib/auth) so attempt counts are the student's. */
+export async function fetchExamPack(slug: string, headers?: HeadersInit): Promise<ExamPackDetail> {
   const res = await fetch(`${BACKEND_URL}/exam-packs/${encodeURIComponent(slug)}`, {
     cache: "no-store",
     headers,
   });
   if (!res.ok) throw new Error(`GET /exam-packs/${slug} failed: ${res.status}`);
-  return ((await res.json()) as { pack: ExamPack }).pack;
+  return ((await res.json()) as { pack: ExamPackDetail }).pack;
 }
 
-/** GET /exam-packs — every pack, alphabetical, with per-user `unlocked`. */
+/** GET /exam-packs — published packs, alphabetical. */
 export async function fetchExamPacks(headers?: HeadersInit): Promise<ExamPack[]> {
   const res = await fetch(`${BACKEND_URL}/exam-packs`, { cache: "no-store", headers });
   if (!res.ok) throw new Error(`GET /exam-packs failed: ${res.status}`);

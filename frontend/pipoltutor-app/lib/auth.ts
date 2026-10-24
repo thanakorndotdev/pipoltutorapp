@@ -2,15 +2,28 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 
 import { BACKEND_URL } from "./api";
+import type { PcshsCampusCode } from "./campuses";
 
 /** Cookie name shared with backend/app/src/sessions.ts and proxy.ts. */
 export const SESSION_COOKIE = "pt_session";
 
-export type SessionUser = { id: string; email: string; displayName: string | null; avatarUrl: string | null; role: "admin" | "dev" | "test" | "student" };
+export type SessionUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  role: "admin" | "dev" | "test" | "student";
+  firstName: string | null;
+  lastName: string | null;
+  nickname: string | null;
+  campus: PcshsCampusCode | null;
+  /** Name, surname, nickname and campus are all filled in; required before an exam. */
+  profileComplete: boolean;
+};
 
 /**
  * Server components only. The session cookie as a fetch header for backend
- * calls whose answer depends on who is asking (e.g. exam-pack `unlocked`).
+ * calls whose answer depends on who is asking (e.g. exam-pack attempt counts).
  * Empty when signed out, so the same call works anonymously.
  */
 export async function sessionHeaders(): Promise<HeadersInit> {

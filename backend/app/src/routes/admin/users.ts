@@ -15,6 +15,10 @@ const userColumns = {
   displayName: users.displayName,
   avatarUrl: users.avatarUrl,
   role: users.role,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  nickname: users.nickname,
+  campus: users.campus,
   createdAt: users.createdAt,
 };
 
@@ -28,7 +32,15 @@ export const adminUsersRoutes = new Elysia({ prefix: "/admin/users" })
     "/",
     async ({ query }) => {
       const q = query.q?.trim();
-      const where = q ? or(ilike(users.email, `%${q}%`), ilike(users.displayName, `%${q}%`)) : undefined;
+      const where = q
+        ? or(
+            ilike(users.email, `%${q}%`),
+            ilike(users.displayName, `%${q}%`),
+            ilike(users.firstName, `%${q}%`),
+            ilike(users.lastName, `%${q}%`),
+            ilike(users.nickname, `%${q}%`)
+          )
+        : undefined;
       const rows = await db
         .select(userColumns)
         .from(users)

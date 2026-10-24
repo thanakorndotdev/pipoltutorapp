@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend-host",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd backend/app && PORT=3011 bun run src/index.ts"],
+      "port": 3011
+    },
+    {
+      "name": "student-web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd frontend/pipoltutor-app && BACKEND_URL=http://localhost:3011 bun run dev"],
+      "port": 3000
+    },
+    {
+      "name": "admin-web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd frontend/admin && BACKEND_URL=http://localhost:3011 bun run dev"],
+      "port": 3002
+    }
+  ]
+}

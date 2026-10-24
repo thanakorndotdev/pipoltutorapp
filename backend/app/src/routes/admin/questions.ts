@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import { db } from "../../db";
-import { packQuestions, questions, questionSubject } from "../../db/schema";
+import { attemptAnswers, packQuestions, questions, questionSubject, QUESTION_TYPES, SCORING_MODES } from "../../db/schema";
 import { adminGuard } from "./guard";
 
 export const SUBJECTS = questionSubject.enumValues;
@@ -17,8 +17,15 @@ const questionBody = t.Object({
   topic: t.String({ minLength: 1, maxLength: 120 }),
   prompt: t.String({ minLength: 1, maxLength: 4000 }),
   imageUrl: t.Optional(t.Nullable(t.String({ maxLength: 2000 }))),
-  choices: t.Array(choice, { minItems: 2, maxItems: 6 }),
-  correctChoice: t.String({ minLength: 1, maxLength: 4 }),
+  type: t.UnionEnum(QUESTION_TYPES),
+  /** Decimals allowed, e.g. 1.5 or 3.75; stored to 2 places. */
+  points: t.Number({ minimum: 0, maximum: 1000 }),
+  scoring: t.Optional(t.UnionEnum(SCORING_MODES)),
+  /** Empty for "short". */
+  choices: t.Array(choice, { maxItems: 10 }),
+  correctChoices: t.Array(t.String({ minLength: 1, maxLength: 4 }), { maxItems: 10 }),
+  /** Exact-match variants for "short". */
+  acceptedAnswers: t.Optional(t.Array(t.String({ minLength: 1, maxLength: 500 }), { maxItems: 20 })),
   explanation: t.Optional(t.Nullable(t.String({ maxLength: 4000 }))),
   active: t.Optional(t.Boolean()),
 });
@@ -46,20 +53,61 @@ const adminColumns = {
   topic: questions.topic,
   prompt: questions.prompt,
   imageUrl: questions.imageUrl,
+  type: questions.type,
+  points: questions.points,
+  scoring: questions.scoring,
   choices: questions.choices,
-  correctChoice: questions.correctChoice,
+  correctChoices: questions.correctChoices,
+  acceptedAnswers: questions.acceptedAnswers,
   explanation: questions.explanation,
   active: questions.active,
   createdAt: questions.createdAt,
   updatedAt: questions.updatedAt,
 };
 
-/** The key must match one of the choices; duplicate keys are rejected. */
-function validateChoices(body: { choices: { key: string }[]; correctChoice: string }) {
-  const keys = body.choices.map((c) => c.key.trim());
-  if (new Set(keys).size !== keys.length) return "ตัวเลือกมีตัวอักษรซ้ำกัน";
-  if (!keys.includes(body.correctChoice.trim())) return "เฉลยต้องตรงกับตัวเลือกใดตัวเลือกหนึ่ง";
-  return null;
+type QuestionBody = typeof questionBody.static;
+
+/**
+ * Normalise and check a question against its type. Returns the row values or
+ * an error message. single: 2+ choices, exactly one key. multiple: 2+
+ * choices, one or more keys. short: no choices, one or more accepted answers
+ * (kept exactly as typed — no trimming, since matching is exact).
+ */
+function normalise(body: QuestionBody) {
+  const points = Math.round(body.points * 100) / 100;
+  const base = {
+    subject: body.subject,
+    topic: body.topic.trim(),
+    prompt: body.prompt.trim(),
+    imageUrl: body.imageUrl?.trim() || null,
+    type: body.type,
+    points,
+    explanation: body.explanation?.trim() || null,
+    active: body.active ?? true,
+  };
+  if (body.type === "short") {
+    const accepted = [...new Set((body.acceptedAnswers ?? []).filter((a) => a !== ""))];
+    if (accepted.length === 0) return { error: "ข้อเติมคำต้องมีคำตอบที่ยอมรับอย่างน้อย 1 แบบ" };
+    return { values: { ...base, scoring: "exact" as const, choices: [], correctChoices: [], acceptedAnswers: accepted } };
+  }
+  const choices = body.choices.map((c) => ({ key: c.key.trim(), text: c.text.trim() }));
+  const keys = choices.map((c) => c.key);
+  if (choices.length < 2) return { error: "ต้องมีตัวเลือกอย่างน้อย 2 ข้อ" };
+  if (choices.some((c) => !c.key || !c.text)) return { error: "ตัวเลือกทุกข้อต้องมีตัวอักษรและข้อความ" };
+  if (new Set(keys).size !== keys.length) return { error: "ตัวเลือกมีตัวอักษรซ้ำกัน" };
+  const correct = [...new Set(body.correctChoices.map((k) => k.trim()))];
+  if (correct.length === 0) return { error: "เลือกเฉลยอย่างน้อย 1 ตัวเลือก" };
+  if (correct.some((k) => !keys.includes(k))) return { error: "เฉลยต้องตรงกับตัวเลือก" };
+  if (body.type === "single" && correct.length !== 1) return { error: "ข้อปรนัยเลือกเฉลยได้ 1 ตัวเลือก" };
+  return {
+    values: {
+      ...base,
+      scoring: body.type === "multiple" ? (body.scoring ?? "exact") : ("exact" as const),
+      choices,
+      correctChoices: correct,
+      acceptedAnswers: [],
+    },
+  };
 }
 
 export const adminQuestionsRoutes = new Elysia({ prefix: "/admin/questions" })
@@ -115,24 +163,12 @@ export const adminQuestionsRoutes = new Elysia({ prefix: "/admin/questions" })
   .post(
     "/",
     async ({ body, set }) => {
-      const problem = validateChoices(body);
-      if (problem) {
+      const checked = normalise(body);
+      if ("error" in checked) {
         set.status = 422;
-        return { error: problem };
+        return { error: checked.error };
       }
-      const [question] = await db
-        .insert(questions)
-        .values({
-          subject: body.subject,
-          topic: body.topic.trim(),
-          prompt: body.prompt.trim(),
-          imageUrl: body.imageUrl?.trim() || null,
-          choices: body.choices.map((c) => ({ key: c.key.trim(), text: c.text.trim() })),
-          correctChoice: body.correctChoice.trim(),
-          explanation: body.explanation?.trim() || null,
-          active: body.active ?? true,
-        })
-        .returning(adminColumns);
+      const [question] = await db.insert(questions).values(checked.values).returning(adminColumns);
       set.status = 201;
       return { question };
     },
@@ -141,24 +177,24 @@ export const adminQuestionsRoutes = new Elysia({ prefix: "/admin/questions" })
   .put(
     "/:id",
     async ({ params, body, set }) => {
-      const problem = validateChoices(body);
-      if (problem) {
+      const checked = normalise(body);
+      if ("error" in checked) {
         set.status = 422;
-        return { error: problem };
+        return { error: checked.error };
+      }
+      // Changing the type under answers already given would make them
+      // meaningless; refuse while any attempt holds an answer to it.
+      const [current] = await db.select({ type: questions.type }).from(questions).where(eq(questions.id, params.id)).limit(1);
+      if (current && current.type !== checked.values.type) {
+        const [answered] = await db.select({ n: count() }).from(attemptAnswers).where(eq(attemptAnswers.questionId, params.id));
+        if (Number(answered?.n ?? 0) > 0) {
+          set.status = 409;
+          return { error: "มีนักเรียนตอบข้อนี้แล้ว เปลี่ยนประเภทคำถามไม่ได้ สร้างข้อใหม่แทน" };
+        }
       }
       const [question] = await db
         .update(questions)
-        .set({
-          subject: body.subject,
-          topic: body.topic.trim(),
-          prompt: body.prompt.trim(),
-          imageUrl: body.imageUrl?.trim() || null,
-          choices: body.choices.map((c) => ({ key: c.key.trim(), text: c.text.trim() })),
-          correctChoice: body.correctChoice.trim(),
-          explanation: body.explanation?.trim() || null,
-          active: body.active ?? true,
-          updatedAt: new Date(),
-        })
+        .set({ ...checked.values, updatedAt: new Date() })
         .where(eq(questions.id, params.id))
         .returning(adminColumns);
       if (!question) {

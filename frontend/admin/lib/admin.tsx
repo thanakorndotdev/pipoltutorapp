@@ -34,6 +34,8 @@ type AdminContextValue = {
   signIn: (key: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   api: <T>(path: string, init?: RequestInit & { json?: unknown }) => Promise<T>;
+  /** GET a file (e.g. a CSV export) with the same auth and hand it to the browser as a download. */
+  download: (path: string) => Promise<void>;
 };
 
 const AdminContext = createContext<AdminContextValue | null>(null);
@@ -149,7 +151,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     [auth]
   );
 
-  const value = useMemo(() => ({ auth, ready, sessionError, signIn, signOut, api }), [auth, ready, sessionError, signIn, signOut, api]);
+  const download = useCallback(
+    async (path: string) => {
+      const h = new Headers();
+      if (auth?.via === "key") h.set("x-admin-key", auth.key);
+      const r = await fetch(`${API_BASE}${path}`, { headers: h });
+      if (!r.ok) throw new ApiError(r.status, `ดาวน์โหลดไม่สำเร็จ (${r.status})`);
+      const name = /filename="([^"]+)"/.exec(r.headers.get("content-disposition") ?? "")?.[1] ?? "export.csv";
+      const url = URL.createObjectURL(await r.blob());
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
+    [auth]
+  );
+
+  const value = useMemo(
+    () => ({ auth, ready, sessionError, signIn, signOut, api, download }),
+    [auth, ready, sessionError, signIn, signOut, api, download]
+  );
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }
 

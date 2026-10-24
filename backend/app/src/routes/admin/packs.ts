@@ -1,121 +1,123 @@
 import { Elysia, t } from "elysia";
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, sql } from "drizzle-orm";
 
 import { db } from "../../db";
-import { attempts, examPacks, packProducts, packQuestions, products, questions } from "../../db/schema";
+import { attempts, examPacks, packQuestions, questions } from "../../db/schema";
 import { adminGuard } from "./guard";
 
 const packBody = t.Object({
   slug: t.String({ minLength: 1, maxLength: 80, pattern: "^[a-z0-9-]+$" }),
   title: t.String({ minLength: 1, maxLength: 160 }),
-  /** Products that unlock the pack; empty means free. */
-  productIds: t.Array(t.String({ format: "uuid" }), { maxItems: 20 }),
+  /** คำชี้แจง shown before the timer starts. */
+  description: t.Optional(t.Nullable(t.String({ maxLength: 8000 }))),
   questionCount: t.Integer({ minimum: 1, maximum: 500 }),
   /** Minutes are friendlier in the form; stored as seconds. */
   durationSeconds: t.Integer({ minimum: 60, maximum: 6 * 3600 }),
+  /** null = unlimited. */
+  maxAttempts: t.Nullable(t.Integer({ minimum: 1, maximum: 100 })),
+  /** ISO 8601 with offset; null = no bound. */
+  opensAt: t.Nullable(t.String({ format: "date-time" })),
+  closesAt: t.Nullable(t.String({ format: "date-time" })),
+  published: t.Boolean(),
+  showReview: t.Boolean(),
 });
 
 const packColumns = {
   id: examPacks.id,
   slug: examPacks.slug,
   title: examPacks.title,
+  description: examPacks.description,
   questionCount: examPacks.questionCount,
   durationSeconds: examPacks.durationSeconds,
+  maxAttempts: examPacks.maxAttempts,
+  opensAt: examPacks.opensAt,
+  closesAt: examPacks.closesAt,
+  published: examPacks.published,
+  showReview: examPacks.showReview,
   createdAt: examPacks.createdAt,
 };
 
-const idParam = t.Object({ id: t.String({ format: "uuid" }) });
-
-/** Unlocking products per pack, as { id, title } so the list can label them. */
-async function unlocksFor(packIds: string[]) {
-  const map = new Map<string, { id: string; title: string }[]>();
-  if (packIds.length === 0) return map;
-  const rows = await db
-    .select({ packId: packProducts.packId, id: products.id, title: products.title })
-    .from(packProducts)
-    .innerJoin(products, eq(products.id, packProducts.productId))
-    .where(inArray(packProducts.packId, packIds))
-    .orderBy(asc(products.priceSatang));
-  for (const { packId, ...product } of rows) map.set(packId, [...(map.get(packId) ?? []), product]);
-  return map;
+/** Form body to row values, or an error message. */
+function packValues(body: typeof packBody.static) {
+  const opensAt = body.opensAt ? new Date(body.opensAt) : null;
+  const closesAt = body.closesAt ? new Date(body.closesAt) : null;
+  if (opensAt && closesAt && closesAt <= opensAt) return { error: "เวลาปิดรับต้องหลังเวลาเปิดสอบ" };
+  return {
+    values: {
+      slug: body.slug,
+      title: body.title.trim(),
+      description: body.description?.trim() || null,
+      questionCount: body.questionCount,
+      durationSeconds: body.durationSeconds,
+      maxAttempts: body.maxAttempts,
+      opensAt,
+      closesAt,
+      published: body.published,
+      showReview: body.showReview,
+    },
+  };
 }
+
+/** Attempts still running on a pack; structure changes wait until they finish. */
+async function liveAttempts(packId: string) {
+  const [row] = await db
+    .select({ n: count() })
+    .from(attempts)
+    .where(and(eq(attempts.packId, packId), eq(attempts.status, "in_progress"), gt(attempts.expiresAt, new Date())));
+  return Number(row?.n ?? 0);
+}
+
+const idParam = t.Object({ id: t.String({ format: "uuid" }) });
 
 async function packWithCounts(id: string) {
   const [pack] = await db.select(packColumns).from(examPacks).where(eq(examPacks.id, id)).limit(1);
   if (!pack) return null;
-  const [[assigned], [attemptCount], unlocks] = await Promise.all([
+  const [[assigned], [attemptCount], live] = await Promise.all([
     db.select({ n: count() }).from(packQuestions).where(eq(packQuestions.packId, id)),
     db.select({ n: count() }).from(attempts).where(eq(attempts.packId, id)),
-    unlocksFor([id]),
+    liveAttempts(id),
   ]);
-  const unlockedBy = unlocks.get(id) ?? [];
   return {
     ...pack,
-    productIds: unlockedBy.map((p) => p.id),
-    unlockedBy,
     assigned: Number(assigned?.n ?? 0),
     attempts: Number(attemptCount?.n ?? 0),
+    liveAttempts: live,
   };
-}
-
-/** Every id must be an active, non-fortune product; returns an error message or null. */
-async function validateProductIds(ids: string[]) {
-  if (new Set(ids).size !== ids.length) return "มีสินค้าซ้ำ";
-  if (ids.length === 0) return null;
-  const found = await db
-    .select({ id: products.id, kind: products.kind })
-    .from(products)
-    .where(and(inArray(products.id, ids), eq(products.active, true)));
-  if (found.length !== ids.length) return "มีสินค้าที่ไม่พบหรือปิดขายอยู่";
-  if (found.some((p) => p.kind === "fortune")) return "สินค้าดูดวงปลดล็อกชุดข้อสอบไม่ได้";
-  return null;
-}
-
-async function replaceUnlocks(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], packId: string, ids: string[]) {
-  await tx.delete(packProducts).where(eq(packProducts.packId, packId));
-  if (ids.length > 0) await tx.insert(packProducts).values(ids.map((productId) => ({ packId, productId })));
 }
 
 export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
   .use(adminGuard)
   .get("/", async () => {
     const rows = await db
-      .select({ ...packColumns, assigned: count(packQuestions.id) })
+      .select({
+        ...packColumns,
+        assigned: count(packQuestions.id),
+        totalPoints: sql<number>`coalesce(sum(${questions.points}), 0)`,
+        // Fully qualified: drizzle strips table names inside a scalar subquery.
+        attempts: sql<number>`(select count(*) from attempts a where a.pack_id = exam_packs.id)`,
+      })
       .from(examPacks)
       .leftJoin(packQuestions, eq(packQuestions.packId, examPacks.id))
+      .leftJoin(questions, eq(questions.id, packQuestions.questionId))
       .groupBy(examPacks.id)
       .orderBy(asc(examPacks.title));
-    const unlocks = await unlocksFor(rows.map((r) => r.id));
     return {
-      packs: rows.map((r) => {
-        const unlockedBy = unlocks.get(r.id) ?? [];
-        return { ...r, assigned: Number(r.assigned), productIds: unlockedBy.map((p) => p.id), unlockedBy };
-      }),
+      packs: rows.map((r) => ({ ...r, assigned: Number(r.assigned), totalPoints: Number(r.totalPoints), attempts: Number(r.attempts) })),
     };
   })
   .post(
     "/",
     async ({ body, set }) => {
-      const invalid = await validateProductIds(body.productIds);
-      if (invalid) {
+      const checked = packValues(body);
+      if ("error" in checked) {
         set.status = 422;
-        return { error: invalid };
+        return { error: checked.error };
       }
-      const pack = await db.transaction(async (tx) => {
-        const [created] = await tx
-          .insert(examPacks)
-          .values({
-            slug: body.slug,
-            title: body.title.trim(),
-            questionCount: body.questionCount,
-            durationSeconds: body.durationSeconds,
-          })
-          .onConflictDoNothing({ target: examPacks.slug })
-          .returning({ id: examPacks.id });
-        if (!created) return null;
-        await replaceUnlocks(tx, created.id, body.productIds);
-        return created;
-      });
+      const [pack] = await db
+        .insert(examPacks)
+        .values(checked.values)
+        .onConflictDoNothing({ target: examPacks.slug })
+        .returning({ id: examPacks.id });
       if (!pack) {
         set.status = 409;
         return { error: "slug นี้มีอยู่แล้ว" };
@@ -140,26 +142,18 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
   .put(
     "/:id",
     async ({ params, body, set }) => {
-      const invalid = await validateProductIds(body.productIds);
-      if (invalid) {
+      const checked = packValues(body);
+      if ("error" in checked) {
         set.status = 422;
-        return { error: invalid };
+        return { error: checked.error };
       }
-      const updated = await db.transaction(async (tx) => {
-        const [row] = await tx
-          .update(examPacks)
-          .set({
-            slug: body.slug,
-            title: body.title.trim(),
-            questionCount: body.questionCount,
-            durationSeconds: body.durationSeconds,
-          })
-          .where(eq(examPacks.id, params.id))
-          .returning({ id: examPacks.id });
-        if (!row) return null;
-        await replaceUnlocks(tx, row.id, body.productIds);
-        return row;
-      });
+      // An open attempt's deadline was fixed at start, so a new duration or
+      // closing time applies to attempts started from now on.
+      const [updated] = await db
+        .update(examPacks)
+        .set(checked.values)
+        .where(eq(examPacks.id, params.id))
+        .returning({ id: examPacks.id });
       if (!updated) {
         set.status = 404;
         return { error: "ไม่พบชุดข้อสอบ" };
@@ -174,7 +168,7 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
       const [used] = await db.select({ n: count() }).from(attempts).where(eq(attempts.packId, params.id));
       if (Number(used?.n ?? 0) > 0) {
         set.status = 409;
-        return { error: "มีนักเรียนทำชุดนี้ไปแล้ว ลบไม่ได้" };
+        return { error: "มีนักเรียนทำชุดนี้ไปแล้ว ลบไม่ได้ ซ่อนชุดแทน (ปิด “เผยแพร่”) ประวัติจะยังอยู่" };
       }
       const deleted = await db.delete(examPacks).where(eq(examPacks.id, params.id)).returning({ id: examPacks.id });
       if (deleted.length === 0) {
@@ -197,13 +191,17 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
       const rows = await db
         .select({
           position: packQuestions.position,
+          section: packQuestions.section,
           id: questions.id,
           subject: questions.subject,
           topic: questions.topic,
+          type: questions.type,
+          points: questions.points,
           prompt: questions.prompt,
           imageUrl: questions.imageUrl,
           choices: questions.choices,
-          correctChoice: questions.correctChoice,
+          correctChoices: questions.correctChoices,
+          acceptedAnswers: questions.acceptedAnswers,
           active: questions.active,
         })
         .from(packQuestions)
@@ -215,13 +213,16 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
     { params: idParam }
   )
   /**
-   * Replace the composition. Order of `questionIds` is the position order.
-   * Runs in one transaction so a failed validation leaves the pack untouched.
+   * Replace the composition. Order of `items` is the position order; each
+   * item may carry a ตอน label. Refused while a student is mid-attempt, since
+   * adding, removing or moving questions under a running exam would shift
+   * what their saved answers point at. Wording and key fixes go through the
+   * question editor instead and are picked up by grading or a regrade.
    */
   .put(
     "/:id/questions",
     async ({ params, body, set }) => {
-      const ids = body.questionIds;
+      const ids = body.items.map((i) => i.questionId);
       if (new Set(ids).size !== ids.length) {
         set.status = 422;
         return { error: "มีข้อซ้ำในชุด" };
@@ -230,6 +231,10 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
       if (!pack) {
         set.status = 404;
         return { error: "ไม่พบชุดข้อสอบ" };
+      }
+      if (pack.liveAttempts > 0) {
+        set.status = 409;
+        return { error: `มีนักเรียนกำลังทำชุดนี้อยู่ ${pack.liveAttempts} คน ปรับโครงสร้างชุดได้เมื่อทุกคนส่งแล้ว (แก้ข้อความ/เฉลยในคลังข้อสอบได้ตามปกติ)` };
       }
       if (ids.length > 0) {
         const found = await db
@@ -250,7 +255,12 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
         await tx.delete(packQuestions).where(eq(packQuestions.packId, params.id));
         if (ids.length > 0) {
           await tx.insert(packQuestions).values(
-            ids.map((questionId, i) => ({ packId: params.id, questionId, position: i + 1 }))
+            body.items.map((item, i) => ({
+              packId: params.id,
+              questionId: item.questionId,
+              position: i + 1,
+              section: item.section?.trim() || null,
+            }))
           );
         }
       });
@@ -258,6 +268,14 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
     },
     {
       params: idParam,
-      body: t.Object({ questionIds: t.Array(t.String({ format: "uuid" }), { maxItems: 500 }) }),
+      body: t.Object({
+        items: t.Array(
+          t.Object({
+            questionId: t.String({ format: "uuid" }),
+            section: t.Optional(t.Nullable(t.String({ maxLength: 120 }))),
+          }),
+          { maxItems: 500 }
+        ),
+      }),
     }
   );

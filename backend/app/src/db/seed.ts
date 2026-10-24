@@ -7,7 +7,7 @@
 import { sql as raw } from "drizzle-orm";
 
 import { db, sql } from ".";
-import { examPacks, examSettings, packProducts, packQuestions, products, questions } from "./schema";
+import { examPacks, examSettings, packQuestions, products, questions } from "./schema";
 import { DEFAULT_EXAM_SETTINGS } from "../exam-settings";
 
 const catalogue = [
@@ -81,6 +81,9 @@ const [mockPack] = await db
     title: "ข้อสอบเสมือนจริง ชุดที่ 1",
     questionCount: 100,
     durationSeconds: 90 * 60,
+    description: "ข้อสอบเสมือนจริงชุดตัวอย่าง ทำได้ 1 ครั้ง เวลาเริ่มนับเมื่อกดเริ่มทำข้อสอบ",
+    maxAttempts: 1,
+    published: true,
   })
   .onConflictDoUpdate({
     target: examPacks.slug,
@@ -89,34 +92,23 @@ const [mockPack] = await db
   .returning({ id: examPacks.id });
 console.log("seeded exam pack mock-100");
 
-// The pack is unlocked by the exam-pack tier and the bundle ("all packs").
-// Only adds links; an admin removing one is not re-added.
-const unlockers = await db
-  .select({ id: products.id })
-  .from(products)
-  .where(raw`${products.slug} in ('exam-pack', 'course-plus-packs')`);
-if (mockPack && unlockers.length > 0) {
-  await db
-    .insert(packProducts)
-    .values(unlockers.map((p) => ({ packId: mockPack.id, productId: p.id })))
-    .onConflictDoNothing({ target: [packProducts.packId, packProducts.productId] });
-  console.log(`linked mock-100 to ${unlockers.length} products`);
-}
-
 // Sample bank so the admin picker and the exam UI have something to show.
-// Placeholder content; the answer key here is not a real key.
+// Placeholder content; the answer key here is not a real key. One of each
+// non-radio type so every renderer and marking rule has an example.
 const KEYS = ["ก", "ข", "ค", "ง"];
 const choices = (texts: string[]) => texts.map((text, i) => ({ key: KEYS[i]!, text }));
 const sampleQuestions = [
-  { subject: "math" as const, topic: "สมการเชิงเส้น", prompt: "ถ้า 3x + 7 = 25 แล้วค่าของ x² − 2x เท่ากับข้อใด", choices: choices(["18", "24", "30", "36"]), correctChoice: "ข", explanation: "x = 6 ดังนั้น 36 − 12 = 24" },
-  { subject: "math" as const, topic: "อัตราส่วน", prompt: "น้ำผลไม้ผสมน้ำเชื่อมในอัตราส่วน 3 : 2 ถ้ามีน้ำผลไม้ 450 มิลลิลิตร ต้องใช้น้ำเชื่อมกี่มิลลิลิตร", choices: choices(["200", "270", "300", "675"]), correctChoice: "ค", explanation: "450 ÷ 3 × 2 = 300" },
-  { subject: "math" as const, topic: "เรขาคณิต", prompt: "สี่เหลี่ยมผืนผ้ากว้าง 6 ซม. มีเส้นทแยงมุมยาว 10 ซม. พื้นที่เท่ากับกี่ตารางเซนติเมตร", choices: choices(["36", "48", "60", "80"]), correctChoice: "ข", explanation: "ยาว = 8 ซม. พื้นที่ = 48" },
-  { subject: "math" as const, topic: "จำนวนและการดำเนินการ", prompt: "ผลบวกของจำนวนคี่ตั้งแต่ 1 ถึง 39 เท่ากับข้อใด", choices: choices(["361", "380", "400", "441"]), correctChoice: "ค", explanation: "20 จำนวน → 20² = 400" },
-  { subject: "science" as const, topic: "แรงและการเคลื่อนที่", prompt: "วัตถุเคลื่อนที่ด้วยความเร็วคงที่ 12 เมตรต่อวินาที ใน 1 นาทีเคลื่อนที่ได้ระยะทางเท่าใด", choices: choices(["12 เมตร", "72 เมตร", "720 เมตร", "7,200 เมตร"]), correctChoice: "ค", explanation: "12 × 60 = 720" },
-  { subject: "science" as const, topic: "สารและสมบัติของสาร", prompt: "ข้อใดเป็นการเปลี่ยนแปลงทางเคมี", choices: choices(["น้ำแข็งละลาย", "เหล็กเป็นสนิม", "น้ำเดือด", "เกลือละลายน้ำ"]), correctChoice: "ข", explanation: "สนิมเป็นสารใหม่" },
-  { subject: "general_aptitude" as const, topic: "อนุกรม", prompt: "2, 6, 12, 20, 30, … จำนวนถัดไปคือข้อใด", choices: choices(["40", "42", "44", "48"]), correctChoice: "ข", explanation: "ผลต่างเพิ่มทีละ 2: 4,6,8,10,12" },
-  { subject: "thai" as const, topic: "คำและความหมาย", prompt: "คำในข้อใดเป็นคำประสม", choices: choices(["แม่น้ำ", "แม่", "น้ำ", "ไหล"]), correctChoice: "ก", explanation: "แม่ + น้ำ เกิดความหมายใหม่" },
-  { subject: "english" as const, topic: "Grammar", prompt: "She ____ to school every day.", choices: choices(["go", "goes", "going", "gone"]), correctChoice: "ข", explanation: "Third-person singular present" },
+  { subject: "math" as const, topic: "สมการเชิงเส้น", prompt: "ถ้า 3x + 7 = 25 แล้วค่าของ x² − 2x เท่ากับข้อใด", choices: choices(["18", "24", "30", "36"]), correctChoices: ["ข"], explanation: "x = 6 ดังนั้น 36 − 12 = 24" },
+  { subject: "math" as const, topic: "อัตราส่วน", prompt: "น้ำผลไม้ผสมน้ำเชื่อมในอัตราส่วน 3 : 2 ถ้ามีน้ำผลไม้ 450 มิลลิลิตร ต้องใช้น้ำเชื่อมกี่มิลลิลิตร", choices: choices(["200", "270", "300", "675"]), correctChoices: ["ค"], explanation: "450 ÷ 3 × 2 = 300" },
+  { subject: "math" as const, topic: "เรขาคณิต", prompt: "สี่เหลี่ยมผืนผ้ากว้าง 6 ซม. มีเส้นทแยงมุมยาว 10 ซม. พื้นที่เท่ากับกี่ตารางเซนติเมตร", choices: choices(["36", "48", "60", "80"]), correctChoices: ["ข"], explanation: "ยาว = 8 ซม. พื้นที่ = 48" },
+  { subject: "math" as const, topic: "จำนวนและการดำเนินการ", prompt: "ผลบวกของจำนวนคี่ตั้งแต่ 1 ถึง 39 เท่ากับข้อใด", choices: choices(["361", "380", "400", "441"]), correctChoices: ["ค"], explanation: "20 จำนวน → 20² = 400" },
+  { subject: "science" as const, topic: "แรงและการเคลื่อนที่", prompt: "วัตถุเคลื่อนที่ด้วยความเร็วคงที่ 12 เมตรต่อวินาที ใน 1 นาทีเคลื่อนที่ได้ระยะทางเท่าใด", choices: choices(["12 เมตร", "72 เมตร", "720 เมตร", "7,200 เมตร"]), correctChoices: ["ค"], explanation: "12 × 60 = 720" },
+  { subject: "science" as const, topic: "สารและสมบัติของสาร", prompt: "ข้อใดเป็นการเปลี่ยนแปลงทางเคมี", choices: choices(["น้ำแข็งละลาย", "เหล็กเป็นสนิม", "น้ำเดือด", "เกลือละลายน้ำ"]), correctChoices: ["ข"], explanation: "สนิมเป็นสารใหม่" },
+  { subject: "general_aptitude" as const, topic: "อนุกรม", prompt: "2, 6, 12, 20, 30, … จำนวนถัดไปคือข้อใด", choices: choices(["40", "42", "44", "48"]), correctChoices: ["ข"], explanation: "ผลต่างเพิ่มทีละ 2: 4,6,8,10,12" },
+  { subject: "thai" as const, topic: "คำและความหมาย", prompt: "คำในข้อใดเป็นคำประสม", choices: choices(["แม่น้ำ", "แม่", "น้ำ", "ไหล"]), correctChoices: ["ก"], explanation: "แม่ + น้ำ เกิดความหมายใหม่" },
+  { subject: "english" as const, topic: "Grammar", prompt: "She ____ to school every day.", choices: choices(["go", "goes", "going", "gone"]), correctChoices: ["ข"], explanation: "Third-person singular present" },
+  { subject: "math" as const, topic: "จำนวนเฉพาะ", type: "multiple" as const, scoring: "partial" as const, points: 2, prompt: "ข้อใดเป็นจำนวนเฉพาะ (เลือกได้มากกว่า 1 ข้อ)", choices: choices(["2", "9", "11", "15"]), correctChoices: ["ก", "ค"], explanation: "2 และ 11 มีตัวประกอบแค่ 1 กับตัวเอง" },
+  { subject: "math" as const, topic: "เศษส่วน", type: "short" as const, points: 3, prompt: "1/4 + 1/4 เท่ากับเท่าใด (ตอบเป็นทศนิยม)", choices: [], acceptedAnswers: ["0.5", "0.50"], explanation: "1/2 = 0.5" },
 ];
 
 const [bankCount] = await db.select({ n: raw<number>`count(*)` }).from(questions);

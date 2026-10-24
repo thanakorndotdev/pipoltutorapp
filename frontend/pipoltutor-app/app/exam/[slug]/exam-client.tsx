@@ -13,6 +13,7 @@ import {
   saveAnswer,
   startAttempt,
   submitAttempt,
+  type AnswerValue,
   type ExamQuestion,
   type QuestionSubject,
 } from "@/lib/exam";
@@ -31,7 +32,12 @@ type Props = {
 };
 
 /** One question's state as the server stores it. */
-type Entry = { selectedChoice: string | null; flagged: boolean };
+type Entry = AnswerValue;
+const BLANK: Entry = { selectedChoices: [], textAnswer: null, flagged: false };
+const isAnswered = (e: Entry | undefined) => Boolean(e && (e.selectedChoices.length > 0 || e.textAnswer));
+
+const TYPE_HINT = { single: "เลือก 1 คำตอบ", multiple: "เลือกได้มากกว่า 1 คำตอบ", short: "พิมพ์คำตอบ" } as const;
+const fmtPoints = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
 type SaveState = "saved" | "saving" | "offline";
 /** Which message box is up, if any. */
 type Msg = "confirm" | "warn" | "timeup" | "closed" | null;
@@ -122,7 +128,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
         if (cancelled) return;
         const restored: Record<string, Entry> = {};
         for (const a of data.answers) {
-          restored[a.questionId] = { selectedChoice: a.selectedChoice, flagged: a.state === "flagged" };
+          restored[a.questionId] = { selectedChoices: a.selectedChoices, textAnswer: a.textAnswer, flagged: a.state === "flagged" };
         }
         setAttemptId(attempt.id);
         setQuestions(data.questions);
@@ -173,13 +179,13 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
 
   const total = questions.length;
   const q = questions[index];
-  const entry = (q && entries[q.id]) || { selectedChoice: null, flagged: false };
+  const entry = (q && entries[q.id]) || BLANK;
 
   const update = useCallback(
     (patch: Partial<Entry>) => {
       if (!q || phase !== "ready") return;
       setEntries((prev) => {
-        const next = { ...(prev[q.id] ?? { selectedChoice: null, flagged: false }), ...patch };
+        const next = { ...(prev[q.id] ?? BLANK), ...patch };
         pending.current.set(q.id, next);
         return { ...prev, [q.id]: next };
       });
@@ -189,13 +195,29 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   );
 
   const go = useCallback((i: number) => setIndex(Math.min(Math.max(0, i), Math.max(0, total - 1))), [total]);
-  const pick = useCallback((k: string | null) => update({ selectedChoice: k }), [update]);
+  /** Radio picks one key; checkbox toggles a key in the set, kept in choice order. */
+  const pick = useCallback(
+    (k: string) => {
+      if (!q) return;
+      if (q.type === "multiple") {
+        const on = new Set(entry.selectedChoices);
+        if (on.has(k)) on.delete(k);
+        else on.add(k);
+        update({ selectedChoices: q.choices.map((c) => c.key).filter((x) => on.has(x)) });
+      } else update({ selectedChoices: [k] });
+    },
+    [q, entry.selectedChoices, update]
+  );
+  const clearAnswer = useCallback(() => update({ selectedChoices: [], textAnswer: null }), [update]);
+  // Typed answers are sent exactly as entered: marking is exact-match, so no trimming.
+  const typeAnswer = useCallback((text: string) => update({ textAnswer: text === "" ? null : text }), [update]);
   const toggleFlag = useCallback(() => update({ flagged: !entry.flagged }), [update, entry.flagged]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if ((e.target as HTMLElement | null)?.tagName === "INPUT" || !q) return;
-      const choice = q.choices.find((c) => c.key === e.key);
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || !q) return;
+      const choice = q.type === "short" ? undefined : q.choices.find((c) => c.key === e.key);
       if (choice) pick(choice.key);
       else if (e.key === "ArrowLeft") go(index - 1);
       else if (e.key === "ArrowRight") go(index + 1);
@@ -205,18 +227,31 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   }, [q, index, go, pick]);
 
   const answeredCount = useMemo(
-    () => questions.filter((x) => entries[x.id]?.selectedChoice).length,
+    () => questions.filter((x) => isAnswered(entries[x.id])).length,
     [questions, entries]
   );
   const flagCount = useMemo(() => questions.filter((x) => entries[x.id]?.flagged).length, [questions, entries]);
-  const subjects = useMemo(
-    () =>
-      SUBJECT_ORDER.map((id) => {
-        const idx = questions.map((x, i) => (x.subject === id ? i : -1)).filter((i) => i > -1);
-        return { id, ...SUBJECT_META[id], first: idx[0] ?? -1, idx };
-      }).filter((s) => s.idx.length > 0),
-    [questions]
-  );
+  /**
+   * Navigator tabs: the pack's ตอน when it has them, in paper order,
+   * otherwise the five จภ. subjects.
+   */
+  const bySection = useMemo(() => questions.some((x) => x.section), [questions]);
+  const groupOf = useCallback((x: ExamQuestion) => (bySection ? (x.section ?? "") : x.subject), [bySection]);
+  const groups = useMemo(() => {
+    if (bySection) {
+      const order: string[] = [];
+      for (const x of questions) if (!order.includes(x.section ?? "")) order.push(x.section ?? "");
+      return order.map((id) => {
+        const idx = questions.map((x, i) => ((x.section ?? "") === id ? i : -1)).filter((i) => i > -1);
+        return { id, label: id || "ไม่ระบุตอน", icon: "view_agenda", first: idx[0] ?? -1, idx };
+      });
+    }
+    return SUBJECT_ORDER.map((id) => {
+      const idx = questions.map((x, i) => (x.subject === id ? i : -1)).filter((i) => i > -1);
+      return { id: id as string, ...SUBJECT_META[id], first: idx[0] ?? -1, idx };
+    }).filter((s) => s.idx.length > 0);
+  }, [questions, bySection]);
+  const totalPoints = useMemo(() => questions.reduce((a, x) => a + x.points, 0), [questions]);
 
   if (phase === "loading" || phase === "error") {
     return (
@@ -246,7 +281,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const toMilestone = Math.max(0, Math.ceil((nextMilestone / 100) * total) - answeredCount);
   const timer = formatClock(secondsLeft);
   const ringLen = 2 * Math.PI * 70;
-  const canSubmit = phase === "ready" && answeredCount === total;
+  const canSubmit = phase === "ready";
 
   const pill =
     saveState === "saved"
@@ -267,7 +302,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
             <div className="flex items-center gap-2">
               <span className="font-display text-[16px] font-semibold">{studentName}</span>
             </div>
-            <p className="text-[12.5px] text-ink3">{packTitle} · {total} ข้อ</p>
+            <p className="text-[12.5px] text-ink3">{packTitle} · {total} ข้อ · เต็ม {fmtPoints(totalPoints)} คะแนน</p>
           </div>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -289,10 +324,10 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
 
       {/* subject tabs */}
       <div className="border-b border-border bg-card px-5 pb-3.5 md:px-10">
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-1" role="tablist" aria-label="วิชา">
-          {subjects.map((s) => {
-            const on = s.id === q.subject;
-            const done = s.idx.filter((i) => entries[questions[i].id]?.selectedChoice).length;
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-1" role="tablist" aria-label={bySection ? "ตอน" : "วิชา"}>
+          {groups.map((s) => {
+            const on = s.id === groupOf(q);
+            const done = s.idx.filter((i) => isAnswered(entries[questions[i].id])).length;
             return (
               <button
                 key={s.id}
@@ -310,7 +345,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
               </button>
             );
           })}
-          <span className="ml-auto hidden whitespace-nowrap text-[13px] text-ink3 xl:block">ข้ามไปวิชาไหนก่อนก็ได้ คำตอบเก็บแยกตามวิชา</span>
+          <span className="ml-auto hidden whitespace-nowrap text-[13px] text-ink3 xl:block">ข้ามไป{bySection ? "ตอน" : "วิชา"}ไหนก่อนก็ได้ ย้อนกลับมาแก้ได้จนกว่าจะส่ง</span>
         </div>
       </div>
 
@@ -369,7 +404,10 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
             <div className="flex flex-wrap items-center gap-3.5">
               <h3 id="q-title" className="whitespace-nowrap text-[22px] font-semibold">ข้อ {index + 1}</h3>
               <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-2 font-display text-[13.5px] font-medium text-brand-dark">
-                <Icon name={subject.icon} size={17} />{subject.label} · {q.topic}
+                <Icon name={bySection ? "view_agenda" : subject.icon} size={17} />{bySection ? q.section || "ไม่ระบุตอน" : `${subject.label} · ${q.topic}`}
+              </span>
+              <span className="tabular inline-flex items-center gap-1.5 rounded-full bg-page px-3.5 py-2 font-display text-[13.5px] font-medium text-ink2">
+                {fmtPoints(q.points)} คะแนน · {TYPE_HINT[q.type]}
               </span>
               <button
                 type="button"
@@ -393,42 +431,70 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
               </div>
             ) : null}
 
-            <div className="mt-[18px] flex flex-col gap-3" role="radiogroup" aria-label="ตัวเลือกคำตอบ">
-              {q.choices.map((c) => {
-                const on = entry.selectedChoice === c.key;
-                return (
-                  <button
-                    key={c.key}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => pick(c.key)}
-                    className={`flex w-full items-center gap-4 rounded-[20px] border bg-card px-5 py-4 text-left transition-colors ${
-                      on ? "border-2 border-brand bg-brand-50" : "border-[1.5px] border-border hover:border-border-strong"
-                    }`}
-                  >
-                    <span
-                      className={`flex size-[42px] shrink-0 items-center justify-center rounded-[14px] border font-display text-[17px] font-medium ${
-                        on ? "border-brand bg-brand text-on-fill" : "border-border bg-page text-ink2"
+            {q.type === "short" ? (
+              <div className="mt-[18px] flex flex-col gap-2">
+                <label htmlFor={`answer-${q.id}`} className="font-display text-[15px] font-medium">คำตอบของน้อง</label>
+                <input
+                  id={`answer-${q.id}`}
+                  key={q.id}
+                  type="text"
+                  value={entry.textAnswer ?? ""}
+                  onChange={(e) => typeAnswer(e.target.value)}
+                  maxLength={500}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder="พิมพ์คำตอบ"
+                  className="tabular min-h-[56px] w-full rounded-[18px] border-[1.5px] border-border bg-card px-5 text-[18px] text-ink placeholder:text-ink3 focus:border-brand"
+                />
+                <p className="text-[13.5px] text-ink3">ตรวจแบบตรงทุกตัวอักษร ระวังช่องว่างและรูปแบบตัวเลข เช่น 0.5 กับ 0.50</p>
+              </div>
+            ) : (
+              <div
+                className="mt-[18px] flex flex-col gap-3"
+                role={q.type === "single" ? "radiogroup" : "group"}
+                aria-label={q.type === "single" ? "ตัวเลือกคำตอบ" : "ตัวเลือกคำตอบ เลือกได้หลายข้อ"}
+              >
+                {q.choices.map((c) => {
+                  const on = entry.selectedChoices.includes(c.key);
+                  const multi = q.type === "multiple";
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      role={multi ? "checkbox" : "radio"}
+                      aria-checked={on}
+                      onClick={() => pick(c.key)}
+                      className={`flex w-full items-center gap-4 rounded-[20px] border bg-card px-5 py-4 text-left transition-colors ${
+                        on ? "border-2 border-brand bg-brand-50" : "border-[1.5px] border-border hover:border-border-strong"
                       }`}
                     >
-                      {c.key}
-                    </span>
-                    <span className="tabular flex-1 text-[17.5px]">{c.text}</span>
-                    <Icon name="check_circle" size={24} fill className={`text-brand ${on ? "opacity-100" : "opacity-0"}`} />
-                  </button>
-                );
-              })}
-            </div>
+                      <span
+                        className={`flex size-[42px] shrink-0 items-center justify-center border font-display text-[17px] font-medium ${multi ? "rounded-[10px]" : "rounded-[14px]"} ${
+                          on ? "border-brand bg-brand text-on-fill" : "border-border bg-page text-ink2"
+                        }`}
+                      >
+                        {c.key}
+                      </span>
+                      <span className="tabular flex-1 text-[17.5px]">{c.text}</span>
+                      <Icon name={multi ? "check_box" : "check_circle"} size={24} fill className={`text-brand ${on ? "opacity-100" : "opacity-0"}`} />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="mt-[22px] flex flex-wrap items-center justify-between gap-3.5">
               <Button kind="ghost" icon="arrow_back" onClick={() => go(index - 1)} disabled={index === 0}>ข้อก่อนหน้า</Button>
-              <button type="button" onClick={() => pick(null)} className="inline-flex items-center gap-2 font-display text-[14.5px] font-medium text-ink3">
+              <button type="button" onClick={clearAnswer} className="inline-flex items-center gap-2 font-display text-[14.5px] font-medium text-ink3">
                 <Icon name="backspace" size={18} />ล้างคำตอบข้อนี้
               </button>
               <Button kind="brand" icon="arrow_forward" trailingIcon onClick={() => go(index + 1)} disabled={index === total - 1}>ข้อถัดไป</Button>
             </div>
-            <p className="mt-3 text-center text-[13px] text-ink3">เคล็ดลับ: กดปุ่ม ก ข ค ง บนคีย์บอร์ดเลือกคำตอบได้ กดลูกศรซ้ายขวาเปลี่ยนข้อ</p>
+            {q.type === "short" ? null : (
+              <p className="mt-3 text-center text-[13px] text-ink3">เคล็ดลับ: กดปุ่ม ก ข ค ง บนคีย์บอร์ดเลือกคำตอบได้ กดลูกศรซ้ายขวาเปลี่ยนข้อ</p>
+            )}
           </section>
 
           <div className="flex items-start gap-3 rounded-[20px] bg-brand-50 px-[18px] py-[15px]">
@@ -474,7 +540,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
                   ? "border-brand bg-brand text-on-fill"
                   : e?.flagged
                     ? "border-red bg-red text-on-fill"
-                    : e?.selectedChoice
+                    : isAnswered(e)
                       ? "border-green bg-green text-on-fill"
                       : "border-border bg-page text-ink3";
               return (
@@ -509,13 +575,13 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
           <Button icon="task_alt" className="w-full" disabled={!canSubmit} onClick={() => setMsg("confirm")}>
             {phase === "submitting" ? "กำลังส่งคำตอบ…" : "ส่งคำตอบและตรวจ"}
           </Button>
-          <p className="text-center text-[12.5px] text-ink3">ส่งได้เมื่อทำครบทุกข้อ หรือเมื่อหมดเวลา</p>
+          <p className="text-center text-[12.5px] text-ink3">ส่งได้ทุกเมื่อ หมดเวลาระบบส่งคำตอบที่เซฟไว้ให้เอง</p>
         </aside>
       </div>
 
       <MsgBox
         open={msg === "confirm" && phase === "ready"}
-        tone={flagCount > 0 ? "warn" : "info"}
+        tone={flagCount > 0 || remaining > 0 ? "warn" : "info"}
         title="ส่งคำตอบและตรวจเลยไหม"
         onClose={() => setMsg(null)}
         actions={[
@@ -524,6 +590,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
         ]}
       >
         <p>ตอบแล้ว {answeredCount}/{total} ข้อ เหลือเวลา {timer}</p>
+        {remaining > 0 ? <p className="text-red">ยังไม่ได้ตอบ {remaining} ข้อ ข้อที่ไม่ตอบได้ 0 คะแนน</p> : null}
         {flagCount > 0 ? <p className="text-red">ยังปักธงรอทบทวนไว้ {flagCount} ข้อ</p> : null}
         <p>ส่งแล้วแก้คำตอบไม่ได้</p>
       </MsgBox>

@@ -4,6 +4,7 @@ import { and, eq, gt } from "drizzle-orm";
 import { db } from "./db";
 import { hostEnv } from "./db/env";
 import { sessions, users, type UserRole } from "./db/schema";
+import type { PcshsCampusCode } from "./campuses";
 
 export const SESSION_COOKIE = "pt_session";
 export const SESSION_DAYS = 30;
@@ -17,7 +18,35 @@ export function cookieSecure(): boolean {
   return publicUrl().startsWith("https://");
 }
 
-export type SessionUser = { id: string; email: string; displayName: string | null; avatarUrl: string | null; role: UserRole };
+export type SessionUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  role: UserRole;
+  firstName: string | null;
+  lastName: string | null;
+  nickname: string | null;
+  campus: PcshsCampusCode | null;
+};
+
+/** Columns every SessionUser lookup selects. */
+export const sessionUserColumns = {
+  id: users.id,
+  email: users.email,
+  displayName: users.displayName,
+  avatarUrl: users.avatarUrl,
+  role: users.role,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  nickname: users.nickname,
+  campus: users.campus,
+};
+
+/** The four fields /exam needs before an attempt may start. */
+export function profileComplete(u: Pick<SessionUser, "firstName" | "lastName" | "nickname" | "campus">): boolean {
+  return Boolean(u.firstName && u.lastName && u.nickname && u.campus);
+}
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -49,7 +78,7 @@ export async function createSession(userId: string): Promise<{ token: string; ex
 
 export async function userForToken(token: string): Promise<SessionUser | null> {
   const [row] = await db
-    .select({ id: users.id, email: users.email, displayName: users.displayName, avatarUrl: users.avatarUrl, role: users.role })
+    .select(sessionUserColumns)
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(and(eq(sessions.tokenHash, hashToken(token)), gt(sessions.expiresAt, new Date())))
