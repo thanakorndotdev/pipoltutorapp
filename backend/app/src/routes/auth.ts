@@ -49,8 +49,11 @@ function safeNext(next: string | undefined): string {
   } catch {
     return fallback;
   }
-  if (url.origin !== base.origin || url.pathname.startsWith("/api/")) return fallback;
-  return `${url.pathname}${url.search}${url.hash}`;
+  // Dot segments can collapse to a protocol-relative path: "/.//evil.com"
+  // parses to pathname "//evil.com", which a browser follows off-site.
+  const out = `${url.pathname}${url.search}${url.hash}`;
+  if (url.origin !== base.origin || url.pathname.startsWith("/api/") || out.startsWith("//") || out.startsWith("/\\")) return fallback;
+  return out;
 }
 
 type CookieAttrs = { path: string; maxAge: number; expires?: Date };

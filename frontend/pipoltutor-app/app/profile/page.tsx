@@ -20,8 +20,10 @@ function safeNext(raw: string | string[] | undefined): string {
   const base = "https://placeholder.invalid";
   try {
     const url = new URL(v, base);
-    if (url.origin !== base || url.pathname.startsWith("/api/")) return fallback;
-    return `${url.pathname}${url.search}${url.hash}`;
+    // Dot segments can collapse to "//evil.com" ("/.//evil.com"), so check the result too.
+    const out = `${url.pathname}${url.search}${url.hash}`;
+    if (url.origin !== base || url.pathname.startsWith("/api/") || out.startsWith("//") || out.startsWith("/\\")) return fallback;
+    return out;
   } catch {
     return fallback;
   }
