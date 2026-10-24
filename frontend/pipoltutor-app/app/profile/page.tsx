@@ -8,10 +8,23 @@ import { ProfileForm } from "./profile-form";
 
 export const metadata = { title: "ข้อมูลนักเรียน · PIPOL TUTOR" };
 
-/** Only same-site paths are honoured as the place to go after saving. */
+/**
+ * Only same-site paths are honoured as the place to go after saving. Parsing
+ * with the URL parser (not prefix checks) catches `/\evil.com` and tab or
+ * newline tricks that browsers normalise into a protocol-relative `//evil.com`.
+ */
 function safeNext(raw: string | string[] | undefined): string {
+  const fallback = "/exam";
   const v = typeof raw === "string" ? raw : "";
-  return v.startsWith("/") && !v.startsWith("//") && !v.startsWith("/\\") ? v : "/exam";
+  if (!v.startsWith("/")) return fallback;
+  const base = "https://placeholder.invalid";
+  try {
+    const url = new URL(v, base);
+    if (url.origin !== base || url.pathname.startsWith("/api/")) return fallback;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return fallback;
+  }
 }
 
 /**
