@@ -141,6 +141,12 @@ export type AdminAttempt = {
   email: string | null;
 };
 
+/** GET /admin/users/:id — profile plus every attempt on every pack. */
+export type StudentDetail = {
+  user: AdminUser;
+  attempts: (AdminAttempt & { packTitle: string; packSlug: string })[];
+};
+
 export type AttemptDetail = {
   attempt: AdminAttempt & { pack: { title: string; slug: string } };
   questions: (Omit<PackQuestion, "id" | "subject" | "topic" | "active" | "imageUrl"> & {

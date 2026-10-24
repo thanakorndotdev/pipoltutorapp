@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
-import { desc, eq, ilike, or, sql } from "drizzle-orm";
+import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import { currentUser, hasAdminKey } from "../../auth";
 import { db } from "../../db";
-import { USER_ROLES, users } from "../../db/schema";
+import { USER_ROLES, attempts, examPacks, users } from "../../db/schema";
 import { adminGuard } from "./guard";
 
 const idParam = t.Object({ id: t.String({ format: "uuid" }) });
@@ -51,6 +51,50 @@ export const adminUsersRoutes = new Elysia({ prefix: "/admin/users" })
       return { users: rows, roles: USER_ROLES, counts: Object.fromEntries(counts.map((c) => [c.role, c.n])) };
     },
     { query: t.Object({ q: t.Optional(t.String({ maxLength: 120 })) }) }
+  )
+
+  /**
+   * One student: current profile and every attempt on every pack, oldest
+   * first so attempt numbers read in order. Each attempt keeps the profile
+   * snapshot it started with.
+   */
+  .get(
+    "/:id",
+    async ({ params, set }) => {
+      const [user] = await db.select(userColumns).from(users).where(eq(users.id, params.id)).limit(1);
+      if (!user) {
+        set.status = 404;
+        return { error: "ไม่พบผู้ใช้" };
+      }
+      const rows = await db
+        .select({
+          id: attempts.id,
+          userId: attempts.userId,
+          packId: attempts.packId,
+          packTitle: examPacks.title,
+          packSlug: examPacks.slug,
+          attemptNo: attempts.attemptNo,
+          status: attempts.status,
+          startedAt: attempts.startedAt,
+          expiresAt: attempts.expiresAt,
+          submittedAt: attempts.submittedAt,
+          score: attempts.score,
+          maxScore: attempts.maxScore,
+          resetAt: attempts.resetAt,
+          scoreHistory: attempts.scoreHistory,
+          firstName: attempts.studentFirstName,
+          lastName: attempts.studentLastName,
+          nickname: attempts.studentNickname,
+          campus: attempts.studentCampus,
+          email: attempts.studentEmail,
+        })
+        .from(attempts)
+        .innerJoin(examPacks, eq(examPacks.id, attempts.packId))
+        .where(eq(attempts.userId, params.id))
+        .orderBy(asc(attempts.startedAt));
+      return { user, attempts: rows };
+    },
+    { params: idParam }
   )
 
   .patch(

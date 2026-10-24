@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { AttemptAnswers } from "@/components/attempt-answers";
 import { Button, Card, Empty, Modal, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
 import { formatThaiDateTime } from "@/lib/format";
@@ -10,7 +12,6 @@ import {
   ATTEMPT_STATUS,
   CAMPUS_LABEL,
   fmtPoints,
-  typeMeta,
   type AdminAttempt,
   type AttemptDetail,
   type Pack,
@@ -229,9 +230,9 @@ export function Results() {
                   {shown.map((a) => (
                     <tr key={a.id} className={a.resetAt ? "text-ink3" : ""}>
                       <td className="px-3 py-2.5">
-                        <p className="font-medium text-ink">
+                        <Link href={`/students/?id=${a.userId}`} className="font-medium text-brand hover:underline">
                           {fullName(a)} {a.nickname ? <span className="font-normal text-ink3">({a.nickname})</span> : null}
-                        </p>
+                        </Link>
                         <p className="text-[12.5px] text-ink3">{a.email}</p>
                       </td>
                       <td className="px-3 py-2.5">{a.campus ? (CAMPUS_LABEL[a.campus] ?? a.campus) : "—"}</td>
@@ -272,38 +273,7 @@ export function Results() {
 
       {detail ? (
         <Modal wide title={`${fullName(detail.attempt)} · ${detail.attempt.pack.title} ครั้งที่ ${detail.attempt.attemptNo}`} onClose={() => setDetail(null)}>
-          <div className="flex flex-col gap-3">
-            <p className="text-[14px] text-ink2">
-              {detail.attempt.email} · {detail.attempt.campus ? CAMPUS_LABEL[detail.attempt.campus] : "—"} · คะแนน{" "}
-              <b>
-                {fmtPoints(detail.attempt.score)}/{fmtPoints(detail.attempt.maxScore)}
-              </b>
-            </p>
-            <ol className="flex flex-col gap-2">
-              {detail.questions.map((x) => {
-                const given = x.type === "short" ? x.textAnswer : x.selectedChoices.join(", ");
-                const key = x.type === "short" ? x.acceptedAnswers.join(" / ") : x.correctChoices.join(", ");
-                const full = x.pointsAwarded !== null && x.pointsAwarded >= x.points;
-                const zero = !x.pointsAwarded;
-                return (
-                  <li key={x.questionId} className={`rounded-[14px] border p-3 ${full ? "border-green/40 bg-green-50" : zero ? "border-red/30 bg-red-50" : "border-amber-icon/40 bg-amber-50"}`}>
-                    <div className="flex flex-wrap items-center gap-2 text-[13px]">
-                      <span className="font-semibold">ข้อ {x.position}</span>
-                      {x.section ? <Tag>{x.section}</Tag> : null}
-                      <Tag tone="teal">{typeMeta(x.type).short}</Tag>
-                      <span className="tabular ml-auto font-semibold">
-                        {fmtPoints(x.pointsAwarded ?? 0)}/{fmtPoints(x.points)}
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[14px]">{x.prompt}</p>
-                    <p className="mt-1 text-[13.5px]">
-                      ตอบ: <b>{given || "ไม่ได้ตอบ"}</b> · เฉลย: {key}
-                    </p>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
+          <AttemptAnswers detail={detail} />
         </Modal>
       ) : null}
 

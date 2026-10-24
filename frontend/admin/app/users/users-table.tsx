@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button, Card, Empty, Icon, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
@@ -120,7 +121,9 @@ function UserRow({ user, self, onSaved }: { user: AdminUser; self: boolean; onSa
         )}
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate text-[15.5px] font-medium">
-            {user.displayName ?? user.email}
+            <Link href={`/students/?id=${user.id}`} className="hover:text-brand hover:underline">
+              {user.displayName ?? user.email}
+            </Link>
             {self ? <span className="ml-2 text-[12.5px] text-ink3">(คุณ)</span> : null}
           </p>
           <p className="truncate text-[13.5px] text-ink3">
