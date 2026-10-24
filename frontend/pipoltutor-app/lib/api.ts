@@ -31,7 +31,6 @@ export type ExamSettings = {
   examVenueLabel: string;
   enrollCloseAt: string;
   urgentDays: number;
-  timeMultiplierPercent: number;
   serverNow: string;
   daysLeft: number;
   status: CountdownStatus;
@@ -67,7 +66,6 @@ export type ExamPack = {
   attemptsUsed: number;
   /** The session user's running attempt, if any. */
   openAttemptId: string | null;
-  timeMultiplierPercent: number;
   allowedSeconds: number;
 };
 

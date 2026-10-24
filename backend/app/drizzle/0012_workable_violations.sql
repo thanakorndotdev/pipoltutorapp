@@ -1,0 +1,1 @@
+ALTER TABLE "exam_settings" DROP COLUMN "time_multiplier_percent";

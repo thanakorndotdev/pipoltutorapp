@@ -428,11 +428,6 @@ export const examSettings = pgTable(
     enrollCloseAt: timestamp("enroll_close_at", { withTimezone: true }).notNull(),
     /** Countdown turns orange when this many days or fewer remain. */
     urgentDays: integer("urgent_days").notNull().default(30),
-    /**
-     * Attempt time allowance as a percentage of exam_packs.duration_seconds.
-     * 150 = 1.5× the pack's set time. Integer to avoid float drift.
-     */
-    timeMultiplierPercent: integer("time_multiplier_percent").notNull().default(150),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

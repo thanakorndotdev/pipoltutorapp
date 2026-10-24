@@ -13,8 +13,6 @@ const patchBody = t.Object({
   examVenueLabel: t.Optional(t.String({ minLength: 1, maxLength: 40 })),
   enrollCloseAt: t.Optional(t.String({ format: "date-time" })),
   urgentDays: t.Optional(t.Integer({ minimum: 0, maximum: 365 })),
-  /** 100 = the pack's own time, 150 = 1.5×. */
-  timeMultiplierPercent: t.Optional(t.Integer({ minimum: 100, maximum: 400 })),
 });
 
 export const settingsRoutes = new Elysia({ prefix: "/settings" })
@@ -64,7 +62,6 @@ export const settingsRoutes = new Elysia({ prefix: "/settings" })
         enrollCloseAt,
         examVenueLabel: body.examVenueLabel?.trim(),
         urgentDays: body.urgentDays,
-        timeMultiplierPercent: body.timeMultiplierPercent,
       });
       return publicExamSettings(row);
     },

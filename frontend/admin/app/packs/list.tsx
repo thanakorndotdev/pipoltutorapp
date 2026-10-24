@@ -6,13 +6,12 @@ import { useEffect, useState } from "react";
 import { PackForm } from "@/components/pack-form";
 import { Button, Card, Empty, Modal, Note, PageHeader, Spinner, Tag } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
-import { formatClock, formatThaiDateTime } from "@/lib/format";
-import { fmtPoints, type ExamSettings, type Pack, type PackInput } from "@/lib/types";
+import { formatThaiDateTime } from "@/lib/format";
+import { fmtPoints, type Pack, type PackInput } from "@/lib/types";
 
 export function PackList() {
   const { api } = useAdmin();
   const [packs, setPacks] = useState<Pack[] | null>(null);
-  const [multiplier, setMultiplier] = useState(100);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Pack | null | "new">(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -22,11 +21,10 @@ export function PackList() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([api<{ packs: Pack[] }>("/admin/packs"), api<ExamSettings>("/settings/exam")])
-      .then(([p, s]) => {
+    api<{ packs: Pack[] }>("/admin/packs")
+      .then((p) => {
         if (cancelled) return;
         setPacks(p.packs);
-        setMultiplier(s.timeMultiplierPercent);
         setError(null);
       })
       .catch((e) => !cancelled && setError(errorMessage(e)));
@@ -93,10 +91,8 @@ export function PackList() {
                     <div className={`h-full rounded-full ${full ? "bg-green" : "bg-accent"}`} style={{ width: `${Math.min(100, (p.assigned / p.questionCount) * 100)}%` }} />
                   </div>
                   <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-[14px]">
-                    <dt className="text-ink3">เวลาที่ตั้งไว้</dt>
+                    <dt className="text-ink3">เวลาทำ</dt>
                     <dd className="tabular">{Math.round(p.durationSeconds / 60)} นาที</dd>
-                    <dt className="text-ink3">นักเรียนได้ ({multiplier}%)</dt>
-                    <dd className="tabular">{formatClock(Math.round((p.durationSeconds * multiplier) / 100))}</dd>
                     <dt className="text-ink3">คะแนนเต็ม</dt>
                     <dd className="tabular">{fmtPoints(p.totalPoints ?? 0)}</dd>
                     <dt className="text-ink3">ทำได้</dt>

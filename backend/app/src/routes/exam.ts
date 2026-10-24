@@ -5,7 +5,6 @@ import { currentUser } from "../auth";
 import { db } from "../db";
 import { attemptAnswers, attempts, examPacks, packQuestions, questions, type UserRole } from "../db/schema";
 import { countsTowardLimit, gradeAttempt, settleIfExpired } from "../grading";
-import { allowedSeconds, getExamSettings } from "../exam-settings";
 import { profileComplete } from "../sessions";
 
 /**
@@ -43,13 +42,8 @@ function isStaff(user: { role: UserRole } | null) {
 }
 
 /** Seconds a student gets on this pack; the hard deadline may cut an attempt shorter. */
-async function packTiming(pack: { durationSeconds: number }) {
-  const settings = await getExamSettings();
-  return {
-    durationSeconds: pack.durationSeconds,
-    timeMultiplierPercent: settings.timeMultiplierPercent,
-    allowedSeconds: allowedSeconds(pack.durationSeconds, settings.timeMultiplierPercent),
-  };
+function packTiming(pack: { durationSeconds: number }) {
+  return { durationSeconds: pack.durationSeconds, allowedSeconds: pack.durationSeconds };
 }
 
 /** Per-user attempt counts on these packs: used (not reset) and the open attempt, if any. */
@@ -127,10 +121,7 @@ export const examPacksRoutes = new Elysia({ prefix: "/exam-packs" })
       .from(examPacks)
       .where(staff ? undefined : eq(examPacks.published, true))
       .orderBy(examPacks.title);
-    const [settings, mine] = await Promise.all([
-      getExamSettings(),
-      user ? myAttemptState(user.id, rows.map((r) => r.id)) : Promise.resolve(new Map()),
-    ]);
+    const mine = user ? await myAttemptState(user.id, rows.map((r) => r.id)) : new Map();
     const now = new Date();
     return {
       packs: rows.map((pack) => {
@@ -140,8 +131,7 @@ export const examPacksRoutes = new Elysia({ prefix: "/exam-packs" })
           availability: availability(pack, now),
           attemptsUsed: s.used,
           openAttemptId: s.openAttemptId,
-          timeMultiplierPercent: settings.timeMultiplierPercent,
-          allowedSeconds: allowedSeconds(pack.durationSeconds, settings.timeMultiplierPercent),
+          ...packTiming(pack),
         };
       }),
       serverNow: now.toISOString(),
@@ -156,8 +146,8 @@ export const examPacksRoutes = new Elysia({ prefix: "/exam-packs" })
         set.status = 404;
         return { error: "ไม่พบชุดข้อสอบ" };
       }
-      const [timing, summary, mine] = await Promise.all([
-        packTiming(pack),
+      const timing = packTiming(pack);
+      const [summary, mine] = await Promise.all([
         packSummary(pack.id),
         user ? myAttemptState(user.id, [pack.id]) : Promise.resolve(new Map()),
       ]);
@@ -259,7 +249,7 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
   /**
    * Start an attempt — the student pressed "เริ่มทำข้อสอบ" on the
    * instructions screen, so the clock starts now. The deadline is the pack
-   * time × multiplier, capped at the pack's hard deadline; the client never
+   * time, capped at the pack's hard deadline; the client never
    * supplies time.
    */
   .post(
@@ -312,7 +302,7 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
           .where(and(eq(attempts.userId, user.id), eq(attempts.packId, pack.id), eq(attempts.status, "in_progress")))
           .limit(1);
       const [open] = await findOpen();
-      const timing = await packTiming(pack);
+      const timing = packTiming(pack);
       if (open) return { attempt: { ...timing, ...attemptView(open) }, resumed: true };
 
       const state = availability(pack);

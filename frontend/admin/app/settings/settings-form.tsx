@@ -4,7 +4,7 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 
 import { Button, Card, Field, Note, PageHeader, Spinner, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
-import { formatClock, formatThaiDate, toDay } from "@/lib/format";
+import { formatThaiDate, toDay } from "@/lib/format";
 import type { ExamSettings } from "@/lib/types";
 
 const BANGKOK = "+07:00";
@@ -14,7 +14,6 @@ type FormState = {
   examVenueLabel: string;
   enrollCloseAt: string;
   urgentDays: string;
-  timeMultiplierPercent: string;
 };
 type Errors = Partial<Record<keyof FormState, string>>;
 
@@ -24,7 +23,6 @@ function toForm(s: ExamSettings): FormState {
     examVenueLabel: s.examVenueLabel,
     enrollCloseAt: toDay(s.enrollCloseAt),
     urgentDays: String(s.urgentDays),
-    timeMultiplierPercent: String(s.timeMultiplierPercent),
   };
 }
 
@@ -36,8 +34,6 @@ function validate(f: FormState): Errors {
   if (!f.examVenueLabel.trim()) e.examVenueLabel = "กรอกชื่อสนามสอบ";
   const urgent = Number(f.urgentDays);
   if (!Number.isInteger(urgent) || urgent < 0 || urgent > 365) e.urgentDays = "ใส่จำนวนวัน 0–365";
-  const pct = Number(f.timeMultiplierPercent);
-  if (!Number.isInteger(pct) || pct < 100 || pct > 400) e.timeMultiplierPercent = "ใส่เปอร์เซ็นต์ 100–400 (150 = 1.5 เท่า)";
   return e;
 }
 
@@ -55,7 +51,7 @@ export function SettingsForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const ids = { examDate: useId(), enrollCloseAt: useId(), venue: useId(), urgent: useId(), pct: useId() };
+  const ids = { examDate: useId(), enrollCloseAt: useId(), venue: useId(), urgent: useId() };
 
   useEffect(() => {
     let cancelled = false;
@@ -93,7 +89,6 @@ export function SettingsForm() {
           enrollCloseAt: `${form.enrollCloseAt}T23:59:59${BANGKOK}`,
           examVenueLabel: form.examVenueLabel.trim(),
           urgentDays: Number(form.urgentDays),
-          timeMultiplierPercent: Number(form.timeMultiplierPercent),
         },
       });
       setCurrent(s);
@@ -106,12 +101,9 @@ export function SettingsForm() {
     }
   }
 
-  const pct = form ? Number(form.timeMultiplierPercent) : NaN;
-  const sample = Number.isInteger(pct) && pct >= 100 ? Math.round((90 * 60 * pct) / 100) : null;
-
   return (
     <>
-      <PageHeader title="วันสอบและเวลาทำข้อสอบ" sub="ใช้กับตัวนับถอยหลังหน้าแรก และเวลาที่นักเรียนได้ตอนเริ่มทำข้อสอบทุกชุด" />
+      <PageHeader title="วันสอบ" sub="ใช้กับตัวนับถอยหลังหน้าแรก เวลาทำข้อสอบตั้งในแต่ละชุด" />
       {error && !form ? <Note tone="error">{error}</Note> : null}
       {!form && !error ? <Spinner /> : null}
       {current ? (
@@ -121,7 +113,6 @@ export function SettingsForm() {
             <Row k="วันสอบ" v={`${current.examVenueLabel} · ${formatThaiDate(current.examDate)}`} />
             <Row k="ปิดรับสมัคร" v={formatThaiDate(current.enrollCloseAt)} />
             <Row k="สถานะนับถอยหลัง" v={statusLabel(current)} />
-            <Row k="เวลาทำข้อสอบ" v={`${current.timeMultiplierPercent}% ของเวลาชุด (${(current.timeMultiplierPercent / 100).toLocaleString("th-TH")} เท่า)`} />
           </dl>
         </Card>
       ) : null}
@@ -143,21 +134,6 @@ export function SettingsForm() {
                 <input id={ids.urgent} type="number" inputMode="numeric" min={0} max={365} className={inputClass} value={form.urgentDays} onChange={(e) => set("urgentDays")(e.target.value)} />
               </Field>
             </div>
-          </Card>
-          <Card className="flex flex-col gap-4">
-            <h2 className="text-[16px] font-semibold">เวลาทำข้อสอบ</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field id={ids.pct} label="ตัวคูณเวลา (เปอร์เซ็นต์)" error={errors.timeMultiplierPercent} hint="150 = ได้เวลา 1.5 เท่าของเวลาที่ตั้งไว้ในชุด">
-                <input id={ids.pct} type="number" inputMode="numeric" min={100} max={400} step={5} className={inputClass} value={form.timeMultiplierPercent} onChange={(e) => set("timeMultiplierPercent")(e.target.value)} />
-              </Field>
-              <div className="flex flex-col gap-1.5">
-                <p className="display text-[14px] font-medium">ตัวอย่าง</p>
-                <div className="rounded-[12px] bg-page px-3.5 py-2.5 text-[14.5px] text-ink2">
-                  ชุด 90 นาที → นักเรียนได้ <span className="tabular font-display font-semibold text-ink">{sample !== null ? formatClock(sample) : "—"}</span>
-                </div>
-              </div>
-            </div>
-            <Note>ใช้กับการเริ่มทำข้อสอบครั้งถัดไป รอบที่กำลังทำอยู่ยังใช้เวลาเดิมจนหมด</Note>
           </Card>
           {error ? <Note tone="error">{error}</Note> : null}
           {saved ? <Note tone="ok">บันทึกแล้ว หน้าแรกของนักเรียนจะแสดงค่าใหม่ทันที</Note> : null}

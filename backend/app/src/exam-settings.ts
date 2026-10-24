@@ -18,7 +18,6 @@ export const DEFAULT_EXAM_SETTINGS = {
   examVenueLabel: "จภ.",
   enrollCloseAt: new Date("2025-09-30T23:59:59+07:00"),
   urgentDays: 30,
-  timeMultiplierPercent: 150,
 };
 
 export async function getExamSettings(): Promise<ExamSettingsRow> {
@@ -53,7 +52,6 @@ export type ExamSettingsPatch = Partial<
     | "examVenueLabel"
     | "enrollCloseAt"
     | "urgentDays"
-    | "timeMultiplierPercent"
   >
 >;
 
@@ -84,14 +82,6 @@ export function countdownFor(settings: ExamSettingsRow, now = new Date()) {
   return { daysLeft, status };
 }
 
-/** Seconds a student actually gets on a pack: duration × multiplier. */
-export function allowedSeconds(
-  durationSeconds: number,
-  timeMultiplierPercent: number
-): number {
-  return Math.round((durationSeconds * timeMultiplierPercent) / 100);
-}
-
 /** Client-safe projection of the settings row plus the derived countdown. */
 export function publicExamSettings(settings: ExamSettingsRow, now = new Date()) {
   const { daysLeft, status } = countdownFor(settings, now);
@@ -100,7 +90,6 @@ export function publicExamSettings(settings: ExamSettingsRow, now = new Date()) 
     examVenueLabel: settings.examVenueLabel,
     enrollCloseAt: settings.enrollCloseAt.toISOString(),
     urgentDays: settings.urgentDays,
-    timeMultiplierPercent: settings.timeMultiplierPercent,
     serverNow: now.toISOString(),
     daysLeft,
     status,

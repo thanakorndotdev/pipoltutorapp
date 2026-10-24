@@ -112,7 +112,7 @@ export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null
         <Field id={`${id}-count`} label="จำนวนข้อเป้าหมาย">
           <input id={`${id}-count`} type="number" inputMode="numeric" min={1} max={500} className={inputClass} value={d.questionCount} onChange={(e) => patch({ questionCount: e.target.value })} />
         </Field>
-        <Field id={`${id}-min`} label="เวลาที่ตั้งไว้ (นาที)" hint="นักเรียนได้เวลานี้ × ตัวคูณในหน้า “วันสอบและเวลา”">
+        <Field id={`${id}-min`} label="เวลาทำข้อสอบ (นาที)" hint="นักเรียนได้เวลานี้พอดี เริ่มนับเมื่อกดเริ่มทำ">
           <input id={`${id}-min`} type="number" inputMode="numeric" min={1} max={360} className={inputClass} value={d.durationMinutes} onChange={(e) => patch({ durationMinutes: e.target.value })} />
         </Field>
         <Field id={`${id}-open`} label="เปิดสอบ (เวลาไทย)" hint="เว้นว่าง = เปิดทันที">

@@ -72,8 +72,7 @@ await db
   .onConflictDoNothing({ target: examSettings.key });
 console.log("seeded exam settings (kept existing row if present)");
 
-// One mock pack. Placeholder duration: 90 minutes for 100 questions; the
-// multiplier in exam_settings stretches it.
+// One mock pack. Placeholder duration: 90 minutes for 100 questions.
 const [mockPack] = await db
   .insert(examPacks)
   .values({

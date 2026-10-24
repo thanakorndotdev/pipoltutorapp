@@ -126,7 +126,7 @@ To sign in, use Google with an admin-role account, or paste `ADMIN_API_KEY` on t
 | คลังข้อสอบ | Question bank: create, edit and deactivate questions; upload figures |
 | ชุดข้อสอบ | Exam packs: title, slug, question count, duration, which products unlock them (none = free), and question order |
 | สินค้าและราคา | Products: add, edit title/description/price/on-off, delete |
-| วันสอบและเวลา | Exam date, enrollment close, countdown urgency, time multiplier (150% = 1.5× the pack time) |
+| วันสอบ | Exam date, enrollment close, countdown urgency |
 | รูปภาพเว็บไซต์ / ข้อความเว็บไซต์ | CMS for site images and copy |
 | ผู้ใช้และสิทธิ์ | Users and roles (admin / dev / test / student) |
 
@@ -274,14 +274,14 @@ adm PUT /admin/packs/$PACK '<same JSON shape as POST>' | jq      # edit title, t
 adm DELETE /admin/packs/$PACK | jq                                # 409 once any student has attempted it
 ```
 
-### Exam date and time multiplier
+### Exam date
 
 Every field is optional; send only the ones you want to change. Dates use Thai time (`+07:00`).
 
 ```bash
 adm GET /settings/exam | jq
 adm PUT /settings/exam '{"examDate":"2027-01-24T00:00:00+07:00","enrollCloseAt":"2027-01-10T23:59:59+07:00"}' | jq
-adm PUT /settings/exam '{"timeMultiplierPercent":150,"urgentDays":30,"examVenueLabel":"จภ."}' | jq
+adm PUT /settings/exam '{"urgentDays":30,"examVenueLabel":"จภ."}' | jq
 ```
 
 ### Users and roles
@@ -334,7 +334,7 @@ Always prefer the API or dashboard for anything they cover, because they validat
 
 **Exam engine** (rules in `.claude/skills/exam-engine-rules`):
 - The answer key never leaves the server.
-- The server owns the clock: allowed time = pack duration × multiplier.
+- The server owns the clock: allowed time = the pack duration, capped at its hard deadline.
 - Answers and flags autosave, grading is server-side, and results show a per-topic breakdown.
 
 **Fortune (ดูดวง):**

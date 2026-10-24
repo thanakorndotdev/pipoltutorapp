@@ -13,7 +13,7 @@ const NAV = [
   { href: "/packs/", label: "ชุดข้อสอบ", icon: "inventory_2" },
   { href: "/results/", label: "ผลสอบ", icon: "leaderboard" },
   { href: "/products/", label: "สินค้าและราคา", icon: "sell" },
-  { href: "/settings/", label: "วันสอบและเวลา", icon: "event" },
+  { href: "/settings/", label: "วันสอบ", icon: "event" },
   { href: "/images/", label: "รูปภาพเว็บไซต์", icon: "image" },
   { href: "/texts/", label: "ข้อความเว็บไซต์", icon: "edit_note" },
   { href: "/users/", label: "ผู้ใช้และสิทธิ์", icon: "manage_accounts" },

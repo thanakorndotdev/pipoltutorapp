@@ -188,7 +188,6 @@ export type ExamSettings = {
   examVenueLabel: string;
   enrollCloseAt: string;
   urgentDays: number;
-  timeMultiplierPercent: number;
   serverNow: string;
   daysLeft: number;
   status: CountdownStatus;
