@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { Shell } from "@/components/shell";
 import { AdminProvider } from "@/lib/admin";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const mitr = Mitr({ variable: "--font-mitr", subsets: ["thai", "latin"], weight: ["400", "500", "600"] });
 const anuphan = Anuphan({ variable: "--font-anuphan", subsets: ["thai", "latin"], weight: ["400", "500", "600"] });
@@ -15,8 +16,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`${mitr.variable} ${anuphan.variable} h-full antialiased`}>
+    <html lang="th" className={`${mitr.variable} ${anuphan.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
+        {/* Applies the saved light/dark choice before paint. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/google-font-display, @next/next/no-page-custom-font */}

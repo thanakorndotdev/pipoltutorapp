@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
 
 import { useAdmin } from "@/lib/admin";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, Card, Icon, Note, inputClass } from "@/components/ui";
 
 const NAV = [
@@ -41,6 +42,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <p className="display text-[15px] font-semibold">PIPOL TUTOR</p>
             <p className="text-[12.5px] text-ink3">แผงผู้ดูแลระบบ</p>
           </div>
+          <ThemeToggle className="ml-auto" />
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-1 md:flex-col md:pb-0" aria-label="เมนูหลัก">
           {NAV.map((n) => (

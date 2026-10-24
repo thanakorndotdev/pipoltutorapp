@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { SessionUser } from "@/lib/auth";
 import { NAV, TUTOR_NAME, type NavId } from "@/lib/content";
 import { useCopy, useSessionUser, useSiteAsset } from "./site-assets";
+import { ThemeToggle } from "./theme-toggle";
 import { Button, Icon } from "./ui";
 
 export function BrandMark({ onDark = false }: { onDark?: boolean }) {
@@ -84,12 +85,14 @@ export function SiteHeader({ current }: { current: NavId; app?: boolean }) {
           })}
         </nav>
 
-        <div className="hidden md:flex md:justify-end">
+        <div className="hidden items-center gap-2.5 md:flex md:justify-end">
+          <ThemeToggle />
           {user ? <UserMenu user={user} /> : <Button href="/login" icon="login" size="sm">เข้าสู่ระบบ</Button>}
         </div>
 
         {/* phone: current label + burger */}
         <div className="flex items-center gap-2.5 md:hidden">
+          <ThemeToggle />
           <span className="rounded-full bg-brand-50 px-3.5 py-[7px] font-display text-[14px] font-medium text-brand">
             {currentLabel}
           </span>

@@ -5,6 +5,7 @@ import "./globals.css";
 import { SiteAssetsProvider } from "@/components/site-assets";
 import { fetchSiteAssets, fetchSiteTexts } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const mitr = Mitr({
   variable: "--font-mitr",
@@ -40,8 +41,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="th"
       className={`${mitr.variable} ${anuphan.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
+        {/* Applies the saved light/dark choice before paint. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Icon font; Mitr/Anuphan come through next/font above. display=block on
