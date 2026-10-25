@@ -1,12 +1,16 @@
 import { Fragment } from "react";
 
-const URL_RE = /(https:\/\/[^\s<>"]+)/g;
+/**
+ * ASCII URL characters only: Thai is usually written without spaces, so a
+ * link followed straight by Thai ("…/viewแล้วตอบ") must stop at the Thai.
+ */
+const URL_RE = /(https?:\/\/[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;=%]+)/g;
 /** Sentence punctuation that usually follows a link rather than belonging to it. */
-const TRAILING = /[).,;:!?'"ฯ]+$/;
+const TRAILING = /[).,;:!?']+$/;
 
 /**
- * Plain text with every https:// link turned into a new-tab anchor, so an
- * admin can paste a Google Drive link into a prompt. Only https is linked;
+ * Plain text with every http(s):// link turned into a new-tab anchor, so an
+ * admin can paste a Google Drive link into a prompt. Only http(s) is linked;
  * everything else renders as text, never as HTML.
  */
 export function LinkedText({ text }: { text: string }) {

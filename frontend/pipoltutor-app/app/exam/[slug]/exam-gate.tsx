@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LinkedText } from "@/components/linked-text";
 import { Button, Icon } from "@/components/ui";
 import type { ExamPackDetail } from "@/lib/api";
 import { attemptsLabel, minutes, windowLabel, type PackAction } from "@/lib/exam-state";
@@ -75,7 +76,11 @@ export function ExamGate({ pack, action, studentName }: { pack: ExamPackDetail; 
 
         <section className="flex flex-col gap-3 rounded-[22px] border border-border bg-card p-5 shadow-s">
           <h2 className="text-[17px] font-semibold">อ่านก่อนเริ่ม</h2>
-          {pack.description ? <p className="whitespace-pre-line text-[15.5px] leading-[1.8] text-ink2">{pack.description}</p> : null}
+          {pack.description ? (
+            <p className="whitespace-pre-line text-[15.5px] leading-[1.8] text-ink2">
+              <LinkedText text={pack.description} />
+            </p>
+          ) : null}
           <ul className="flex flex-col gap-2 text-[15px] leading-[1.75] text-ink2">
             <li className="flex gap-2"><Icon name="timer" size={19} className="mt-1 text-accent-dark" />เวลา {minutes(pack.allowedSeconds)} เริ่มนับทันทีที่กดปุ่มเริ่มด้านล่าง และนับต่อแม้ปิดหน้าเว็บ หมดเวลาระบบส่งคำตอบให้อัตโนมัติ</li>
             {pack.closesAt ? <li className="flex gap-2"><Icon name="event_busy" size={19} className="mt-1 text-red" />{window} — ถึงเวลาปิดรับ ระบบส่งให้ทันทีแม้เวลาทำยังเหลือ</li> : null}
