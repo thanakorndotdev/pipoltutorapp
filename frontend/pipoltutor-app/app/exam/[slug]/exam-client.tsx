@@ -183,6 +183,8 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const total = questions.length;
   const q = questions[index];
   const entry = (q && entries[q.id]) || BLANK;
+  const figureLabel = (i: number) =>
+    q && q.imageUrls.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`;
 
   const update = useCallback(
     (patch: Partial<Entry>) => {
@@ -447,14 +449,17 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
             {q.imageUrls.length ? (
               <div className="flex flex-col gap-3">
                 {q.imageUrls.map((url, i) => (
-                  <div key={`${i}-${url}`} className="flex justify-center rounded-[18px] border border-border-strong bg-page p-[22px]">
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-2">
+                  <div key={`${i}-${url}`} className="flex flex-col items-center gap-2 rounded-[18px] border border-border-strong bg-page p-[22px]">
+                    <a href={url} target="_blank" rel="noopener noreferrer">
                       {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded question figure */}
                       <img
                         src={url}
-                        alt={q.imageUrls.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`}
+                        alt={figureLabel(i)}
                         className="max-h-[360px] max-w-full object-contain"
                       />
+                    </a>
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-[14.5px] text-brand underline underline-offset-2">
+                      {figureLabel(i)} (เปิดรูปเต็ม)
                     </a>
                   </div>
                 ))}
