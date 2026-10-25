@@ -19,14 +19,18 @@ import {
 const DEFAULT_KEYS = ["ก", "ข", "ค", "ง", "จ", "ฉ", "ช", "ซ", "ฌ", "ญ"];
 const MAX_CHOICES = 10;
 
+type Attachment = { kind: "image" | "link"; url: string };
+
 type Draft = {
   subject: Subject;
   topic: string;
   prompt: string;
-  /** One entry per figure; blank entries are dropped on save. */
-  imageUrls: string[];
-  /** Links shown as named links under the figures; blank entries are dropped on save. */
-  linkUrls: string[];
+  /**
+   * Figures and links in one list, each marked by the admin as shown-as-image
+   * or shown-as-link. Saved split into imageUrls/linkUrls (students see all
+   * images, then all links); blank entries are dropped on save.
+   */
+  attachments: Attachment[];
   type: QuestionType;
   points: string;
   scoring: ScoringMode;
@@ -44,8 +48,10 @@ function fromQuestion(q: Question | null): Draft {
         subject: q.subject,
         topic: q.topic,
         prompt: q.prompt,
-        imageUrls: [...q.imageUrls],
-        linkUrls: [...q.linkUrls],
+        attachments: [
+          ...q.imageUrls.map((url) => ({ kind: "image" as const, url })),
+          ...q.linkUrls.map((url) => ({ kind: "link" as const, url })),
+        ],
         type: q.type,
         points: String(q.points),
         scoring: q.scoring,
@@ -59,8 +65,7 @@ function fromQuestion(q: Question | null): Draft {
         subject: "math",
         topic: "",
         prompt: "",
-        imageUrls: [],
-        linkUrls: [],
+        attachments: [],
         type: "single",
         points: "1",
         scoring: "exact",
@@ -75,6 +80,8 @@ function fromQuestion(q: Question | null): Draft {
 function validate(d: Draft): string | null {
   if (!d.topic.trim()) return "กรอกบทเรียน/หัวข้อ";
   if (!d.prompt.trim()) return "กรอกโจทย์";
+  if (d.attachments.some((a) => a.url.trim() && !/^https?:\/\/\S+$/i.test(a.url.trim())))
+    return "ลิงก์รูป/ลิงก์ประกอบต้องขึ้นต้นด้วย http:// หรือ https://";
   const pts = Number(d.points);
   if (!Number.isFinite(pts) || pts < 0 || pts > 1000) return "คะแนน 0–1000 (ทศนิยมได้ เช่น 1.5)";
   if (d.type === "short") {
@@ -125,11 +132,15 @@ export function QuestionForm({
     if (d.type === "single") return patch({ correctChoices: [key] });
     patch({ correctChoices: d.correctChoices.includes(key) ? d.correctChoices.filter((k) => k !== key) : [...d.correctChoices, key] });
   };
-  const moveImage = (i: number, by: -1 | 1) => {
-    const imageUrls = [...d.imageUrls];
-    [imageUrls[i], imageUrls[i + by]] = [imageUrls[i + by]!, imageUrls[i]!];
-    patch({ imageUrls });
+  const moveAttachment = (i: number, by: -1 | 1) => {
+    const attachments = [...d.attachments];
+    [attachments[i], attachments[i + by]] = [attachments[i + by]!, attachments[i]!];
+    patch({ attachments });
   };
+  const patchAttachment = (i: number, p: Partial<Attachment>) =>
+    patch({ attachments: d.attachments.map((a, j) => (j === i ? { ...a, ...p } : a)) });
+  const urlsOf = (kind: Attachment["kind"]) =>
+    d.attachments.filter((a) => a.kind === kind).map((a) => a.url.trim()).filter(Boolean);
   const changeType = (type: QuestionType) => {
     // Going to radio keeps only the first correct key.
     patch({ type, correctChoices: type === "single" ? d.correctChoices.slice(0, 1) : d.correctChoices });
@@ -150,8 +161,8 @@ export function QuestionForm({
         subject: d.subject,
         topic: d.topic.trim(),
         prompt: d.prompt.trim(),
-        imageUrls: d.imageUrls.map((u) => u.trim()).filter(Boolean),
-        linkUrls: d.linkUrls.map((u) => u.trim()).filter(Boolean),
+        imageUrls: urlsOf("image"),
+        linkUrls: urlsOf("link"),
         type: d.type,
         points: Math.round(Number(d.points) * 100) / 100,
         scoring: d.type === "multiple" ? d.scoring : "exact",
@@ -209,61 +220,57 @@ export function QuestionForm({
         <textarea id={`${id}-prompt`} rows={3} className={`${inputClass} leading-[1.75]`} value={d.prompt} maxLength={4000} onChange={(e) => patch({ prompt: e.target.value })} />
       </Field>
       <fieldset className="flex flex-col gap-2">
-        <legend className="display mb-1 text-[14px] font-medium">รูปประกอบ (ถ้ามี)</legend>
-        <p className="text-[13px] text-ink3">ใส่ได้หลายรูป แสดงใต้โจทย์ตามลำดับนี้ อัปโหลดจากเครื่อง (PNG, JPEG, WebP, GIF ไม่เกิน 5 MB) หรือวางลิงก์รูป</p>
-        {d.imageUrls.map((url, i) => (
+        <legend className="display mb-1 text-[14px] font-medium">รูป/ลิงก์ประกอบ (ถ้ามี)</legend>
+        <p className="text-[13px] text-ink3">
+          แต่ละรายการเลือกได้ว่าจะแสดงเป็น "รูป" (แสดงรูปใต้โจทย์ อัปโหลดจากเครื่อง PNG, JPEG, WebP, GIF ไม่เกิน 5 MB หรือวางลิงก์ไฟล์รูป) หรือ "ลิงก์" (นักเรียนเห็นเป็นลิงก์ "ลิงก์ประกอบโจทย์ข้อ …" กดแล้วเปิดแท็บใหม่ เช่น Google Drive หรือหน้าเว็บ) นักเรียนจะเห็นรูปทั้งหมดก่อน แล้วตามด้วยลิงก์
+        </p>
+        {d.attachments.map((a, i) => (
           <div key={i} className="flex flex-col gap-2 rounded-[12px] border border-border p-3">
             <div className="flex items-center gap-2">
-              <span className="text-[13px] font-medium">รูปที่ {i + 1}</span>
+              <span className="text-[13px] font-medium">รายการที่ {i + 1}</span>
+              <select
+                aria-label={`แสดงรายการที่ ${i + 1} เป็น`}
+                className={`${inputClass} w-auto`}
+                value={a.kind}
+                onChange={(e) => patchAttachment(i, { kind: e.target.value as Attachment["kind"] })}
+              >
+                <option value="image">แสดงเป็นรูป</option>
+                <option value="link">แสดงเป็นลิงก์</option>
+              </select>
               <div className="ml-auto flex gap-1">
-                <Button kind="subtle" size="sm" icon="arrow_upward" title={`เลื่อนรูปที่ ${i + 1} ขึ้น`} disabled={i === 0} onClick={() => moveImage(i, -1)} />
+                <Button kind="subtle" size="sm" icon="arrow_upward" title={`เลื่อนรายการที่ ${i + 1} ขึ้น`} disabled={i === 0} onClick={() => moveAttachment(i, -1)} />
                 <Button
                   kind="subtle"
                   size="sm"
                   icon="arrow_downward"
-                  title={`เลื่อนรูปที่ ${i + 1} ลง`}
-                  disabled={i === d.imageUrls.length - 1}
-                  onClick={() => moveImage(i, 1)}
+                  title={`เลื่อนรายการที่ ${i + 1} ลง`}
+                  disabled={i === d.attachments.length - 1}
+                  onClick={() => moveAttachment(i, 1)}
                 />
-                <Button kind="subtle" size="sm" icon="delete" title={`ลบรูปที่ ${i + 1}`} onClick={() => patch({ imageUrls: d.imageUrls.filter((_, j) => j !== i) })} />
+                <Button kind="subtle" size="sm" icon="delete" title={`ลบรายการที่ ${i + 1}`} onClick={() => patch({ attachments: d.attachments.filter((_, j) => j !== i) })} />
               </div>
             </div>
-            <ImagePicker
-              id={`${id}-image-${i}`}
-              value={url}
-              onChange={(next) => patch({ imageUrls: d.imageUrls.map((u, j) => (j === i ? next : u)) })}
-              onError={setError}
-            />
+            {a.kind === "image" ? (
+              <ImagePicker id={`${id}-attachment-${i}`} value={a.url} onChange={(url) => patchAttachment(i, { url })} onError={setError} />
+            ) : (
+              <input
+                aria-label={`ลิงก์รายการที่ ${i + 1}`}
+                type="url"
+                inputMode="url"
+                placeholder="https://drive.google.com/…"
+                className={inputClass}
+                value={a.url}
+                maxLength={2000}
+                onChange={(e) => patchAttachment(i, { url: e.target.value })}
+              />
+            )}
           </div>
         ))}
-        <div>
-          <Button kind="ghost" size="sm" icon="add_photo_alternate" onClick={() => patch({ imageUrls: [...d.imageUrls, ""] })}>
+        <div className="flex flex-wrap gap-2">
+          <Button kind="ghost" size="sm" icon="add_photo_alternate" onClick={() => patch({ attachments: [...d.attachments, { kind: "image", url: "" }] })}>
             เพิ่มรูป
           </Button>
-        </div>
-      </fieldset>
-      <fieldset className="flex flex-col gap-2">
-        <legend className="display mb-1 text-[14px] font-medium">ลิงก์ประกอบ (ถ้ามี)</legend>
-        <p className="text-[13px] text-ink3">
-          ใช้กับลิงก์ที่ไม่ใช่ไฟล์รูป เช่น Google Drive หรือหน้าเว็บ นักเรียนจะเห็นเป็นลิงก์ชื่อ "ลิงก์ประกอบโจทย์ข้อ … ลิงก์ที่ …" ใต้รูป กดแล้วเปิดแท็บใหม่ (ขึ้นต้นด้วย http:// หรือ https://)
-        </p>
-        {d.linkUrls.map((url, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <input
-              aria-label={`ลิงก์ที่ ${i + 1}`}
-              type="url"
-              inputMode="url"
-              placeholder="https://drive.google.com/…"
-              className={inputClass}
-              value={url}
-              maxLength={2000}
-              onChange={(e) => patch({ linkUrls: d.linkUrls.map((u, j) => (j === i ? e.target.value : u)) })}
-            />
-            <Button kind="subtle" size="sm" icon="delete" title={`ลบลิงก์ที่ ${i + 1}`} onClick={() => patch({ linkUrls: d.linkUrls.filter((_, j) => j !== i) })} />
-          </div>
-        ))}
-        <div>
-          <Button kind="ghost" size="sm" icon="add_link" onClick={() => patch({ linkUrls: [...d.linkUrls, ""] })}>
+          <Button kind="ghost" size="sm" icon="add_link" onClick={() => patch({ attachments: [...d.attachments, { kind: "link", url: "" }] })}>
             เพิ่มลิงก์
           </Button>
         </div>
