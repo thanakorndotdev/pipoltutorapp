@@ -287,6 +287,8 @@ export const questions = pgTable(
     prompt: text("prompt").notNull(),
     /** Figures shown under the prompt, in order; any number, empty for none. */
     imageUrls: text("image_urls").array().notNull().default(sql`'{}'::text[]`),
+    /** http(s) links shown as named links under the figures, in order. */
+    linkUrls: text("link_urls").array().notNull().default(sql`'{}'::text[]`),
     type: questionType("type").notNull().default("single"),
     /** Points for a fully correct answer; decimals allowed (e.g. 1.5). */
     points: numeric("points", { precision: 8, scale: 2, mode: "number" }).notNull().default(1),

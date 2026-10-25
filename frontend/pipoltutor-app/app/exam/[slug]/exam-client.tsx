@@ -45,12 +45,6 @@ type Msg = "confirm" | "warn" | "timeup" | "closed" | null;
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const IMAGE_URL_RE = /\.(png|jpe?g|webp|gif)(\?.*)?$/i;
-
-function isImageUrl(url: string) {
-  return url.startsWith("/api/uploads/") || IMAGE_URL_RE.test(url);
-}
-
 export function ExamClient({ packId, packTitle, studentName }: Props) {
   const router = useRouter();
   const [phase, setPhase] = useState<"loading" | "ready" | "submitting" | "error">("loading");
@@ -189,8 +183,8 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const total = questions.length;
   const q = questions[index];
   const entry = (q && entries[q.id]) || BLANK;
-  // Only direct image files render as figures; a Drive or page link would show a broken image.
-  const figures = (q?.imageUrls ?? []).filter(isImageUrl);
+  const figures = q?.imageUrls ?? [];
+  const links = q?.linkUrls ?? [];
   const figureLabel = (i: number) =>
     figures.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`;
 
@@ -472,6 +466,19 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
                   </div>
                 ))}
               </div>
+            ) : null}
+
+            {links.length ? (
+              <ul className="mt-3 flex flex-col gap-2">
+                {links.map((url, i) => (
+                  <li key={`${i}-${url}`}>
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-[15px] text-brand underline underline-offset-2">
+                      <Icon name="open_in_new" size={18} />
+                      {links.length > 1 ? `ลิงก์ประกอบโจทย์ข้อ ${index + 1} ลิงก์ที่ ${i + 1}` : `ลิงก์ประกอบโจทย์ข้อ ${index + 1}`}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             ) : null}
 
             {q.type === "short" ? (

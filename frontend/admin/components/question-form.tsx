@@ -25,6 +25,8 @@ type Draft = {
   prompt: string;
   /** One entry per figure; blank entries are dropped on save. */
   imageUrls: string[];
+  /** Links shown as named links under the figures; blank entries are dropped on save. */
+  linkUrls: string[];
   type: QuestionType;
   points: string;
   scoring: ScoringMode;
@@ -43,6 +45,7 @@ function fromQuestion(q: Question | null): Draft {
         topic: q.topic,
         prompt: q.prompt,
         imageUrls: [...q.imageUrls],
+        linkUrls: [...q.linkUrls],
         type: q.type,
         points: String(q.points),
         scoring: q.scoring,
@@ -57,6 +60,7 @@ function fromQuestion(q: Question | null): Draft {
         topic: "",
         prompt: "",
         imageUrls: [],
+        linkUrls: [],
         type: "single",
         points: "1",
         scoring: "exact",
@@ -147,6 +151,7 @@ export function QuestionForm({
         topic: d.topic.trim(),
         prompt: d.prompt.trim(),
         imageUrls: d.imageUrls.map((u) => u.trim()).filter(Boolean),
+        linkUrls: d.linkUrls.map((u) => u.trim()).filter(Boolean),
         type: d.type,
         points: Math.round(Number(d.points) * 100) / 100,
         scoring: d.type === "multiple" ? d.scoring : "exact",
@@ -234,6 +239,32 @@ export function QuestionForm({
         <div>
           <Button kind="ghost" size="sm" icon="add_photo_alternate" onClick={() => patch({ imageUrls: [...d.imageUrls, ""] })}>
             เพิ่มรูป
+          </Button>
+        </div>
+      </fieldset>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="display mb-1 text-[14px] font-medium">ลิงก์ประกอบ (ถ้ามี)</legend>
+        <p className="text-[13px] text-ink3">
+          ใช้กับลิงก์ที่ไม่ใช่ไฟล์รูป เช่น Google Drive หรือหน้าเว็บ นักเรียนจะเห็นเป็นลิงก์ชื่อ "ลิงก์ประกอบโจทย์ข้อ … ลิงก์ที่ …" ใต้รูป กดแล้วเปิดแท็บใหม่ (ขึ้นต้นด้วย http:// หรือ https://)
+        </p>
+        {d.linkUrls.map((url, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              aria-label={`ลิงก์ที่ ${i + 1}`}
+              type="url"
+              inputMode="url"
+              placeholder="https://drive.google.com/…"
+              className={inputClass}
+              value={url}
+              maxLength={2000}
+              onChange={(e) => patch({ linkUrls: d.linkUrls.map((u, j) => (j === i ? e.target.value : u)) })}
+            />
+            <Button kind="subtle" size="sm" icon="delete" title={`ลบลิงก์ที่ ${i + 1}`} onClick={() => patch({ linkUrls: d.linkUrls.filter((_, j) => j !== i) })} />
+          </div>
+        ))}
+        <div>
+          <Button kind="ghost" size="sm" icon="add_link" onClick={() => patch({ linkUrls: [...d.linkUrls, ""] })}>
+            เพิ่มลิงก์
           </Button>
         </div>
       </fieldset>

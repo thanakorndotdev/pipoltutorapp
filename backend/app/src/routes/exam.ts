@@ -216,6 +216,7 @@ const studentQuestionColumns = {
   points: questions.points,
   prompt: questions.prompt,
   imageUrls: questions.imageUrls,
+  linkUrls: questions.linkUrls,
   choices: questions.choices,
 };
 

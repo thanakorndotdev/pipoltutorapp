@@ -18,6 +18,8 @@ const questionBody = t.Object({
   prompt: t.String({ minLength: 1, maxLength: 4000 }),
   /** Figures in display order. */
   imageUrls: t.Optional(t.Array(t.String({ maxLength: 2000 }), { maxItems: 50 })),
+  /** Links (Google Drive, a page) shown as named links in display order; http(s) only. */
+  linkUrls: t.Optional(t.Array(t.String({ maxLength: 2000 }), { maxItems: 50 })),
   type: t.UnionEnum(QUESTION_TYPES),
   /** Decimals allowed, e.g. 1.5 or 3.75; stored to 2 places. */
   points: t.Number({ minimum: 0, maximum: 1000 }),
@@ -54,6 +56,7 @@ const adminColumns = {
   topic: questions.topic,
   prompt: questions.prompt,
   imageUrls: questions.imageUrls,
+  linkUrls: questions.linkUrls,
   type: questions.type,
   points: questions.points,
   scoring: questions.scoring,
@@ -76,11 +79,14 @@ type QuestionBody = typeof questionBody.static;
  */
 function normalise(body: QuestionBody) {
   const points = Math.round(body.points * 100) / 100;
+  const linkUrls = (body.linkUrls ?? []).map((u) => u.trim()).filter(Boolean);
+  if (linkUrls.some((u) => !/^https?:\/\/\S+$/i.test(u))) return { error: "ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://" };
   const base = {
     subject: body.subject,
     topic: body.topic.trim(),
     prompt: body.prompt.trim(),
     imageUrls: (body.imageUrls ?? []).map((u) => u.trim()).filter(Boolean),
+    linkUrls,
     type: body.type,
     points,
     explanation: body.explanation?.trim() || null,

@@ -214,6 +214,7 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
           points: questions.points,
           prompt: questions.prompt,
           imageUrls: questions.imageUrls,
+          linkUrls: questions.linkUrls,
           choices: questions.choices,
           correctChoices: questions.correctChoices,
           acceptedAnswers: questions.acceptedAnswers,

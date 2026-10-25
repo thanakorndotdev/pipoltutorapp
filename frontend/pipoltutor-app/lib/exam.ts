@@ -50,6 +50,7 @@ export type ExamQuestion = {
   prompt: string;
   /** In display order; empty for none. */
   imageUrls: string[];
+  linkUrls: string[];
   /** Empty for "short". */
   choices: { key: string; text: string }[];
 };
