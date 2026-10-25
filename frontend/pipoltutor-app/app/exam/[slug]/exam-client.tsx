@@ -451,7 +451,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
             {figures.length ? (
               <div className="flex flex-col gap-3">
                 {figures.map((url, i) => (
-                  <div key={`${i}-${url}`} className="flex flex-col items-center gap-2 rounded-[18px] border border-border-strong bg-page p-[22px]">
+                  <div key={`${i}-${url}`} className="flex justify-center rounded-[18px] border border-border-strong bg-page p-[22px]">
                     <a href={url} target="_blank" rel="noopener noreferrer">
                       {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded question figure */}
                       <img
@@ -459,9 +459,6 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
                         alt={figureLabel(i)}
                         className="max-h-[360px] max-w-full object-contain"
                       />
-                    </a>
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-[14.5px] text-brand underline underline-offset-2">
-                      {figureLabel(i)} (เปิดรูปเต็ม)
                     </a>
                   </div>
                 ))}
