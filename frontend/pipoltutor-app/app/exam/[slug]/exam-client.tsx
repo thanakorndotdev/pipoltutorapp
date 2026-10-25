@@ -490,7 +490,11 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
               <button type="button" onClick={clearAnswer} className="inline-flex items-center gap-2 font-display text-[14.5px] font-medium text-ink3">
                 <Icon name="backspace" size={18} />ล้างคำตอบข้อนี้
               </button>
-              <Button kind="brand" icon="arrow_forward" trailingIcon onClick={() => go(index + 1)} disabled={index === total - 1}>ข้อถัดไป</Button>
+              {index === total - 1 ? (
+                <Button kind="orange" icon="task_alt" disabled={!canSubmit} onClick={() => setMsg("confirm")}>ส่งข้อสอบ</Button>
+              ) : (
+                <Button kind="brand" icon="arrow_forward" trailingIcon onClick={() => go(index + 1)}>ข้อถัดไป</Button>
+              )}
             </div>
             {q.type === "short" ? null : (
               <p className="mt-3 text-center text-[13px] text-ink3">เคล็ดลับ: กดปุ่ม ก ข ค ง บนคีย์บอร์ดเลือกคำตอบได้ กดลูกศรซ้ายขวาเปลี่ยนข้อ</p>
@@ -572,7 +576,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
             <p className="flex items-start gap-2"><Icon name="timer" size={17} className="text-accent-dark" />เหลือเวลา {timer} หมดเวลาระบบส่งให้เอง</p>
           </div>
 
-          <Button icon="task_alt" className="w-full" disabled={!canSubmit} onClick={() => setMsg("confirm")}>
+          <Button kind="orange" icon="task_alt" className="w-full" disabled={!canSubmit} onClick={() => setMsg("confirm")}>
             {phase === "submitting" ? "กำลังส่งคำตอบ…" : "ส่งคำตอบและตรวจ"}
           </Button>
           <p className="text-center text-[12.5px] text-ink3">ส่งได้ทุกเมื่อ หมดเวลาระบบส่งคำตอบที่เซฟไว้ให้เอง</p>

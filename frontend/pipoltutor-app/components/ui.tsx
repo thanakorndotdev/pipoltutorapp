@@ -47,7 +47,7 @@ export function Pill({
   );
 }
 
-export type ButtonKind = "primary" | "brand" | "line" | "ghost" | "light";
+export type ButtonKind = "primary" | "brand" | "line" | "ghost" | "light" | "orange";
 
 const BTN: Record<ButtonKind, string> = {
   primary: "bg-accent text-on-fill shadow-m",
@@ -55,6 +55,8 @@ const BTN: Record<ButtonKind, string> = {
   line: "bg-line text-on-fill shadow-m",
   ghost: "bg-card text-ink border-[1.5px] border-border-strong",
   light: "bg-card text-brand-dark shadow-m",
+  // Same orange in both themes (the dark theme turns --accent pale yellow).
+  orange: "bg-countdown text-white shadow-m",
 };
 
 export function Button({
