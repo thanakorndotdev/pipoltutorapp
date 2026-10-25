@@ -30,7 +30,7 @@ export type Question = {
   subject: Subject;
   topic: string;
   prompt: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   type: QuestionType;
   points: number;
   scoring: ScoringMode;
@@ -48,7 +48,7 @@ export type QuestionInput = {
   subject: Subject;
   topic: string;
   prompt: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   type: QuestionType;
   points: number;
   scoring: ScoringMode;
@@ -108,7 +108,7 @@ export type PackQuestion = {
   type: QuestionType;
   points: number;
   prompt: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   choices: Choice[];
   correctChoices: string[];
   acceptedAnswers: string[];
@@ -152,7 +152,7 @@ export type StudentDetail = {
 
 export type AttemptDetail = {
   attempt: AdminAttempt & { pack: { title: string; slug: string } };
-  questions: (Omit<PackQuestion, "id" | "subject" | "topic" | "active" | "imageUrl"> & {
+  questions: (Omit<PackQuestion, "id" | "subject" | "topic" | "active" | "imageUrls"> & {
     questionId: string;
     scoring: ScoringMode;
     selectedChoices: string[];

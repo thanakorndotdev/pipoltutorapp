@@ -9,7 +9,7 @@ import { adminGuard } from "./admin/guard";
  * Question figures. Admins upload through POST /admin/uploads; the file is
  * written under UPLOAD_DIR (container: a named volume at /app/uploads, host:
  * backend/app/uploads) and served back on GET /uploads/:name. Clients store
- * the public path (/api/uploads/<name>) in questions.imageUrl, so the same
+ * the public path (/api/uploads/<name>) in questions.imageUrls, so the same
  * value works behind Caddy and through the Next.js dev rewrites.
  */
 const UPLOAD_DIR = resolve(process.env.UPLOAD_DIR ?? join(process.cwd(), "uploads"));

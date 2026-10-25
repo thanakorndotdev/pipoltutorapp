@@ -1,3 +1,4 @@
+import { LinkedText } from "@/components/linked-text";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Band, Bar, Button, Card, Icon, Note, StatCard, Tick } from "@/components/ui";
@@ -125,13 +126,19 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
                             <Icon name={answerLabel(q) ? "cancel" : "help"} size={20} fill className={`mt-1 ${answerLabel(q) ? "text-red" : "text-amber-icon"}`} />
                             <span className="flex-1">
                               <span className="block text-[13px] text-ink3">ข้อ {q.position} · {SUBJECT_META[q.subject].label} · {q.topic}</span>
-                              <span className="block text-[15.5px]">{q.prompt}</span>
+                              <span className="block text-[15.5px]">
+                                <LinkedText text={q.prompt} />
+                              </span>
                             </span>
                             <Icon name="expand_more" size={22} className="mt-1 text-ink3 group-open:rotate-180" />
                           </summary>
                           <div className="mt-3 flex flex-col gap-2 pl-8 text-[14.5px] text-ink2">
                             <p>น้องตอบ: {answerLabel(q) ?? "ไม่ได้ตอบ"} · ได้ {pts(q.pointsAwarded ?? 0)}/{pts(q.points)} คะแนน</p>
-                            {q.explanation ? <p className="rounded-[12px] bg-brand-50 px-3 py-2">{q.explanation}</p> : null}
+                            {q.explanation ? (
+                              <p className="rounded-[12px] bg-brand-50 px-3 py-2">
+                                <LinkedText text={q.explanation} />
+                              </p>
+                            ) : null}
                           </div>
                         </details>
                       ))}

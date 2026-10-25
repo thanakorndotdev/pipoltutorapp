@@ -285,7 +285,8 @@ export const questions = pgTable(
     /** Free-text chapter/topic within the subject, e.g. "สมการเชิงเส้น". */
     topic: text("topic").notNull(),
     prompt: text("prompt").notNull(),
-    imageUrl: text("image_url"),
+    /** Figures shown under the prompt, in order; any number, empty for none. */
+    imageUrls: text("image_urls").array().notNull().default(sql`'{}'::text[]`),
     type: questionType("type").notNull().default("single"),
     /** Points for a fully correct answer; decimals allowed (e.g. 1.5). */
     points: numeric("points", { precision: 8, scale: 2, mode: "number" }).notNull().default(1),

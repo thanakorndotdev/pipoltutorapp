@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { LinkedText } from "@/components/linked-text";
 import { MsgBox } from "@/components/msg-box";
 import { Button, Icon } from "@/components/ui";
 import {
@@ -439,12 +440,22 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
               </button>
             </div>
 
-            <p className="my-[18px] whitespace-pre-line text-[18px] leading-[1.85] md:text-[20px]">{q.prompt}</p>
+            <p className="my-[18px] whitespace-pre-line text-[18px] leading-[1.85] md:text-[20px]">
+              <LinkedText text={q.prompt} />
+            </p>
 
-            {q.imageUrl ? (
-              <div className="flex justify-center rounded-[18px] border border-border-strong bg-page p-[22px]">
-                {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded question figure */}
-                <img src={q.imageUrl} alt={`รูปประกอบโจทย์ข้อ ${index + 1}`} className="max-h-[360px] max-w-full object-contain" />
+            {q.imageUrls.length ? (
+              <div className="flex flex-col gap-3">
+                {q.imageUrls.map((url, i) => (
+                  <div key={`${i}-${url}`} className="flex justify-center rounded-[18px] border border-border-strong bg-page p-[22px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded question figure */}
+                    <img
+                      src={url}
+                      alt={q.imageUrls.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`}
+                      className="max-h-[360px] max-w-full object-contain"
+                    />
+                  </div>
+                ))}
               </div>
             ) : null}
 

@@ -16,7 +16,8 @@ const questionBody = t.Object({
   subject: t.UnionEnum(SUBJECTS),
   topic: t.String({ minLength: 1, maxLength: 120 }),
   prompt: t.String({ minLength: 1, maxLength: 4000 }),
-  imageUrl: t.Optional(t.Nullable(t.String({ maxLength: 2000 }))),
+  /** Figures in display order. */
+  imageUrls: t.Optional(t.Array(t.String({ maxLength: 2000 }), { maxItems: 50 })),
   type: t.UnionEnum(QUESTION_TYPES),
   /** Decimals allowed, e.g. 1.5 or 3.75; stored to 2 places. */
   points: t.Number({ minimum: 0, maximum: 1000 }),
@@ -52,7 +53,7 @@ const adminColumns = {
   subject: questions.subject,
   topic: questions.topic,
   prompt: questions.prompt,
-  imageUrl: questions.imageUrl,
+  imageUrls: questions.imageUrls,
   type: questions.type,
   points: questions.points,
   scoring: questions.scoring,
@@ -79,7 +80,7 @@ function normalise(body: QuestionBody) {
     subject: body.subject,
     topic: body.topic.trim(),
     prompt: body.prompt.trim(),
-    imageUrl: body.imageUrl?.trim() || null,
+    imageUrls: (body.imageUrls ?? []).map((u) => u.trim()).filter(Boolean),
     type: body.type,
     points,
     explanation: body.explanation?.trim() || null,

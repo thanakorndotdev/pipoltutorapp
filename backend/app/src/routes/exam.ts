@@ -215,7 +215,7 @@ const studentQuestionColumns = {
   type: questions.type,
   points: questions.points,
   prompt: questions.prompt,
-  imageUrl: questions.imageUrl,
+  imageUrls: questions.imageUrls,
   choices: questions.choices,
 };
 

@@ -23,7 +23,8 @@ type Draft = {
   subject: Subject;
   topic: string;
   prompt: string;
-  imageUrl: string;
+  /** One entry per figure; blank entries are dropped on save. */
+  imageUrls: string[];
   type: QuestionType;
   points: string;
   scoring: ScoringMode;
@@ -41,7 +42,7 @@ function fromQuestion(q: Question | null): Draft {
         subject: q.subject,
         topic: q.topic,
         prompt: q.prompt,
-        imageUrl: q.imageUrl ?? "",
+        imageUrls: [...q.imageUrls],
         type: q.type,
         points: String(q.points),
         scoring: q.scoring,
@@ -55,7 +56,7 @@ function fromQuestion(q: Question | null): Draft {
         subject: "math",
         topic: "",
         prompt: "",
-        imageUrl: "",
+        imageUrls: [],
         type: "single",
         points: "1",
         scoring: "exact",
@@ -120,6 +121,11 @@ export function QuestionForm({
     if (d.type === "single") return patch({ correctChoices: [key] });
     patch({ correctChoices: d.correctChoices.includes(key) ? d.correctChoices.filter((k) => k !== key) : [...d.correctChoices, key] });
   };
+  const moveImage = (i: number, by: -1 | 1) => {
+    const imageUrls = [...d.imageUrls];
+    [imageUrls[i], imageUrls[i + by]] = [imageUrls[i + by]!, imageUrls[i]!];
+    patch({ imageUrls });
+  };
   const changeType = (type: QuestionType) => {
     // Going to radio keeps only the first correct key.
     patch({ type, correctChoices: type === "single" ? d.correctChoices.slice(0, 1) : d.correctChoices });
@@ -140,7 +146,7 @@ export function QuestionForm({
         subject: d.subject,
         topic: d.topic.trim(),
         prompt: d.prompt.trim(),
-        imageUrl: d.imageUrl.trim() || null,
+        imageUrls: d.imageUrls.map((u) => u.trim()).filter(Boolean),
         type: d.type,
         points: Math.round(Number(d.points) * 100) / 100,
         scoring: d.type === "multiple" ? d.scoring : "exact",
@@ -197,9 +203,40 @@ export function QuestionForm({
       <Field id={`${id}-prompt`} label="โจทย์">
         <textarea id={`${id}-prompt`} rows={3} className={`${inputClass} leading-[1.75]`} value={d.prompt} maxLength={4000} onChange={(e) => patch({ prompt: e.target.value })} />
       </Field>
-      <Field id={`${id}-image`} label="รูปประกอบ (ถ้ามี)" hint="อัปโหลดจากเครื่อง (PNG, JPEG, WebP, GIF ไม่เกิน 5 MB) หรือวางลิงก์รูป">
-        <ImagePicker id={`${id}-image`} value={d.imageUrl} onChange={(imageUrl) => patch({ imageUrl })} onError={setError} />
-      </Field>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="display mb-1 text-[14px] font-medium">รูปประกอบ (ถ้ามี)</legend>
+        <p className="text-[13px] text-ink3">ใส่ได้หลายรูป แสดงใต้โจทย์ตามลำดับนี้ อัปโหลดจากเครื่อง (PNG, JPEG, WebP, GIF ไม่เกิน 5 MB) หรือวางลิงก์รูป</p>
+        {d.imageUrls.map((url, i) => (
+          <div key={i} className="flex flex-col gap-2 rounded-[12px] border border-border p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-medium">รูปที่ {i + 1}</span>
+              <div className="ml-auto flex gap-1">
+                <Button kind="subtle" size="sm" icon="arrow_upward" title={`เลื่อนรูปที่ ${i + 1} ขึ้น`} disabled={i === 0} onClick={() => moveImage(i, -1)} />
+                <Button
+                  kind="subtle"
+                  size="sm"
+                  icon="arrow_downward"
+                  title={`เลื่อนรูปที่ ${i + 1} ลง`}
+                  disabled={i === d.imageUrls.length - 1}
+                  onClick={() => moveImage(i, 1)}
+                />
+                <Button kind="subtle" size="sm" icon="delete" title={`ลบรูปที่ ${i + 1}`} onClick={() => patch({ imageUrls: d.imageUrls.filter((_, j) => j !== i) })} />
+              </div>
+            </div>
+            <ImagePicker
+              id={`${id}-image-${i}`}
+              value={url}
+              onChange={(next) => patch({ imageUrls: d.imageUrls.map((u, j) => (j === i ? next : u)) })}
+              onError={setError}
+            />
+          </div>
+        ))}
+        <div>
+          <Button kind="ghost" size="sm" icon="add_photo_alternate" onClick={() => patch({ imageUrls: [...d.imageUrls, ""] })}>
+            เพิ่มรูป
+          </Button>
+        </div>
+      </fieldset>
 
       {d.type === "short" ? (
         <fieldset className="flex flex-col gap-2">

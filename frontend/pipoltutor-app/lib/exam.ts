@@ -48,7 +48,8 @@ export type ExamQuestion = {
   type: QuestionType;
   points: number;
   prompt: string;
-  imageUrl: string | null;
+  /** In display order; empty for none. */
+  imageUrls: string[];
   /** Empty for "short". */
   choices: { key: string; text: string }[];
 };
