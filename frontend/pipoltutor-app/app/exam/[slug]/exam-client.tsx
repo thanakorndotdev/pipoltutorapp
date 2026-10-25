@@ -448,12 +448,14 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
               <div className="flex flex-col gap-3">
                 {q.imageUrls.map((url, i) => (
                   <div key={`${i}-${url}`} className="flex justify-center rounded-[18px] border border-border-strong bg-page p-[22px]">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded question figure */}
-                    <img
-                      src={url}
-                      alt={q.imageUrls.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`}
-                      className="max-h-[360px] max-w-full object-contain"
-                    />
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded question figure */}
+                      <img
+                        src={url}
+                        alt={q.imageUrls.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`}
+                        className="max-h-[360px] max-w-full object-contain"
+                      />
+                    </a>
                   </div>
                 ))}
               </div>
