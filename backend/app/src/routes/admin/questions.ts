@@ -79,13 +79,15 @@ type QuestionBody = typeof questionBody.static;
  */
 function normalise(body: QuestionBody) {
   const points = Math.round(body.points * 100) / 100;
+  const imageUrls = (body.imageUrls ?? []).map((u) => u.trim()).filter(Boolean);
+  if (imageUrls.some((u) => !/^https?:\/\/\S+$/i.test(u))) return { error: "ลิงก์รูปต้องขึ้นต้นด้วย http:// หรือ https://" };
   const linkUrls = (body.linkUrls ?? []).map((u) => u.trim()).filter(Boolean);
   if (linkUrls.some((u) => !/^https?:\/\/\S+$/i.test(u))) return { error: "ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://" };
   const base = {
     subject: body.subject,
     topic: body.topic.trim(),
     prompt: body.prompt.trim(),
-    imageUrls: (body.imageUrls ?? []).map((u) => u.trim()).filter(Boolean),
+    imageUrls,
     linkUrls,
     type: body.type,
     points,

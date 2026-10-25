@@ -20,6 +20,8 @@ import {
 } from "@/lib/exam";
 import { formatClock } from "@/lib/format";
 
+const isHttpUrl = (u: string) => /^https?:\/\//i.test(u);
+
 const MILESTONES = [25, 50, 75, 100];
 const SUBJECT_ORDER: QuestionSubject[] = ["math", "science", "general_aptitude", "thai", "english"];
 const RETRY_MS = 2000;
@@ -183,8 +185,9 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const total = questions.length;
   const q = questions[index];
   const entry = (q && entries[q.id]) || BLANK;
-  const figures = q?.imageUrls ?? [];
-  const links = q?.linkUrls ?? [];
+  // Rows saved before the backend checked schemes may still hold javascript: etc.
+  const figures = (q?.imageUrls ?? []).filter(isHttpUrl);
+  const links = (q?.linkUrls ?? []).filter(isHttpUrl);
   const figureLabel = (i: number) =>
     figures.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`;
 
