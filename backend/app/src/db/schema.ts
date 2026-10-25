@@ -234,6 +234,11 @@ export const examPacks = pgTable(
     published: boolean("published").notNull().default(false),
     /** Whether a student may see per-question review and explanations after submitting. */
     showReview: boolean("show_review").notNull().default(false),
+    /**
+     * Link to the paper as a PDF (usually Google Drive). Students get it only
+     * from an open attempt, never before the timer starts.
+     */
+    paperUrl: text("paper_url"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

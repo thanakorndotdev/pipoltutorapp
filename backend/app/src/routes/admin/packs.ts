@@ -20,6 +20,8 @@ const packBody = t.Object({
   closesAt: t.Nullable(t.String({ format: "date-time" })),
   published: t.Boolean(),
   showReview: t.Boolean(),
+  /** PDF of the paper (e.g. a Google Drive link); https only. */
+  paperUrl: t.Optional(t.Nullable(t.String({ maxLength: 2000 }))),
 });
 
 const packColumns = {
@@ -34,14 +36,26 @@ const packColumns = {
   closesAt: examPacks.closesAt,
   published: examPacks.published,
   showReview: examPacks.showReview,
+  paperUrl: examPacks.paperUrl,
   createdAt: examPacks.createdAt,
 };
+
+function isHttpsUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 /** Form body to row values, or an error message. */
 function packValues(body: typeof packBody.static) {
   const opensAt = body.opensAt ? new Date(body.opensAt) : null;
   const closesAt = body.closesAt ? new Date(body.closesAt) : null;
   if (opensAt && closesAt && closesAt <= opensAt) return { error: "เวลาปิดรับต้องหลังเวลาเปิดสอบ" };
+  // Omitted = leave as is, so older scripts that PUT the full row keep the link.
+  const paperUrl = body.paperUrl === undefined ? undefined : body.paperUrl?.trim() || null;
+  if (paperUrl && !isHttpsUrl(paperUrl)) return { error: "ลิงก์ PDF ต้องขึ้นต้นด้วย https://" };
   return {
     values: {
       slug: body.slug,
@@ -54,6 +68,7 @@ function packValues(body: typeof packBody.static) {
       closesAt,
       published: body.published,
       showReview: body.showReview,
+      ...(paperUrl === undefined ? {} : { paperUrl }),
     },
   };
 }

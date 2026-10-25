@@ -1,0 +1,1 @@
+ALTER TABLE "exam_packs" ADD COLUMN "paper_url" text;

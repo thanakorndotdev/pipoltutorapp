@@ -74,6 +74,8 @@ export type Pack = {
   closesAt: string | null;
   published: boolean;
   showReview: boolean;
+  /** PDF of the paper (usually Google Drive); students see it only after starting. */
+  paperUrl: string | null;
   createdAt: string;
   assigned: number;
   totalPoints?: number;
@@ -93,6 +95,7 @@ export type PackInput = {
   closesAt: string | null;
   published: boolean;
   showReview: boolean;
+  paperUrl: string | null;
 };
 
 /** A question as it sits in a pack (admin projection, includes the key). */

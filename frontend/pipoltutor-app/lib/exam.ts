@@ -94,7 +94,7 @@ export function startAttempt(packId: string) {
 
 /** Questions (no key) plus the answers and flags already saved. */
 export function loadAttempt(attemptId: string) {
-  return call<{ attempt: Attempt; questions: ExamQuestion[]; answers: SavedAnswer[] }>(
+  return call<{ attempt: Attempt; questions: ExamQuestion[]; answers: SavedAnswer[]; paperUrl: string | null }>(
     `/attempts/${attemptId}/questions`
   );
 }

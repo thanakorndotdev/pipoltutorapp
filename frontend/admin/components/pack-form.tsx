@@ -20,6 +20,7 @@ type Draft = {
   closesAt: string;
   published: boolean;
   showReview: boolean;
+  paperUrl: string;
 };
 
 function fromPack(p: Pack | null): Draft {
@@ -36,6 +37,7 @@ function fromPack(p: Pack | null): Draft {
       closesAt: "",
       published: false,
       showReview: false,
+      paperUrl: "",
     };
   }
   return {
@@ -50,6 +52,7 @@ function fromPack(p: Pack | null): Draft {
     closesAt: p.closesAt ? toBangkokLocal(p.closesAt) : "",
     published: p.published,
     showReview: p.showReview,
+    paperUrl: p.paperUrl ?? "",
   };
 }
 
@@ -76,6 +79,8 @@ export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null
     if (!Number.isInteger(minutes) || minutes < 1 || minutes > 360) return setError("เวลา 1–360 นาที");
     if (d.attemptMode === "custom" && (!Number.isInteger(custom) || custom < 1 || custom > 100)) return setError("จำนวนครั้ง 1–100");
     if (d.opensAt && d.closesAt && d.closesAt <= d.opensAt) return setError("เวลาปิดรับต้องหลังเวลาเปิดสอบ");
+    const paperUrl = d.paperUrl.trim();
+    if (paperUrl && !paperUrl.startsWith("https://")) return setError("ลิงก์ PDF ต้องขึ้นต้นด้วย https://");
     setBusy(true);
     try {
       await onSubmit({
@@ -89,6 +94,7 @@ export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null
         closesAt: fromBangkokLocal(d.closesAt),
         published: d.published,
         showReview: d.showReview,
+        paperUrl: paperUrl || null,
       });
     } catch (err) {
       setError(errorMessage(err));
@@ -107,6 +113,9 @@ export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null
       </Field>
       <Field id={`${id}-desc`} label="คำชี้แจง" hint="นักเรียนเห็นก่อนกดเริ่ม (ยังไม่จับเวลา) — จำนวนข้อ ตอน คะแนน และเวลา ระบบแสดงให้อัตโนมัติ">
         <textarea id={`${id}-desc`} rows={4} className={`${inputClass} leading-[1.75]`} value={d.description} maxLength={8000} onChange={(e) => patch({ description: e.target.value })} />
+      </Field>
+      <Field id={`${id}-paper`} label="ลิงก์ข้อสอบ PDF (ไม่บังคับ)" hint="เช่น ลิงก์ Google Drive ที่ตั้งเป็น “ทุกคนที่มีลิงก์ดูได้” — นักเรียนเห็นปุ่มเปิด PDF หลังกดเริ่มทำเท่านั้น">
+        <input id={`${id}-paper`} type="url" inputMode="url" className={inputClass} value={d.paperUrl} maxLength={2000} onChange={(e) => patch({ paperUrl: e.target.value })} placeholder="https://drive.google.com/file/d/…/view" />
       </Field>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field id={`${id}-count`} label="จำนวนข้อเป้าหมาย">

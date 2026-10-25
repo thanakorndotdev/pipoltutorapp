@@ -404,7 +404,7 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         return { error: CLOSED_ERROR, attempt: attemptView(attempt) };
       }
 
-      const [rows, answers] = await Promise.all([
+      const [rows, answers, [pack]] = await Promise.all([
         db
           .select(studentQuestionColumns)
           .from(packQuestions)
@@ -420,8 +420,10 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
           })
           .from(attemptAnswers)
           .where(eq(attemptAnswers.attemptId, attempt.id)),
+        // The paper link is only handed out once the clock is running.
+        db.select({ paperUrl: examPacks.paperUrl }).from(examPacks).where(eq(examPacks.id, attempt.packId)).limit(1),
       ]);
-      return { attempt: attemptView(attempt), questions: rows, answers };
+      return { attempt: attemptView(attempt), questions: rows, answers, paperUrl: pack?.paperUrl ?? null };
     },
     { params: t.Object({ id: t.String({ format: "uuid" }) }) }
   )

@@ -50,6 +50,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const [loadError, setLoadError] = useState("");
   const [attemptId, setAttemptId] = useState("");
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
+  const [paperUrl, setPaperUrl] = useState<string | null>(null);
   const [entries, setEntries] = useState<Record<string, Entry>>({});
   const [index, setIndex] = useState(0);
   const [coach, setCoach] = useState(true);
@@ -132,6 +133,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
         }
         setAttemptId(attempt.id);
         setQuestions(data.questions);
+        setPaperUrl(data.paperUrl);
         setEntries(restored);
         // A resume that already starts inside the warning window skips the popup.
         warned.current = data.attempt.secondsLeft <= WARN_SECONDS;
@@ -351,6 +353,21 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
 
       <div className="flex flex-col gap-7 px-5 pb-14 pt-6 md:px-10 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-[18px]">
+          {paperUrl ? (
+            <a
+              href={paperUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-[20px] border-[1.5px] border-brand bg-brand-50 px-[18px] py-4 transition-transform hover:-translate-y-px"
+            >
+              <Icon name="picture_as_pdf" size={26} fill className="shrink-0 text-brand" />
+              <span className="flex-1">
+                <span className="block font-display text-[15.5px] font-medium text-brand-dark">เปิดข้อสอบ (PDF)</span>
+                <span className="block text-[14px] text-ink2">เปิดในแท็บใหม่ อ่านโจทย์แล้วกลับมาตอบที่หน้านี้ เวลายังเดินต่อ</span>
+              </span>
+              <Icon name="open_in_new" size={20} className="shrink-0 text-brand" />
+            </a>
+          ) : null}
           {/* quest track */}
           <section className="flex flex-col gap-3.5 rounded-[26px] border border-border bg-card p-6 shadow-s">
             <div className="flex items-center gap-3">
