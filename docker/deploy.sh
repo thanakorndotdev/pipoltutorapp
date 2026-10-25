@@ -9,6 +9,8 @@
 #
 # Never touches the postgres_data / uploads_data volumes.
 set -eu
+# Backups hold student data and session hashes: owner-only.
+umask 077
 
 cd "$(dirname "$0")/.."
 DC="docker compose -f docker/docker-compose.yml"
@@ -27,6 +29,7 @@ fi
 
 say "2/6 Backing up database and uploads to $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR"
 $DC exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$BACKUP_DIR/db-$STAMP.dump"
 $DC exec -T backend tar czf - -C /app/uploads . > "$BACKUP_DIR/uploads-$STAMP.tgz"
 if [ ! -s "$BACKUP_DIR/db-$STAMP.dump" ]; then
