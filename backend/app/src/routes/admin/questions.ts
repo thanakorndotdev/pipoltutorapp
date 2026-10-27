@@ -71,6 +71,10 @@ const adminColumns = {
 
 type QuestionBody = typeof questionBody.static;
 
+/** What POST /admin/uploads hands back; external figures and links must be https. */
+const UPLOADED_IMAGE = /^\/api\/uploads\/[a-f0-9]{32}\.(png|jpg|webp|gif)$/;
+const HTTPS_URL = /^https:\/\/\S+$/i;
+
 /**
  * Normalise and check a question against its type. Returns the row values or
  * an error message. single: 2+ choices, exactly one key. multiple: 2+
@@ -80,9 +84,10 @@ type QuestionBody = typeof questionBody.static;
 function normalise(body: QuestionBody) {
   const points = Math.round(body.points * 100) / 100;
   const imageUrls = (body.imageUrls ?? []).map((u) => u.trim()).filter(Boolean);
-  if (imageUrls.some((u) => !/^https?:\/\/\S+$/i.test(u))) return { error: "ลิงก์รูปต้องขึ้นต้นด้วย http:// หรือ https://" };
+  if (imageUrls.some((u) => !UPLOADED_IMAGE.test(u) && !HTTPS_URL.test(u)))
+    return { error: "รูปต้องอัปโหลดจากเครื่อง หรือเป็นลิงก์ที่ขึ้นต้นด้วย https://" };
   const linkUrls = (body.linkUrls ?? []).map((u) => u.trim()).filter(Boolean);
-  if (linkUrls.some((u) => !/^https?:\/\/\S+$/i.test(u))) return { error: "ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://" };
+  if (linkUrls.some((u) => !HTTPS_URL.test(u))) return { error: "ลิงก์ต้องขึ้นต้นด้วย https://" };
   const base = {
     subject: body.subject,
     topic: body.topic.trim(),

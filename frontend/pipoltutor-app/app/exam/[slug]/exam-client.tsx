@@ -21,6 +21,8 @@ import {
 import { formatClock } from "@/lib/format";
 
 const isHttpUrl = (u: string) => /^https?:\/\//i.test(u);
+/** Same-origin admin uploads (/api/uploads/<name>) or an external URL. */
+const isFigureUrl = (u: string) => u.startsWith("/api/uploads/") || isHttpUrl(u);
 
 const MILESTONES = [25, 50, 75, 100];
 const SUBJECT_ORDER: QuestionSubject[] = ["math", "science", "general_aptitude", "thai", "english"];
@@ -186,7 +188,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const q = questions[index];
   const entry = (q && entries[q.id]) || BLANK;
   // Rows saved before the backend checked schemes may still hold javascript: etc.
-  const figures = (q?.imageUrls ?? []).filter(isHttpUrl);
+  const figures = (q?.imageUrls ?? []).filter(isFigureUrl);
   const links = (q?.linkUrls ?? []).filter(isHttpUrl);
   const figureLabel = (i: number) =>
     figures.length > 1 ? `รูปประกอบโจทย์ข้อ ${index + 1} รูปที่ ${i + 1}` : `รูปประกอบโจทย์ข้อ ${index + 1}`;

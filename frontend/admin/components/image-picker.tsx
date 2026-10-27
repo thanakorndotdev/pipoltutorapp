@@ -9,8 +9,8 @@ export const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
 
 /**
  * URL field + "อัปโหลดรูป" button + preview. Uploads go to POST /admin/uploads
- * and the returned /api/uploads/<name> path becomes the value; pasting an
- * external https link works too. Controlled: the parent owns `value`.
+ * and the returned /api/uploads/<name> path becomes the value (the URL field is
+ * then hidden); pasting an external https link works too. Controlled: the parent owns `value`.
  */
 export function ImagePicker({
   id,
@@ -32,6 +32,8 @@ export function ImagePicker({
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const url = value.trim();
+  // Uploaded files are referenced by path; the admin never needs to see or edit it.
+  const uploaded = url.startsWith("/api/uploads/");
 
   async function upload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -54,17 +56,24 @@ export function ImagePicker({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          id={id}
-          className={`${inputClass} min-w-0 flex-1`}
-          type="url"
-          placeholder="https://… หรือ /api/uploads/…"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        {uploaded ? (
+          <p id={id} className="flex min-h-[44px] min-w-0 flex-1 items-center text-[14px] text-ink2">
+            อัปโหลดรูปจากเครื่องแล้ว
+          </p>
+        ) : (
+          <input
+            id={id}
+            className={`${inputClass} min-w-0 flex-1`}
+            type="url"
+            inputMode="url"
+            placeholder="อัปโหลดจากเครื่อง หรือวางลิงก์รูป https://…"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        )}
         <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={upload} />
         <Button kind="ghost" icon={uploading ? "hourglass_top" : "upload"} disabled={uploading} onClick={() => fileRef.current?.click()}>
-          {uploading ? "กำลังอัปโหลด…" : "อัปโหลดรูป"}
+          {uploading ? "กำลังอัปโหลด…" : uploaded ? "เปลี่ยนรูป" : "อัปโหลดรูป"}
         </Button>
       </div>
       {url ? (
