@@ -83,6 +83,7 @@ export function ProductList() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag tone={p.kind === "fortune" ? "mystic" : "brand"}>{KIND_LABEL[p.kind]}</Tag>
                   {p.active ? <Tag tone="green">เปิดขาย</Tag> : <Tag tone="red">ปิดขาย</Tag>}
+                  {p.kind !== "fortune" && p.active ? <Tag tone="brand">การ์ดลำดับ {p.sortOrder}{p.featured ? " · เด่น" : ""}</Tag> : null}
                 </div>
                 <p className="text-[15.5px] font-medium">{p.title}</p>
                 {p.description ? <p className="text-[13.5px] text-ink2">{p.description}</p> : null}

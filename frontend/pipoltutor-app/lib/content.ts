@@ -18,17 +18,21 @@ export const COURSE_START_LABEL = "5 ต.ค. 2568";
 export const LINE_URL = "https://line.me/R/ti/p/@pipoltutor";
 
 export type Plan = {
-  slug: "exam-pack" | "full-course" | "course-plus-packs";
+  slug: string;
   tag: string;
   name: string;
   desc: string;
-  price: number; // baht, fallback only — getPlans() swaps in the admin-set DB price
+  price: number; // baht
   unit: string;
   cta: string;
   hot: boolean;
   feats: string[];
 };
 
+/**
+ * Shown only when the backend is unreachable; normally the cards come from
+ * the admin-managed products table (getPlans()).
+ */
 export const PLANS: Plan[] = [
   {
     slug: "exam-pack",

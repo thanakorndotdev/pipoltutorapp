@@ -6,24 +6,15 @@ import { SiteImage } from "@/components/site-assets";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Band, Button, Card, Note, Pill, Slot, Tick } from "@/components/ui";
-import { COURSE_START_LABEL, EXAM_DATE_LABEL, LINE_URL, PLANS, TUTOR_NAME } from "@/lib/content";
+import { COURSE_START_LABEL, EXAM_DATE_LABEL, LINE_URL, TUTOR_NAME } from "@/lib/content";
 import { formatBaht, formatThaiDate } from "@/lib/format";
 import { getCopy } from "@/lib/site-texts";
 import { fetchExamSettings } from "@/lib/api";
 
-export function generateStaticParams() {
-  return PLANS.map((p) => ({ slug: p.slug }));
-}
-
 type Lesson = [string, string, string, string];
 
 /** Course-specific copy; plans without an entry fall back to their feature list. */
-const DETAIL: Partial<
-  Record<
-    (typeof PLANS)[number]["slug"],
-    { lede: string; who: string[]; lessons: Lesson[]; includes: string[] }
-  >
-> = {
+const DETAIL: Record<string, { lede: string; who: string[]; lessons: Lesson[]; includes: string[] }> = {
   "full-course": {
     lede: `สอนสด 24 ครั้งโดย${TUTOR_NAME} ครบทั้ง 5 วิชาตามแนวข้อสอบคัดเลือก ม.1 พร้อมชุดข้อสอบเสมือนจริงและกลุ่ม LINE ส่วนตัวจนถึงวันสอบ`,
     who: [

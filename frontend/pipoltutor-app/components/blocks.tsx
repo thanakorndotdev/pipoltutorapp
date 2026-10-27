@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { fetchProducts } from "@/lib/api";
+import { fetchProducts, type Product } from "@/lib/api";
 import { PLANS, TUTOR_NAME, type Plan } from "@/lib/content";
 import { formatBaht } from "@/lib/format";
 import { getCopy } from "@/lib/site-texts";
@@ -146,25 +146,31 @@ export function PlanCard({ plan }: { plan: Plan }) {
           : "border border-border bg-card shadow-s"
       }`}
     >
-      <div>
-        <Pill className={hot ? "bg-accent text-on-fill" : "bg-brand-50 text-brand"}>{plan.tag}</Pill>
-      </div>
+      {plan.tag ? (
+        <div>
+          <Pill className={hot ? "bg-accent text-on-fill" : "bg-brand-50 text-brand"}>{plan.tag}</Pill>
+        </div>
+      ) : null}
       <h3 className={`text-[22px] font-semibold ${hot ? "text-white" : "text-ink"}`}>{plan.name}</h3>
-      <p className={`text-[14.5px] ${hot ? "text-on-grad-soft" : "text-ink3"}`}>{plan.desc}</p>
+      {plan.desc ? <p className={`text-[14.5px] ${hot ? "text-on-grad-soft" : "text-ink3"}`}>{plan.desc}</p> : null}
       <p className="flex items-baseline gap-2">
         <span className={`font-display text-[40px] font-semibold leading-[1.1] ${hot ? "text-white" : "text-ink"}`}>
           {formatBaht(plan.price * 100)}
         </span>
         <span className={`text-[14px] ${hot ? "text-on-grad-soft" : "text-ink3"}`}>{plan.unit}</span>
       </p>
-      <hr className={hot ? "border-white/25" : "border-border"} />
-      <ul className="flex flex-col gap-[11px]">
-        {plan.feats.map((f) => (
-          <Tick key={f} iconClass={hot ? "text-[#5EE0D0]" : "text-teal"} textClass={hot ? "text-white" : "text-ink"}>
-            {f}
-          </Tick>
-        ))}
-      </ul>
+      {plan.feats.length > 0 ? (
+        <>
+          <hr className={hot ? "border-white/25" : "border-border"} />
+          <ul className="flex flex-col gap-[11px]">
+            {plan.feats.map((f, i) => (
+              <Tick key={i} iconClass={hot ? "text-[#5EE0D0]" : "text-teal"} textClass={hot ? "text-white" : "text-ink"}>
+                {f}
+              </Tick>
+            ))}
+          </ul>
+        </>
+      ) : null}
       <div className="mt-auto flex flex-col gap-2.5 pt-1">
         <Button href={`/courses/${plan.slug}`} kind={hot ? "light" : "ghost"}>ดูรายละเอียด</Button>
         <Button href={`/checkout?product=${plan.slug}`} kind="primary">{plan.cta}</Button>
@@ -173,23 +179,34 @@ export function PlanCard({ plan }: { plan: Plan }) {
   );
 }
 
+const DEFAULT_UNIT: Record<Product["kind"], string> = {
+  exam_pack: "/ ชุด",
+  course: "/ คอร์ส",
+  bundle: "/ แพ็ก",
+  fortune: "/ ครั้ง",
+};
+
 /**
- * PLANS with the admin-edited copy (`plans.<slug>.*`) and the DB price applied;
- * slug/hot stay in code. The coded price is only a fallback if the backend is down.
+ * Price cards: every active non-fortune product, in the admin's card order.
+ * The coded PLANS are only a fallback if the backend is down.
  */
 export async function getPlans(): Promise<Plan[]> {
-  const [c, products] = await Promise.all([getCopy(), fetchProducts().catch(() => [])]);
-  const priceBySlug = new Map(products.map((p) => [p.slug, p.priceSatang / 100]));
-  return PLANS.map((p) => ({
-    ...p,
-    price: priceBySlug.get(p.slug) ?? p.price,
-    tag: c.t(`plans.${p.slug}.tag`, p.tag),
-    name: c.t(`plans.${p.slug}.name`, p.name),
-    desc: c.t(`plans.${p.slug}.desc`, p.desc),
-    unit: c.t(`plans.${p.slug}.unit`, p.unit),
-    cta: c.t(`plans.${p.slug}.cta`, p.cta),
-    feats: c.lines(`plans.${p.slug}.feats`, p.feats),
-  }));
+  const products = await fetchProducts().catch(() => null);
+  if (!products) return PLANS;
+  return products
+    .filter((p) => p.active && p.kind !== "fortune")
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.priceSatang - b.priceSatang)
+    .map((p) => ({
+      slug: p.slug,
+      tag: p.badge ?? "",
+      name: p.title,
+      desc: p.description ?? "",
+      price: p.priceSatang / 100,
+      unit: p.unit ?? DEFAULT_UNIT[p.kind],
+      cta: p.ctaLabel ?? "สมัครเลย",
+      hot: p.featured,
+      feats: p.features ?? [],
+    }));
 }
 
 export async function PlanGrid() {

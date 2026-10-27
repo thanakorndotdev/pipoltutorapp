@@ -15,6 +15,12 @@ export type Product = {
   description: string | null;
   priceSatang: number;
   active: boolean;
+  badge: string | null;
+  unit: string | null;
+  ctaLabel: string | null;
+  features: string[];
+  featured: boolean;
+  sortOrder: number;
 };
 
 export async function fetchProducts(): Promise<Product[]> {

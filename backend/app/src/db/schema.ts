@@ -144,6 +144,18 @@ export const products = pgTable(
     description: text("description"),
     priceSatang: integer("price_satang").notNull(),
     active: boolean("active").notNull().default(true),
+    /**
+     * Price-card copy for the /courses and home grids (fortune products are
+     * not shown there). Null badge/unit/ctaLabel fall back to per-kind defaults.
+     */
+    badge: text("badge"),
+    unit: text("unit"),
+    ctaLabel: text("cta_label"),
+    features: text("features").array().notNull().default(sql`'{}'::text[]`),
+    /** Rendered as the highlighted (gradient) card. */
+    featured: boolean("featured").notNull().default(false),
+    /** Ascending; ties fall back to price. */
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

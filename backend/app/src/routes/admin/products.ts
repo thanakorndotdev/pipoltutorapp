@@ -13,6 +13,12 @@ const productColumns = {
   description: products.description,
   priceSatang: products.priceSatang,
   active: products.active,
+  badge: products.badge,
+  unit: products.unit,
+  ctaLabel: products.ctaLabel,
+  features: products.features,
+  featured: products.featured,
+  sortOrder: products.sortOrder,
 };
 
 const idParam = t.Object({ id: t.String({ format: "uuid" }) });
@@ -24,9 +30,30 @@ const editable = {
   // Omise rejects charges under 20 THB; whole baht only.
   priceSatang: t.Integer({ minimum: 20_00, maximum: 1_000_000_00, multipleOf: 100 }),
   active: t.Boolean(),
+  // Price-card copy (/courses, home); ignored for fortune topics.
+  badge: t.Union([t.String({ maxLength: 40 }), t.Null()]),
+  unit: t.Union([t.String({ maxLength: 40 }), t.Null()]),
+  ctaLabel: t.Union([t.String({ maxLength: 60 }), t.Null()]),
+  features: t.Array(t.String({ maxLength: 200 }), { maxItems: 20 }),
+  featured: t.Boolean(),
+  sortOrder: t.Integer({ minimum: 0, maximum: 9999 }),
 };
 
+const editableSchema = t.Object(editable);
+
 const clean = (d: string | null) => d?.trim() || null;
+
+function normalise<T extends typeof editableSchema.static>(body: T): T {
+  return {
+    ...body,
+    title: body.title.trim(),
+    description: clean(body.description),
+    badge: clean(body.badge),
+    unit: clean(body.unit),
+    ctaLabel: clean(body.ctaLabel),
+    features: body.features.map((f) => f.trim()).filter(Boolean),
+  };
+}
 
 /**
  * Price edits apply to orders created afterwards; an existing order keeps the
@@ -35,14 +62,14 @@ const clean = (d: string | null) => d?.trim() || null;
 export const adminProductsRoutes = new Elysia({ prefix: "/admin/products" })
   .use(adminGuard)
   .get("/", async () => ({
-    products: await db.select(productColumns).from(products).orderBy(asc(products.kind), asc(products.priceSatang)),
+    products: await db.select(productColumns).from(products).orderBy(asc(products.kind), asc(products.sortOrder), asc(products.priceSatang)),
   }))
   .post(
     "/",
     async ({ body, set }) => {
       const [product] = await db
         .insert(products)
-        .values({ ...body, title: body.title.trim(), description: clean(body.description) })
+        .values(normalise(body))
         .onConflictDoNothing({ target: products.slug })
         .returning(productColumns);
       if (!product) {
@@ -65,7 +92,7 @@ export const adminProductsRoutes = new Elysia({ prefix: "/admin/products" })
     async ({ params, body, set }) => {
       const [product] = await db
         .update(products)
-        .set({ ...body, title: body.title.trim(), description: clean(body.description) })
+        .set(normalise(body))
         .where(eq(products.id, params.id))
         .returning(productColumns);
       if (!product) {
@@ -74,7 +101,7 @@ export const adminProductsRoutes = new Elysia({ prefix: "/admin/products" })
       }
       return { product };
     },
-    { params: idParam, body: t.Object(editable) }
+    { params: idParam, body: editableSchema }
   )
   /**
    * Only a product nobody has bought can go: orders restrict the delete, and
