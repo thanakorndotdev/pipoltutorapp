@@ -3,7 +3,7 @@ import { SlimFooter } from "@/components/site-footer";
 import { Button, Icon, Note, Tick } from "@/components/ui";
 import { getSessionUser, type SessionUser } from "@/lib/auth";
 
-export const metadata = { title: "เข้าสู่ระบบ · PIPOL TUTOR" };
+export const metadata = { title: "เข้าสู่ระบบ · pipoltutor" };
 
 const FEATS: [string, string][] = [
   ["cloud_done", "คำตอบถูกบันทึกอัตโนมัติบนเซิร์ฟเวอร์"],

@@ -14,7 +14,7 @@ export function BrandMark({ onDark = false }: { onDark?: boolean }) {
   const logo = useSiteAsset("logo");
   const { t } = useCopy();
   return (
-    <Link href="/" className="flex items-center gap-[11px]" aria-label="PIPOL TUTOR หน้าแรก">
+    <Link href="/" className="flex items-center gap-[11px]" aria-label="pipoltutor หน้าแรก">
       {logo ? (
         // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded logo
         <img src={logo.imageUrl} alt={logo.alt} className="size-[42px] shrink-0 rounded-[13px] object-contain" />
@@ -29,7 +29,7 @@ export function BrandMark({ onDark = false }: { onDark?: boolean }) {
       )}
       <span className="flex flex-col">
         <span className={`font-display text-[16px] leading-[1.28] ${onDark ? "text-white" : "text-ink"}`}>
-          PIPOL TUTOR
+          pipoltutor
         </span>
         <span className={`text-[12.5px] leading-[1.4] ${onDark ? "text-on-grad-soft" : "text-ink3"}`}>
           {t("brand.tagline", "ติวเข้า ม.1 จภ.")}

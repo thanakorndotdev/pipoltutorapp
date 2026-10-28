@@ -10,7 +10,7 @@ const mitr = Mitr({ variable: "--font-mitr", subsets: ["thai", "latin"], weight:
 const anuphan = Anuphan({ variable: "--font-anuphan", subsets: ["thai", "latin"], weight: ["400", "500", "600"] });
 
 export const metadata: Metadata = {
-  title: "แผงผู้ดูแลระบบ · PIPOL TUTOR",
+  title: "แผงผู้ดูแลระบบ · pipoltutor",
   robots: { index: false, follow: false },
 };
 

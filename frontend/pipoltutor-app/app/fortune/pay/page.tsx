@@ -9,7 +9,7 @@ import { formatBaht, formatThaiDate } from "@/lib/format";
 import { fetchMyReading, type FortuneReading } from "@/lib/fortune";
 import { FortunePayStep } from "./fortune-pay-step";
 
-export const metadata = { title: "ชำระค่าดูดวง · PIPOL TUTOR" };
+export const metadata = { title: "ชำระค่าดูดวง · pipoltutor" };
 
 const EMPTY = "—";
 

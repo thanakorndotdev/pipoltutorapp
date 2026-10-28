@@ -8,7 +8,7 @@ import { fetchExamPacks, type ExamPack } from "@/lib/api";
 import { getSessionUser, sessionHeaders } from "@/lib/auth";
 import { attemptsLabel, minutes, packAction, windowLabel, type PackAction } from "@/lib/exam-state";
 
-export const metadata = { title: "ข้อสอบ · PIPOL TUTOR" };
+export const metadata = { title: "ข้อสอบ · pipoltutor" };
 
 const ACTION: Record<PackAction, { label: string; icon: string; tone: string; live: boolean }> = {
   resume: { label: "ทำต่อ (เวลายังเดินอยู่)", icon: "play_arrow", tone: "bg-accent text-on-fill", live: true },

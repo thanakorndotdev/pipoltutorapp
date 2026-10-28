@@ -10,9 +10,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   try {
     const pack = await fetchExamPack(slug, await sessionHeaders());
-    return { title: `${pack.title} · PIPOL TUTOR` };
+    return { title: `${pack.title} · pipoltutor` };
   } catch {
-    return { title: "ทำข้อสอบ · PIPOL TUTOR" };
+    return { title: "ทำข้อสอบ · pipoltutor" };
   }
 }
 

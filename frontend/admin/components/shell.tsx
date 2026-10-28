@@ -39,7 +39,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2.5 px-5 py-4">
           <span className="grid size-9 place-items-center rounded-[10px] bg-brand-grad text-[13px] font-semibold text-white">จภ</span>
           <div className="leading-tight">
-            <p className="display text-[15px] font-semibold">PIPOL TUTOR</p>
+            <p className="display text-[15px] font-semibold">pipoltutor</p>
             <p className="text-[12.5px] text-ink3">แผงผู้ดูแลระบบ</p>
           </div>
           <ThemeToggle className="ml-auto" />
@@ -116,7 +116,7 @@ function Gate() {
           <span className="grid size-11 place-items-center rounded-[12px] bg-brand-grad text-[15px] font-semibold text-white">จภ</span>
           <div>
             <h1 className="text-[20px] font-semibold">แผงผู้ดูแลระบบ</h1>
-            <p className="text-[14px] text-ink3">PIPOL TUTOR</p>
+            <p className="text-[14px] text-ink3">pipoltutor</p>
           </div>
         </div>
         <a

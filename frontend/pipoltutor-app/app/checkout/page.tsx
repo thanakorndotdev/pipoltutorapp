@@ -7,7 +7,7 @@ import { fetchProducts, type Product } from "@/lib/api";
 import { formatBaht } from "@/lib/format";
 import { CheckoutForm } from "./checkout-form";
 
-export const metadata = { title: "ชำระเงิน · PIPOL TUTOR" };
+export const metadata = { title: "ชำระเงิน · pipoltutor" };
 
 const DEFAULT_PRODUCT = "full-course";
 

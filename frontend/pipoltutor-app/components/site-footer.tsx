@@ -40,7 +40,7 @@ function cols(tutor: string, lineUrl: string): { title: string; links: { label: 
 function Legal({ c }: { c: Copy }) {
   return (
     <div className="flex flex-col gap-1.5 text-[13.5px] text-footer-ink md:flex-row md:justify-between md:gap-6">
-      <span>{c.t("footer.copyright", "© 2568 PIPOL TUTOR — สงวนลิขสิทธิ์ทุกประการ")}</span>
+      <span>{c.t("footer.copyright", "© 2568 pipoltutor — สงวนลิขสิทธิ์ทุกประการ")}</span>
       <span>{c.t("footer.legal_note", "ออกแบบสำหรับนักเรียนที่ตั้งใจสอบเข้า จภ.")}</span>
     </div>
   );

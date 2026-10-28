@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const favicon = (await fetchSiteAssets()).favicon;
   const icon = favicon?.imageUrl ?? "/favicon.ico";
   return {
-    title: "PIPOL TUTOR · ติวเข้า ม.1 จภ.",
+    title: "pipoltutor · ติวเข้า ม.1 จภ.",
     description:
       "คอร์สติวเตรียมสอบเข้า ม.1 โรงเรียนวิทยาศาสตร์จุฬาภรณราชวิทยาลัย",
     icons: { icon, apple: icon },

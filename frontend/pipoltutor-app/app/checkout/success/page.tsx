@@ -11,7 +11,7 @@ import { formatBaht, formatThaiDate, formatThaiDateTime } from "@/lib/format";
 import { fetchLineInvite, fetchMyOrder, syncMyOrder, type Order } from "@/lib/orders";
 import { getCopy } from "@/lib/site-texts";
 
-export const metadata = { title: "ชำระเงินสำเร็จ · PIPOL TUTOR" };
+export const metadata = { title: "ชำระเงินสำเร็จ · pipoltutor" };
 
 const EMPTY = "—";
 const GATEWAY_LABEL: Record<string, string> = { omise: "Omise (พร้อมเพย์ / บัตร)" };

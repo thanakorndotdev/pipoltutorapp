@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AttemptAnswers } from "@/components/attempt-answers";
-import { Button, Card, Empty, Modal, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
+import { Button, Card, Empty, Icon, Modal, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
 import { formatThaiDateTime } from "@/lib/format";
 import {
@@ -26,6 +26,47 @@ function used(a: AdminAttempt): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+function usedMs(a: AdminAttempt): number | null {
+  return a.submittedAt ? new Date(a.submittedAt).getTime() - new Date(a.startedAt).getTime() : null;
+}
+
+type SortKey = "name" | "campus" | "attemptNo" | "startedAt" | "submittedAt" | "used" | "status" | "score";
+type Sort = { key: SortKey; dir: "asc" | "desc" };
+
+/** Sort value per column; null always sorts last whichever way the column runs. */
+const SORT_VALUE: Record<SortKey, (a: AdminAttempt) => string | number | null> = {
+  name: (a) => fullName(a),
+  campus: (a) => (a.campus ? (CAMPUS_LABEL[a.campus] ?? a.campus) : null),
+  attemptNo: (a) => a.attemptNo,
+  startedAt: (a) => new Date(a.startedAt).getTime(),
+  submittedAt: (a) => (a.submittedAt ? new Date(a.submittedAt).getTime() : null),
+  used: usedMs,
+  status: (a) => ATTEMPT_STATUS[a.status].label,
+  score: (a) => a.score,
+};
+
+const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
+  { key: "name", label: "นักเรียน" },
+  { key: "campus", label: "จภ." },
+  { key: "attemptNo", label: "ครั้งที่" },
+  { key: "startedAt", label: "เริ่ม" },
+  { key: "submittedAt", label: "ส่ง" },
+  { key: "used", label: "ใช้เวลา" },
+  { key: "status", label: "สถานะ" },
+  { key: "score", label: "คะแนน", right: true },
+];
+
+function compareBy({ key, dir }: Sort) {
+  const sign = dir === "asc" ? 1 : -1;
+  return (x: AdminAttempt, y: AdminAttempt) => {
+    const a = SORT_VALUE[key](x);
+    const b = SORT_VALUE[key](y);
+    if (a === null || b === null) return a === b ? 0 : a === null ? 1 : -1;
+    const c = typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b), "th");
+    return c * sign;
+  };
+}
+
 /**
  * Per-pack results: every attempt with the profile snapshot taken at start,
  * one student's answers on demand, quota reset, regrade with preview, and
@@ -40,6 +81,7 @@ export function Results() {
   const [loaded, setLoaded] = useState<{ packId: string; rows: AdminAttempt[] } | null>(null);
   const rows = loaded?.packId === packId ? loaded.rows : null;
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState<Sort | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [detail, setDetail] = useState<AttemptDetail | null>(null);
@@ -76,11 +118,13 @@ export function Results() {
   const pack = packs?.find((p) => p.id === packId) ?? null;
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    if (!rows || !needle) return rows ?? [];
-    return rows.filter((a) =>
-      [a.firstName, a.lastName, a.nickname, a.email, a.campus ? CAMPUS_LABEL[a.campus] : ""].some((v) => v?.toLowerCase().includes(needle))
-    );
-  }, [rows, q]);
+    const hits = !rows || !needle
+      ? (rows ?? [])
+      : rows.filter((a) =>
+          [a.firstName, a.lastName, a.nickname, a.email, a.campus ? CAMPUS_LABEL[a.campus] : ""].some((v) => v?.toLowerCase().includes(needle))
+        );
+    return sort ? [...hits].sort(compareBy(sort)) : hits;
+  }, [rows, q, sort]);
   const finished = rows?.filter((a) => a.status !== "in_progress") ?? [];
   const avg = finished.length ? finished.reduce((s, a) => s + (a.score ?? 0), 0) / finished.length : null;
 
@@ -215,14 +259,25 @@ export function Results() {
               <table className="w-full min-w-[960px] text-left text-[14px]">
                 <thead className="border-b border-border bg-page text-[13px] text-ink3">
                   <tr>
-                    <th className="px-3 py-2.5 font-medium">นักเรียน</th>
-                    <th className="px-3 py-2.5 font-medium">จภ.</th>
-                    <th className="px-3 py-2.5 font-medium">ครั้งที่</th>
-                    <th className="px-3 py-2.5 font-medium">เริ่ม</th>
-                    <th className="px-3 py-2.5 font-medium">ส่ง</th>
-                    <th className="px-3 py-2.5 font-medium">ใช้เวลา</th>
-                    <th className="px-3 py-2.5 font-medium">สถานะ</th>
-                    <th className="px-3 py-2.5 text-right font-medium">คะแนน</th>
+                    {COLUMNS.map((col) => {
+                      const dir = sort?.key === col.key ? sort.dir : null;
+                      return (
+                        <th
+                          key={col.key}
+                          className={`px-3 py-2.5 font-medium ${col.right ? "text-right" : ""}`}
+                          aria-sort={dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none"}
+                        >
+                          <button
+                            type="button"
+                            className={`inline-flex items-center gap-0.5 hover:text-ink ${dir ? "text-ink" : ""}`}
+                            onClick={() => setSort({ key: col.key, dir: dir === "asc" ? "desc" : "asc" })}
+                          >
+                            {col.label}
+                            <Icon name={dir === "asc" ? "arrow_upward" : dir === "desc" ? "arrow_downward" : "unfold_more"} size={16} className={dir ? "" : "opacity-40"} />
+                          </button>
+                        </th>
+                      );
+                    })}
                     <th className="px-3 py-2.5" />
                   </tr>
                 </thead>

@@ -10,7 +10,7 @@ import { formatThaiDate, formatThaiDateTime } from "@/lib/format";
 import { fetchMyReading, fetchMyReadings, type FortuneReading, type FortuneResult } from "@/lib/fortune";
 import { syncMyOrder } from "@/lib/orders";
 
-export const metadata = { title: "คำทำนาย · PIPOL TUTOR" };
+export const metadata = { title: "คำทำนาย · pipoltutor" };
 
 type Query = { reading?: string | string[]; order?: string | string[] };
 

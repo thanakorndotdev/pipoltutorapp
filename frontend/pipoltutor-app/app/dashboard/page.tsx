@@ -9,7 +9,7 @@ import { fetchLineInvite } from "@/lib/orders";
 import { fetchMyAttempts } from "@/lib/attempts";
 import { formatThaiDateTime } from "@/lib/format";
 
-export const metadata = { title: "เมนูหลัก · PIPOL TUTOR" };
+export const metadata = { title: "เมนูหลัก · pipoltutor" };
 
 const EMPTY = "—";
 

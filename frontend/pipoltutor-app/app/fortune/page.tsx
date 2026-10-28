@@ -4,7 +4,7 @@ import { Band, Pill, Tick } from "@/components/ui";
 import { fetchProducts } from "@/lib/api";
 import { FortuneForm } from "./fortune-form";
 
-export const metadata = { title: "ดูดวงแนวทางการสอบ · PIPOL TUTOR" };
+export const metadata = { title: "ดูดวงแนวทางการสอบ · pipoltutor" };
 
 const POINTS = ["ใช้เวลาไม่เกิน 1 นาที", "ผลคำทำนายเก็บไว้ในบัญชีของน้อง กลับมาดูซ้ำได้", "คำทำนายเป็นความบันเทิง ไม่ใช่การรับประกันผลสอบ"];
 

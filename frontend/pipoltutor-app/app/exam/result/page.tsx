@@ -6,7 +6,7 @@ import { fetchMyAttempt, fetchMyReview, type ReviewedQuestion } from "@/lib/atte
 import { TUTOR_NAME } from "@/lib/content";
 import { SUBJECT_META } from "@/lib/exam";
 
-export const metadata = { title: "สรุปคะแนน · PIPOL TUTOR" };
+export const metadata = { title: "สรุปคะแนน · pipoltutor" };
 
 const EMPTY = "—";
 

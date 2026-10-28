@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Band, Button, Icon, Pill } from "@/components/ui";
 import { getCopy } from "@/lib/site-texts";
 
-export const metadata = { title: "คอร์สและชุดข้อสอบ · PIPOL TUTOR" };
+export const metadata = { title: "คอร์สและชุดข้อสอบ · pipoltutor" };
 
 export default async function CatalogPage() {
   const c = await getCopy();

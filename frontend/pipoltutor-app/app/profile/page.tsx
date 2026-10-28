@@ -6,7 +6,7 @@ import { Band, Card, Pill } from "@/components/ui";
 import { getSessionUser } from "@/lib/auth";
 import { ProfileForm } from "./profile-form";
 
-export const metadata = { title: "ข้อมูลนักเรียน · PIPOL TUTOR" };
+export const metadata = { title: "ข้อมูลนักเรียน · pipoltutor" };
 
 /**
  * Only same-site paths are honoured as the place to go after saving. Parsing

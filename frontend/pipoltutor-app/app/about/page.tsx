@@ -6,7 +6,7 @@ import { Band, Button, FaqItem, Icon, SectionHead, Slot, Tick } from "@/componen
 import { LINE_URL, TUTOR_NAME } from "@/lib/content";
 import { getCopy } from "@/lib/site-texts";
 
-export const metadata = { title: `รู้จัก${TUTOR_NAME} · PIPOL TUTOR` };
+export const metadata = { title: `รู้จัก${TUTOR_NAME} · pipoltutor` };
 
 const CREDS = [
   ["school", "จภ. ปทุมธานี", "ศิษย์เก่า เข้าเรียน ม.1 ปี 2560"],

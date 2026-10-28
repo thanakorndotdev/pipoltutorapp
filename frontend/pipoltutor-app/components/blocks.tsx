@@ -3,9 +3,8 @@ import type { ReactNode } from "react";
 import { fetchProducts, type Product } from "@/lib/api";
 import { PLANS, TUTOR_NAME, type Plan } from "@/lib/content";
 import { formatBaht } from "@/lib/format";
-import { getCopy } from "@/lib/site-texts";
 import { SiteImage } from "./site-assets";
-import { Button, Icon, IconTile, Pill, Slot, Tick } from "./ui";
+import { Button, IconTile, Pill, Slot, Tick } from "./ui";
 
 /* Shared blocks from figma-plugin/code.js: trustChip, portrait, heroCopy,
    planCard. */
@@ -84,38 +83,7 @@ export function HeroCopy({
   );
 }
 
-function FloatChip({
-  icon,
-  iconClass,
-  title,
-  sub,
-  className,
-}: {
-  icon: string;
-  iconClass: string;
-  title: string;
-  sub: string;
-  className: string;
-}) {
-  return (
-    <span className={`absolute flex items-center gap-2.5 rounded-[18px] border border-border bg-card px-[15px] py-[11px] shadow-m ${className}`}>
-      <Icon name={icon} size={22} fill className={iconClass} />
-      <span className="flex flex-col">
-        <span className="whitespace-nowrap font-display text-[15px] font-medium leading-[1.28]">{title}</span>
-        <span className="whitespace-nowrap text-[12.5px] leading-[1.35] text-ink3">{sub}</span>
-      </span>
-    </span>
-  );
-}
-
-const DEFAULT_PORTRAIT_CHIPS: string[][] = [
-  ["สอนสด 24 ครั้ง", "มีคลิปย้อนหลัง"],
-  ["ข้อสอบจำลอง 100 ข้อ", "ตรวจอัตโนมัติ"],
-];
-
-export async function Portrait() {
-  const c = await getCopy();
-  const [a, b] = c.rows("home.portrait_chips", DEFAULT_PORTRAIT_CHIPS);
+export function Portrait() {
   return (
     <div className="relative mx-auto w-full max-w-[520px] pb-14 pt-3 lg:flex-none lg:basis-[520px]">
       <div className="absolute inset-x-5 top-8 -z-0 h-[85%] rounded-full bg-brand-grad opacity-[0.14]" aria-hidden />
@@ -130,8 +98,6 @@ export async function Portrait() {
           />
         </SiteImage>
       </div>
-      {a ? <FloatChip icon="menu_book" iconClass="text-accent" title={a[0]} sub={a[1] ?? ""} className="left-0 top-[18%]" /> : null}
-      {b ? <FloatChip icon="task_alt" iconClass="text-teal" title={b[0]} sub={b[1] ?? ""} className="right-0 top-[46%]" /> : null}
     </div>
   );
 }
