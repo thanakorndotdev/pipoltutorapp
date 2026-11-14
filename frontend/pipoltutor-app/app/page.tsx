@@ -1,6 +1,7 @@
 import { ConfiguredHome,getHomeSections } from "@/components/configured-home";
 import { DEFAULT_HERO_CHIPS, DEFAULT_HERO_FOOTNOTE, HeroCopy, PlanGrid, Portrait } from "@/components/blocks";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 
 import { CountdownSection } from "@/components/countdown-section";
 import { SiteHeader } from "@/components/site-header";
@@ -8,6 +9,8 @@ import { CtaBand, SiteFooter } from "@/components/site-footer";
 import { Band, Button, Card, Icon, MenuCard, SectionHead } from "@/components/ui";
 import { LINE_URL, TUTOR_NAME } from "@/lib/content";
 import { getCopy } from "@/lib/site-texts";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const FEATURE_CARDS = [
   { icon: "record_voice_over", tile: "bg-brand-50 text-brand", href: "/courses/full-course" },

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
-import { BACKEND_URL } from "@/lib/api";
+import { BACKEND_URL, SITE_ORIGIN } from "@/lib/api";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const origin = process.env.PUBLIC_URL ?? "https://pipoltutor.org";
+  const origin = SITE_ORIGIN;
   const base = ["", "/articles", "/daily", "/courses", "/about"].map(
     (path) => ({ url: `${origin}${path}`, lastModified: new Date() }),
   );

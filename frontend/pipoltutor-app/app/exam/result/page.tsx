@@ -38,6 +38,8 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
   const raw = (await searchParams).attempt;
   const id = typeof raw === "string" && /^[0-9a-f-]{36}$/i.test(raw) ? raw : null;
   const attempt = id ? await fetchMyAttempt(id) : null;
+  // An id that does not resolve for this session is someone else's attempt (or gone): SoW 7.2 wording.
+  if (id && !attempt) return <DeniedResult />;
   const graded = attempt && attempt.status !== "in_progress" ? attempt : null;
   const review = graded?.showReview ? await fetchMyReview(graded.id) : null;
 
@@ -170,6 +172,30 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
               </Card>
             </div>
           </div>
+        </Band>
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
+
+function DeniedResult() {
+  return (
+    <>
+      <SiteHeader current="exam" app />
+      <main className="flex-1">
+        <Band className="pb-14 pt-10 md:pb-[72px]">
+          <Card className="mx-auto flex max-w-[640px] flex-col items-start gap-4 p-6 md:p-8">
+            <span className="flex size-12 items-center justify-center rounded-[14px] bg-amber-50 text-amber-icon">
+              <Icon name="lock" />
+            </span>
+            <h1 className="text-[22px] font-semibold md:text-[26px]">ไม่มีสิทธิ์เข้าถึงข้อมูลผลสอบนี้</h1>
+            <p className="text-[16px] leading-[1.75] text-ink2">กรุณาเข้าสู่ระบบด้วยบัญชี Google ที่ใช้ทำข้อสอบ</p>
+            <div className="flex flex-wrap gap-3">
+              <Button href="/dashboard" kind="brand" icon="history">ดูผลสอบของฉัน</Button>
+              <Button href="/" kind="ghost" icon="home">กลับหน้าแรก</Button>
+            </div>
+          </Card>
         </Band>
       </main>
       <SiteFooter />

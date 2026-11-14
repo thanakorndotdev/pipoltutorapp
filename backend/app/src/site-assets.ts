@@ -15,6 +15,7 @@ export type SiteAssetSlot = {
 export const SITE_ASSET_SLOTS: readonly SiteAssetSlot[] = [
   { key: "favicon", label: "Favicon (ไอคอนแท็บเบราว์เซอร์)", hint: "สี่เหลี่ยมจัตุรัส · PNG 32×32 ถึง 512×512 (ใช้เป็น icon ของทั้งเว็บ)", ratio: "1 / 1", group: "brand" },
   { key: "logo", label: "โลโก้", hint: "สี่เหลี่ยมจัตุรัส · แสดงในแถบเมนูและท้ายเว็บ (42×42 px, ควรเป็น PNG/WebP พื้นหลังโปร่ง)", ratio: "1 / 1", group: "brand" },
+  { key: "og_image", label: "ภาพตัวอย่างเวลาแชร์ลิงก์", hint: "แนวนอน 1200×630 · แสดงเมื่อแชร์หน้าเว็บใน LINE/Facebook ถ้าไม่ใส่จะใช้รูปพี่ทีภาพหลัก", ratio: "1200 / 630", group: "brand" },
   { key: "hero_portrait", label: "รูปพี่ที — ภาพหลัก", hint: "แนวตั้ง 4:4.5 · ครึ่งตัว พื้นหลังโล่ง ใช้หน้าแรกและหน้ารู้จักพี่ที", ratio: "4 / 4.5", group: "landing" },
   { key: "about_why_1", label: "รู้จักพี่ที — รูปพี่ทีกำลังสอนหน้าห้อง", hint: "แนวนอน 4:3 · เห็นกระดานและนักเรียนในเฟรม", ratio: "4 / 3", group: "about" },
   { key: "about_why_2", label: "รู้จักพี่ที — ภาพหน้าจอระบบทำข้อสอบ", hint: "แนวนอน 4:3 · ถ่ายจากจอจริง พร้อมธงสีรายข้อ", ratio: "4 / 3", group: "about" },

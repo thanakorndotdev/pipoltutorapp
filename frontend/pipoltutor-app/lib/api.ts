@@ -6,6 +6,8 @@ import { cache } from "react";
  * this — it calls the same-origin `/api/*` path instead.
  */
 export const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:3001";
+/** Public origin for absolute links (canonical, OG images, sitemap). */
+export const SITE_ORIGIN = process.env.PUBLIC_URL ?? "https://pipoltutor.org";
 
 export type Product = {
   id: string;

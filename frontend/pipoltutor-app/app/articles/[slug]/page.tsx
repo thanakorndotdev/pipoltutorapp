@@ -10,6 +10,7 @@ import { ArticleBlocks } from "@/components/article-blocks";
 import { CtaBand, SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Band, Button, Note } from "@/components/ui";
+import { fetchSiteAssets } from "@/lib/api";
 import { fetchArticle } from "@/lib/articles";
 import { formatThaiDate } from "@/lib/format";
 
@@ -41,7 +42,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getArticle((await params).slug);
   if (!article) return { title: "ไม่พบบทความ · pipoltutor" };
   const description = article.excerpt ?? undefined;
-  const image = article.coverUrl ? await absoluteUrl(article.coverUrl) : null;
+  // No cover: fall back to the site's share image so LINE/Facebook still show a picture.
+  const assets = article.coverUrl ? {} : await fetchSiteAssets();
+  const fallback = assets.og_image ?? assets.hero_portrait ?? assets.logo;
+  const imagePath = article.coverUrl ?? fallback?.imageUrl ?? null;
+  const image = imagePath ? await absoluteUrl(imagePath) : null;
   return {
     title: `${article.title} · pipoltutor`,
     description,
@@ -58,6 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: article.updatedAt,
       ...(image ? { images: [image] } : {}),
     },
+    twitter: { card: image ? "summary_large_image" : "summary" },
   };
 }
 

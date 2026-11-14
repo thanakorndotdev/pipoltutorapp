@@ -4,7 +4,7 @@ import { Anuphan, Mitr } from "next/font/google";
 import "./globals.css";
 
 import { SiteAssetsProvider } from "@/components/site-assets";
-import { fetchSiteAssets, fetchSiteTexts } from "@/lib/api";
+import { fetchSiteAssets, fetchSiteTexts, SITE_ORIGIN } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
@@ -26,13 +26,28 @@ const anuphan = Anuphan({
  * would emit a second <link rel="icon"> that competes with the uploaded one.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const favicon = (await fetchSiteAssets()).favicon;
-  const icon = favicon?.imageUrl ?? "/favicon.ico";
+  const assets = await fetchSiteAssets();
+  const icon = assets.favicon?.imageUrl ?? "/favicon.ico";
+  const title = "pipoltutor · ติวเข้า ม.1 จภ.";
+  const description =
+    "คอร์สติวเตรียมสอบเข้า ม.1 โรงเรียนวิทยาศาสตร์จุฬาภรณราชวิทยาลัย";
+  // Link previews (LINE, Facebook) need an absolute image; pages with their own
+  // openGraph (articles) override this.
+  const share = assets.og_image ?? assets.hero_portrait ?? assets.logo;
   return {
-    title: "pipoltutor · ติวเข้า ม.1 จภ.",
-    description:
-      "คอร์สติวเตรียมสอบเข้า ม.1 โรงเรียนวิทยาศาสตร์จุฬาภรณราชวิทยาลัย",
+    metadataBase: new URL(SITE_ORIGIN),
+    title,
+    description,
     icons: { icon, apple: icon },
+    openGraph: {
+      type: "website",
+      siteName: "pipoltutor",
+      locale: "th_TH",
+      title,
+      description,
+      ...(share ? { images: [{ url: share.imageUrl, alt: share.alt || title }] } : {}),
+    },
+    twitter: { card: share ? "summary_large_image" : "summary" },
   };
 }
 

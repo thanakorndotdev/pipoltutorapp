@@ -47,8 +47,8 @@ function Legal({ c }: { c: Copy }) {
   );
 }
 
-const DEFAULT_CLIENT_NOTE =
-  "หมายเหตุสำหรับผู้ว่าจ้าง: ชื่อผู้สอน รูปภาพ ประวัติ ตัวเลขสถิติ คะแนน รีวิว และข้อความทั้งหมดเป็นเนื้อหาตัวอย่างเพื่อดูงานออกแบบ ต้องแทนที่ด้วยข้อมูลจริงก่อนเผยแพร่ และต้องขออนุญาตผู้ปกครองก่อนใช้ภาพหรือข้อความของนักเรียน";
+/** Hidden unless the admin writes a note in site texts (footer.client_note). */
+const DEFAULT_CLIENT_NOTE = "";
 
 export async function SiteFooter() {
   const c = await getCopy();
