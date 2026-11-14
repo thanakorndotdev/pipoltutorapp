@@ -730,7 +730,6 @@ export const adminCommentsRoutes = new Elysia({ prefix: "/admin/comments" })
       .select({
         id: users.id,
         nickname: users.nickname,
-        email: users.email,
         bio: users.bio,
         photoUrl: users.photoUrl,
         updatedAt: users.updatedAt,

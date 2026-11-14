@@ -243,7 +243,9 @@ export const articlesRoutes = new Elysia({ prefix: "/articles" })
   )
   .get(
     "/:slug/comments",
-    async ({ params, query }) => {
+    async ({ params, query, headers }) => {
+      // Photos and profile links of students are for signed-in members only.
+      const member = Boolean(await currentUser(headers));
       const [a] = await db
         .select()
         .from(articles)
@@ -251,8 +253,7 @@ export const articlesRoutes = new Elysia({ prefix: "/articles" })
           and(eq(articles.slug, params.slug), eq(articles.published, true)),
         );
       if (!a) fail("ไม่พบบทความ", 404);
-      return {
-        comments: await db
+      const rows = await db
           .select({
             id: comments.id,
             parentId: comments.parentId,
@@ -273,7 +274,9 @@ export const articlesRoutes = new Elysia({ prefix: "/articles" })
           )
           .orderBy(comments.createdAt)
           .limit(Number(query.limit ?? 100))
-          .offset(Number(query.offset ?? 0)),
+          .offset(Number(query.offset ?? 0));
+      return {
+        comments: member ? rows : rows.map((c) => ({ ...c, authorId: null, photo: null })),
       };
     },
     {

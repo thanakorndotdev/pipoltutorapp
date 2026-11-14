@@ -8,7 +8,8 @@ type Comment = {
   text: string;
   createdAt: string;
   name: string | null;
-  authorId: string;
+  /** Null for signed-out visitors: student photos and profile links are members-only. */
+  authorId: string | null;
   photo: string | null;
 };
 export function ArticleDiscussion({
@@ -84,7 +85,7 @@ export function ArticleDiscussion({
         className="scroll-mt-8 border-t border-border py-4"
       >
         <div className="flex items-center gap-2.5">
-          {loggedIn ? (
+          {loggedIn && c.authorId ? (
             <Link href={`/u/${c.authorId}`} className="flex items-center gap-2.5 font-medium hover:text-brand">
               <ProfilePhoto src={c.photo} size={32} />
               <span className="text-[14.5px]">{c.name ?? "ผู้ใช้"}</span>

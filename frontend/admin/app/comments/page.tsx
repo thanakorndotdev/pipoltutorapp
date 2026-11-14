@@ -15,7 +15,6 @@ type Comment = {
 type Profile = {
   id: string;
   nickname: string | null;
-  email: string;
   bio: string | null;
   photoUrl: string | null;
   updatedAt: string;
@@ -120,7 +119,7 @@ export default function Page() {
                   <img src={p.photoUrl} alt="" className="size-20 shrink-0 rounded-full object-cover" />
                 ) : null}
                 <div className="min-w-0">
-                  <p className="font-medium">{p.nickname ?? "ไม่มีชื่อเล่น"} · {p.email}</p>
+                  <p className="font-medium">{p.nickname ?? "ไม่มีชื่อเล่น"} · ผู้ใช้ {p.id}</p>
                   <p className="mt-1 whitespace-pre-wrap break-words text-[16px]">{p.bio ?? "—"}</p>
                 </div>
               </div>
