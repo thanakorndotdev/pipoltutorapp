@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-14T14:06:21.247Z",
+  "date": "2026-11-14T18:49:54.421Z",
   "passed": 8,
   "checks": [
     "CMS-02 taxonomy rejects cycles; merge preview/commit updates children, published snapshot and historical category alias once",
