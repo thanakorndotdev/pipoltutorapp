@@ -220,11 +220,20 @@ export const certificatesRoutes = new Elysia({ prefix: "/certificates" })
     },
   );
 
-/** Name checks per client and certificate; the public endpoint must not be a name-guessing oracle (CERT-10). */
+/**
+ * The public endpoint must not be a name-guessing oracle (CERT-10). Two
+ * budgets: per client and certificate per minute, and a global one per
+ * certificate per hour so rotating client addresses cannot multiply guesses.
+ */
 const NAME_CHECKS_PER_MINUTE = 8;
-async function allowNameCheck(client: string): Promise<boolean> {
+const NAME_CHECKS_PER_CERT_HOUR = 30;
+async function allowNameCheck(
+  subject: string,
+  limit: number,
+  windowMs: number,
+): Promise<boolean> {
   return db.transaction(async (tx) => {
-    const key = `rate.name.${hash(client)}.${Math.floor(Date.now() / 60000)}`;
+    const key = `rate.name.${windowMs}.${hash(subject)}.${Math.floor(Date.now() / windowMs)}`;
     await lock(tx, key);
     const [row] = await tx
       .select()
@@ -238,7 +247,7 @@ async function allowNameCheck(client: string): Promise<boolean> {
         target: featureSettings.key,
         set: { value: n, updatedAt: new Date() },
       });
-    return n <= NAME_CHECKS_PER_MINUTE;
+    return n <= limit;
   });
 }
 
@@ -343,9 +352,27 @@ export const certVerifyRoutes = new Elysia({ prefix: "/cert" })
     async ({ params, body, headers, set }) => {
       const client =
         headers["x-forwarded-for"]?.split(",")[0]?.trim() || "direct";
-      if (!(await allowNameCheck(`${client}|${params.publicId}`))) {
+      if (
+        !(await allowNameCheck(
+          `${client}|${params.publicId}`,
+          NAME_CHECKS_PER_MINUTE,
+          60_000,
+        ))
+      ) {
         set.status = 429;
         return { error: "ตรวจสอบบ่อยเกินไป กรุณารอ 1 นาทีแล้วลองใหม่" };
+      }
+      if (
+        !(await allowNameCheck(
+          `cert|${params.publicId}`,
+          NAME_CHECKS_PER_CERT_HOUR,
+          3_600_000,
+        ))
+      ) {
+        set.status = 429;
+        return {
+          error: "ใบนี้ถูกตรวจชื่อบ่อยเกินไป กรุณาลองใหม่ภายหลัง 1 ชั่วโมง",
+        };
       }
       const row = await findPublic(params.publicId);
       if (!row) {

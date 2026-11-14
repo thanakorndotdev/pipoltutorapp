@@ -430,6 +430,13 @@ if (!process.argv.includes("--isolated")) {
     );
     assert.equal(badName.status, 200);
     assert.equal((await badName.json()).match, false);
+    // Rotating client addresses must not multiply the guess budget for one certificate.
+    for (let i = 1; i < 30; i++) {
+      const r = await request(`/cert/${valid.publicId}/verify-name`, "POST", { name: `เดา${i}` }, { "x-forwarded-for": `198.51.100.${i}` });
+      assert.equal(r.status, 200);
+    }
+    const capped = await request(`/cert/${valid.publicId}/verify-name`, "POST", { name: "เดาเกิน" }, { "x-forwarded-for": "203.0.113.7" });
+    assert.equal(capped.status, 429);
     ok(
       "AC-03/05 QR decodes original PNG and half-size share image; tampered printed name does not match",
     );

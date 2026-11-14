@@ -25,7 +25,7 @@
 | 3.2 Editor | Included | พื้นหลัง crop/zoom, ข้อความ/รูป/ลายเซ็น, ลากวาง, Font Mitr/Anuphan, Dynamic Fields, Draft/Publish, Versioning, Preview PNG/PDF การลากวางในเบราว์เซอร์ยังไม่มีบันทึกการทดสอบด้วยมือครบทุกองค์ประกอบ | C3, C4 |
 | CERT-08 | Included | public ID สุ่ม, QR Level H, URL `/cert/{public_id}` ไม่มีข้อมูลลับ ถอด QR ด้วยโปรแกรมจาก PNG เต็ม/ย่อ 50% และ PDF 144/72 dpi ได้ **การสแกนด้วยกล้องจากสิ่งพิมพ์จริงเป็นงานตรวจบนระบบจริง** | C7, C8 (AC-05) |
 | CERT-09 | Included | หน้า Verify สาธารณะ มีปุ่มตรวจชื่อและ "ดูผลสอบของฉัน"; ผู้ใช้อื่นได้ 404/ข้อความไม่มีสิทธิ์ | S5, C9 |
-| CERT-10 | Included | ตอบเพียงตรง/ไม่ตรง; จำกัด 8 ครั้งต่อนาทีต่อผู้ใช้ต่อใบ นับในฐานข้อมูลจึงใช้ได้ข้าม process | C8 (AC-03), โค้ด |
+| CERT-10 | Included | ตอบเพียงตรง/ไม่ตรง; จำกัด 8 ครั้งต่อนาทีต่อผู้ตรวจต่อใบ และรวมไม่เกิน 30 ครั้งต่อชั่วโมงต่อใบไม่ว่ามาจากกี่ IP นับในฐานข้อมูลจึงใช้ได้ข้าม process ข้อแลก: ถ้ามีคนตั้งใจยิงจนเต็มโควตา ผู้ตรวจจริงต้องรอรอบชั่วโมงถัดไป | C8 (AC-03), โค้ด |
 | CERT-11 | Included | Valid / Revoked / Previous valid / Superseded / Not found; เหตุผลรายบุคคลเห็นเฉพาะ Admin | C9, C10, C11 |
 | CERT-12 | Included | RSA-PSS/SHA-256 ลงนาม canonical manifest ฝั่ง server | C9 (AC-04) |
 | CERT-13 | Included | คู่มือระบุชัดว่าไม่ได้พิสูจน์ไฟล์ PNG/PDF ระดับพิกเซล บริการตรวจ hash ไฟล์อัปโหลดเป็น Optional | `user-admin-guide.md` |

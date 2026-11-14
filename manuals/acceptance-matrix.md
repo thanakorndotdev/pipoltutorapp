@@ -30,7 +30,7 @@
 |---|---|---|---|
 | AC-01 | บัญชี A/B เปลี่ยน Attempt ID | PASS (local) + ตรวจบนระบบจริง | S5, S10, C9: บัญชี B ได้ 404 ทั้งอันดับ ผลสอบ และไฟล์ใบของ A ตัวตนผูกกับ session ฝั่ง server ไม่เชื่อ ID จาก client ต้องทดสอบซ้ำด้วยบัญชี Google จริงสองบัญชีหลังตั้ง OAuth production |
 | AC-02 | Public verify | PASS (local) | C9: ไม่ login ตรวจได้ Valid/Revoked/Not found โดยไม่เห็นชื่อ อีเมล หรือคะแนน |
-| AC-03 | ชื่อใน PNG ถูกแก้ | PASS (local) | C8: ส่งชื่อปลอมกับ public ID เดิม ได้ `match=false` |
+| AC-03 | ชื่อใน PNG ถูกแก้ | PASS (local) | C8: ส่งชื่อปลอมกับ public ID เดิม ได้ `match=false`; จำกัด 8 ครั้ง/นาที/ผู้ตรวจ และรวม 30 ครั้ง/ชั่วโมง/ใบ แม้เปลี่ยน IP |
 | AC-04 | Manifest ถูกดัดแปลง | PASS (local) | C9: แก้หนึ่ง field แล้ว signature ไม่ผ่าน; หมุน key แล้วใบเก่ายังตรวจผ่าน |
 | AC-05 | QR Level H | PASS (local) + ตรวจบนระบบจริง | C7, C8: ถอด QR จาก PNG ต้นฉบับ, ภาพย่อ 50%, และ PDF ที่ rasterize จริงที่ 144 และ 72 dpi สำเร็จ (`pdf-qr-result.json`) ยังต้องสแกนด้วยกล้องโทรศัพท์จากกระดาษที่พิมพ์และจากภาพที่แชร์ผ่านแอปจริง |
 | AC-06 | เปลี่ยนชื่อโปรไฟล์ | PASS (local) | C10: ใบเดิมถูกถอน ออก revision ใหม่พร้อม public ID ใหม่ และสร้างแจ้งเตือน |
@@ -47,7 +47,7 @@
 | AC-17 | Official override freeze | PASS (local) | S6: 96.50 คงเดิมเมื่อมีผู้สอบเพิ่ม และขึ้นธงรอทบทวน |
 | AC-18 | Auto final non-override | PASS (local) | S6: ค่าที่ไม่ override อัปเดตพร้อม revision; คำตอบดิบไม่เปลี่ยน |
 | AC-19 | Import validation | PASS (local) | S8: แถวซ้ำทำให้ปฏิเสธทั้งไฟล์; ID/ชนิด/ช่วงค่าตรวจที่ API |
-| AC-20 | Rollback | PASS (local) | S9: rollback เป็น revision ใหม่ที่อ้างอิงรุ่นเดิม ประวัติไม่หาย |
+| AC-20 | Rollback | PASS (local) | S9: rollback เป็น revision ใหม่ที่อ้างอิงรุ่นเดิม ประวัติไม่หาย; ผู้มีสิทธิ์ ranking แค่ read/write ใช้ rollback หรือ settings เปลี่ยนการเผยแพร่/การแสดงผลไม่ได้ (403) |
 | AC-21 | Public article and share | PASS (local) + ตรวจบนระบบจริง | S11 + UI: anonymous อ่านได้, title/OG/canonical/JSON-LD render ฝั่ง server ต้องลองแชร์ลิงก์ใน LINE หลัง deploy บนโดเมนจริง |
 | AC-22 | Editor ไทย/คณิต | PASS (local) | S11 + UI: ตาราง merge, LaTeX, ภาษาไทยบน 393 px; D3: แนบ PDF/Office และปฏิเสธ MIME ปลอม/PDF มี script/macro; S24: URL/embed ไม่ปลอดภัยถูกปฏิเสธ ไม่ได้ทดสอบด้วยมือครบทุก block บนทุก browser |
 | AC-23 | CMS scheduling | PASS (local) | S11: schedule ก่อน approve ถูกปฏิเสธ; S27: ตัวเผยแพร่ตามเวลาเปิดบทความที่ approve แล้วตรงเวลาที่ถึงกำหนด worker พร้อมกันสร้าง revision เดียว |
@@ -65,7 +65,7 @@
 | AC-35 | Fallback queue | PASS (local) | S18: วันที่ระบุชนะคิว, คิวใช้ครั้งเดียว, วันไม่มีโจทย์ auto-protect |
 | AC-36 | Regrade preserve | PASS (local) | S20 |
 | AC-37 | CSV import daily | PASS (local) | S21: XLSX จริงนำเข้าได้; CSV เสียไม่มีแถวบางส่วน |
-| AC-38 | Permissions | PASS (local) | S4, S25: Author อ่าน ranking/keys ไม่ได้; ถอนสิทธิ์แล้ว session เดิมได้ 403 ใน request ถัดไป |
+| AC-38 | Permissions | PASS (local) | S4, S25: Author อ่าน ranking/keys ไม่ได้ และสร้าง/แก้/ลบ/รวมหมวดหมู่ไม่ได้ (ต้องมีสิทธิ์ article publish); ถอนสิทธิ์แล้ว session เดิมได้ 403 ใน request ถัดไป |
 | AC-39 | Restore | PASS (local) + ตรวจบนระบบจริง | R: กู้ DB + keys + ไฟล์ใบ + ลายเซ็น และ physical PITR ตรงเวลาเป้าหมาย ต้องทำ drill ซ้ำบนโฮสต์จริงพร้อม off-site และวัด RPO/RTO จริง |
 | AC-40 | 500 concurrent | PASS (local) + ตรวจบนระบบจริง | L: 500 active VU, 5,500 requests, 0 errors บน Linux/Bun Docker; ต้องรันซ้ำบนโฮสต์ที่เลือกและตกลง SLA |
 

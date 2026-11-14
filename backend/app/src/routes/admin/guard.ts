@@ -25,7 +25,9 @@ export const adminGuard = new Elysia({ name: "admin-guard" }).onBeforeHandle(
     if (/\/daily(\/|$)/.test(path)) module = "daily";
     if (/\/(audit|errors|retention)(\/|$)/.test(path)) module = "audit";
     if (/\/users(\/|$)/.test(path)) module = "users";
-    const action = /\/(export|csv)(\/|$)/.test(path) ? "export" : /\/(publish|schedule|approve)(\/|$)/.test(path) ? "publish" : request.method === "GET" ? "read" : "write";
+    // Taxonomy edits and merges rewrite published articles, so they need publish rights (SoW 8.2: Author edits drafts only).
+    const taxonomyWrite = request.method !== "GET" && /\/cms\/(categories|merge)(\/|$)/.test(path);
+    const action = /\/(export|csv)(\/|$)/.test(path) ? "export" : taxonomyWrite || /\/(publish|schedule|approve)(\/|$)/.test(path) ? "publish" : request.method === "GET" ? "read" : "write";
     try { await authorize(headers, module, action, /\/keys(\/|$)/.test(path) || module === "users"); }
     catch (error) { if (!(error instanceof DomainError)) throw error; set.status = error.status; return { error: error.message }; }
   }

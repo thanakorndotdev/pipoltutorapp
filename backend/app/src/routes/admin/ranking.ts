@@ -93,6 +93,19 @@ async function validateChanges(packId: string, changes: Change[]) {
         fail(`ค่า ${k} ไม่ถูกต้อง`);
   }
 }
+/**
+ * Publishing, unpublishing or changing what students see is a publish action,
+ * whether it comes from settings or from restoring an older version.
+ */
+function publicationChanges(
+  current: { publishedFinal: boolean; visibility: string[] },
+  next: { publishedFinal: boolean; visibility: string[] },
+) {
+  const a = [...current.visibility].sort().join(","),
+    b = [...next.visibility].sort().join(",");
+  return current.publishedFinal !== next.publishedFinal || a !== b;
+}
+
 export const adminRankingRoutes = new Elysia({ prefix: "/admin/ranking" })
   .use(adminGuard)
   .get("/", async () => ({
@@ -152,7 +165,8 @@ export const adminRankingRoutes = new Elysia({ prefix: "/admin/ranking" })
         const { config } = await calculateTx(tx, params.id);
         if (body.baseVersion !== config.version)
           fail("ข้อมูลเปลี่ยนแล้ว กรุณาโหลดใหม่", 409);
-        if (body.publishedFinal) await authorize(headers, "ranking", "publish");
+        if (publicationChanges(config, body))
+          await authorize(headers, "ranking", "publish");
         if (config.publishedFinal && config.policy !== body.policy)
           fail("เปลี่ยนนโยบายเลือกครั้งสอบหลังเผยแพร่ผลรับรองไม่ได้", 409);
         await tx
@@ -471,6 +485,8 @@ export const adminRankingRoutes = new Elysia({ prefix: "/admin/ranking" })
             ),
           );
         if (!v) fail("ไม่พบเวอร์ชัน", 404);
+        if (publicationChanges(config, v!.snapshot))
+          await authorize(headers, "ranking", "publish");
         await tx
           .delete(rankingOverrides)
           .where(eq(rankingOverrides.packId, params.id));

@@ -221,7 +221,38 @@ try {
     403,
     author.headers,
   );
-  ok("AC-38 Author denied ranking and key management in backend");
+  await j(
+    "/admin/cms/categories",
+    "POST",
+    { name: "หมวดของผู้เขียน", slug: "author-topic", kind: "topic", parentId: null, sortOrder: 0 },
+    403,
+    author.headers,
+  );
+  const authorTarget = (
+    await j<{ category: { id: string } }>("/admin/cms/categories", "POST", {
+      name: "หมวดเป้าหมาย",
+      slug: "author-target",
+      kind: "topic",
+      parentId: null,
+      sortOrder: 0,
+    })
+  ).category.id;
+  await j(
+    `/admin/cms/categories/${authorTarget}`,
+    "PUT",
+    { name: "เปลี่ยนโดยผู้เขียน", parentId: null, sortOrder: 0 },
+    403,
+    author.headers,
+  );
+  await j(`/admin/cms/categories/${authorTarget}`, "DELETE", { reason: "ผู้เขียนลบหมวด" }, 403, author.headers);
+  await j(
+    "/admin/cms/merge/preview",
+    "POST",
+    { from: authorTarget, to: authorTarget, reason: "ผู้เขียนรวมหมวด" },
+    403,
+    author.headers,
+  );
+  ok("AC-38 Author denied ranking, key management and taxonomy changes in backend");
   const { pack } = await j<{ pack: { id: string } }>(
     "/admin/packs",
     "POST",
@@ -363,6 +394,62 @@ try {
   await j(`/admin/ranking/${packId}/commit`, "POST", {
     previewId: changedOverride.previewId,
   });
+  // A ranking editor without publish rights may not change publication by
+  // restoring a version whose visibility differs, nor through settings.
+  const readConfig = async () =>
+    (
+      await db
+        .select()
+        .from(rankingConfigs)
+        .where(eq(rankingConfigs.packId, packId))
+    )[0]!;
+  const cfg0 = await readConfig();
+  const latestBefore = (
+    await db
+      .select()
+      .from(rankingVersions)
+      .where(eq(rankingVersions.packId, packId))
+  ).sort((a, b) => b.version - a.version)[0]!;
+  const toggled = cfg0.visibility.includes("percentile")
+    ? cfg0.visibility.filter((m) => m !== "percentile")
+    : [...cfg0.visibility, "percentile"];
+  const settingsBody = (cfg: typeof cfg0, visibility: string[], reason: string) => ({
+    policy: cfg.policy,
+    visibility,
+    publishedFinal: cfg.publishedFinal,
+    suspiciousSeconds: cfg.suspiciousSeconds,
+    baseVersion: cfg.version,
+    reason,
+  });
+  await j(`/admin/ranking/${packId}/settings`, "PUT", settingsBody(cfg0, toggled, "เปลี่ยนการแสดงผลทดสอบ"));
+  const cfg1 = await readConfig();
+  const editor = await user("ranking-editor");
+  await db
+    .update(users)
+    .set({ staffRole: "admin", modulePermissions: { ranking: ["read", "write"] } })
+    .where(eq(users.id, editor.row.id));
+  await j(
+    `/admin/ranking/${packId}/rollback`,
+    "POST",
+    { versionId: latestBefore.id, baseVersion: cfg1.version, reason: "ย้อนโดยไม่มีสิทธิ์เผยแพร่" },
+    403,
+    editor.headers,
+  );
+  await j(
+    `/admin/ranking/${packId}/settings`,
+    "PUT",
+    settingsBody(cfg1, cfg0.visibility, "เปลี่ยนการแสดงผลโดยไม่มีสิทธิ์"),
+    403,
+    editor.headers,
+  );
+  await j(
+    `/admin/ranking/${packId}/settings`,
+    "PUT",
+    { ...settingsBody(cfg1, cfg1.visibility, "เผยแพร่โดยไม่มีสิทธิ์"), publishedFinal: !cfg1.publishedFinal },
+    403,
+    editor.headers,
+  );
+  await j(`/admin/ranking/${packId}/settings`, "PUT", settingsBody(cfg1, cfg0.visibility, "คืนการแสดงผล"));
   const currentConfig = (
     await db
       .select()
@@ -391,7 +478,7 @@ try {
         .where(eq(rankingVersions.packId, packId))
     ).length > history.length,
   );
-  ok("AC-20 rollback keeps historical official values and appends provenance");
+  ok("AC-20 rollback keeps historical official values and appends provenance; publication changes by rollback or settings need publish rights");
   const hiddenConfig = (
     await db
       .select()
