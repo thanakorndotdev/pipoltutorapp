@@ -64,6 +64,14 @@ export function FireCard() {
     lost: "ไฟเริ่มนับใหม่",
     incomplete: "ยังทำโจทย์วันนี้ไม่ครบ",
   };
+  const state = states[fire.todayState] ?? states.incomplete;
+  // A day without a set is settled as auto_protected only after it ends, so until
+  // then the ledger still says incomplete; let the set's own summary speak alone.
+  const status = !today
+    ? state
+    : today.questions.length === 0 && fire.todayState === "incomplete"
+      ? todaySummary(today)
+      : `${state} · ${todaySummary(today)}`;
   return (
     <section className="flex flex-col gap-4 rounded-[24px] border border-border bg-card p-5">
       <h2 className="flex items-center gap-2 text-[21px] font-semibold">
@@ -79,10 +87,7 @@ export function FireCard() {
           สิทธิ์กู้คงเหลือ {fire.remaining}/{fire.cap}
         </p>
       </div>
-      <p className="text-[16px] text-ink2">
-        {states[fire.todayState] ?? "ยังทำโจทย์วันนี้ไม่ครบ"}
-        {today ? ` · ${todaySummary(today)}` : ""}
-      </p>
+      <p className="text-[16px] text-ink2">{status}</p>
       {fire.pendingDate ? (
         <div className="rounded-[12px] bg-amber-50 p-4 text-amber-ink">
           {/* The window always closes at the end of today, Bangkok time (FIRE-08). */}
