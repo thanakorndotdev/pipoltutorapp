@@ -1,12 +1,12 @@
 {
-  "date": "2026-11-13T11:15:09.526Z",
+  "date": "2026-11-14T17:48:18.179Z",
   "kind": "isolated logical backup/restore with authenticated encryption",
   "databaseRestored": true,
   "certificateMetadata": true,
   "signatureValid": true,
   "filesRestored": true,
-  "backupSha256": "c43d85a7333ff46f583fb13a821e5a7328f027b68625e959d17749a91daa649f",
-  "rtoSeconds": 0.425,
-  "totalSeconds": 1.453,
+  "backupSha256": "a8ea46d7b1edf62c3ca282642a37a53ea5b37ca65a3ff7b65ae098fefb794952",
+  "rtoSeconds": 0.832,
+  "totalSeconds": 2.834,
   "rpo": "fixture snapshot only; production PITR unverified"
 }

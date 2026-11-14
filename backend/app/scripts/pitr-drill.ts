@@ -40,13 +40,34 @@ async function query(container: string, q: string) {
     q,
   ]);
 }
+// The image's first-start init runs a socket-only server before it creates the
+// fixture database, so check over TCP; a restored server must also have promoted.
 async function ready(container: string) {
   for (let i = 0; i < 60; i++) {
     const r = await cmd(
-      ["exec", container, "pg_isready", "-U", "fixture"],
+      ["exec", container, "pg_isready", "-h", "127.0.0.1", "-U", "fixture"],
       true,
     );
-    if (r.includes("accepting connections")) return;
+    if (
+      r.includes("accepting connections") &&
+      (await cmd(
+        [
+          "exec",
+          container,
+          "psql",
+          "-h",
+          "127.0.0.1",
+          "-U",
+          "fixture",
+          "-d",
+          "fixture",
+          "-Atc",
+          "select pg_is_in_recovery()",
+        ],
+        true,
+      )) === "f"
+    )
+      return;
     await Bun.sleep(500);
   }
   throw Error("Postgres did not start");

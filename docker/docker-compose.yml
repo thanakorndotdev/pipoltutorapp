@@ -55,6 +55,8 @@ services:
       ALLOW_DEV_AUTH: ${ALLOW_DEV_AUTH:-0}
       # Who may PUT /settings/exam. Empty means nobody.
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      # Staff role owner (src/permissions.ts) for these emails until one is saved in the DB. Empty means nobody.
+      OWNER_EMAILS: ${OWNER_EMAILS:-}
       # x-admin-key header for PUT /settings/exam. Empty disables it.
       ADMIN_API_KEY: ${ADMIN_API_KEY:-}
       # Question figures from POST /admin/uploads (src/routes/uploads.ts).

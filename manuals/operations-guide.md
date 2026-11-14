@@ -8,7 +8,7 @@
 2. ตั้งค่าใน `docker/.env` จาก `.env.example` ให้ครบ โดยเฉพาะ Google OAuth callback, PUBLIC_URL_DOCKER และ ADMIN_API_KEY ของ Owner ห้ามใส่ค่าลับใน repository หรือรูปตรวจรับ
 3. ใช้ `docker compose -f docker/docker-compose.yml config --quiet` ตรวจ config แล้ว build/deploy ด้วยขั้นตอนเดิม Backend จะใช้ migration 0017–0024 จากประวัติ Drizzle ซึ่งเพิ่มตาราง/คอลัมน์อย่างเดียว ไม่ลบตารางเดิม ห้ามใช้ `db:push` บนข้อมูลจริง
 4. ตรวจ persistent volumes `uploads_data`, `certificates_data`, `cert_keys_data` และสิทธิ์เข้าถึงไฟล์ private; ไฟล์เหล่านี้ถูกกันออกจาก Docker build context หน้า `/admin/` เป็น static export ใน Caddy; `/api/` ไป backend; หน้าเว็บนักเรียนใช้ BACKEND_URL ภายใน Docker
-5. เข้า Admin ด้วยบัญชีที่มีสิทธิ์ หรือ tooling key ของ Owner แล้วมอบ `staffRole: owner` ให้บัญชี Google อย่างน้อยสองบัญชีใน Users/Permissions ไม่ส่ง private key หรือ API key ให้ผู้เขียนบทความ การถอนสิทธิ์มีผลต่อคำขอถัดไปของ session เดิม
+5. ใส่อีเมล Google ของ Owner อย่างน้อยสองบัญชีใน `OWNER_EMAILS` ก่อน deploy (admin ทั่วไปเปิดหน้าผู้ใช้และสิทธิ์ไม่ได้) จากนั้นเข้า Admin ด้วยบัญชีนั้น หรือ tooling key ของ Owner แล้วมอบ `staffRole: owner` ให้บัญชี Google อย่างน้อยสองบัญชีใน Users/Permissions ไม่ส่ง private key หรือ API key ให้ผู้เขียนบทความ การถอนสิทธิ์มีผลต่อคำขอถัดไปของ session เดิม
 6. ตรวจ HTTPS, OAuth บัญชีจริง A/B, การอ่านคะแนนตนเอง/ปฏิเสธของผู้อื่น, สร้าง/ดาวน์โหลดใบจริง, ตั้งเวลาเผยแพร่ และโจทย์ประจำวันบนโฮสต์จริง
 
 ถ้า Owner ทุกบัญชีเข้าระบบไม่ได้ ผู้ดูแล infrastructure ที่ Owner แต่งตั้งใช้ ADMIN_API_KEY เดิมเข้าประตู Admin เพื่อคืนสิทธิ์ให้บัญชี Google ที่ตรวจสอบแล้ว จากนั้นทบทวน Audit และหมุน tooling key หากสงสัยว่ารั่ว การคืนสิทธิ์นี้เป็นการปฏิบัติงานโดยผู้รับผิดชอบจริง ไม่ใช่การเปิดหน้า recovery สาธารณะ
@@ -21,7 +21,7 @@
 |---|---|---|
 | ฐานข้อมูล | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `DATABASE_POOL_MAX` | compose สร้าง `DATABASE_URL` ให้ backend เอง |
 | URL / HTTPS | `SITE_ADDRESS`, `PUBLIC_URL_DOCKER`, `PUBLIC_URL`, `BACKEND_PORT` | `PUBLIC_URL_DOCKER` ต้องเป็นโดเมนจริง เพราะใช้ทั้ง OAuth callback, Origin check และ URL ใน QR เกียรติบัตร |
-| ผู้ดูแล | `ADMIN_API_KEY`, `ADMIN_EMAILS`, `ALLOW_DEV_AUTH` | production ต้องตั้ง `ALLOW_DEV_AUTH=0` |
+| ผู้ดูแล | `ADMIN_API_KEY`, `ADMIN_EMAILS`, `OWNER_EMAILS`, `ALLOW_DEV_AUTH` | production ต้องตั้ง `ALLOW_DEV_AUTH=0`; `OWNER_EMAILS` ต้องมีอย่างน้อยสองอีเมล ไม่อย่างนั้นไม่มีใครจัดการผู้ใช้และสิทธิ์ได้ |
 | Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | บัญชี Google Cloud ของ Owner |
 | การชำระเงิน / AI เดิม | `OMISE_PUBLIC_KEY`, `OMISE_SECRET_KEY`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_AI_MODEL` | ไม่เกี่ยวกับ SoW 2026 แต่ต้องคงไว้ |
 | ไฟล์ | `CERT_DIR`, `CERT_KEY_DIR`, `UPLOAD_DIR` | compose ชี้ไป volume `certificates_data`, `cert_keys_data`, `uploads_data` |

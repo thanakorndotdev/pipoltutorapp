@@ -44,6 +44,7 @@ chmod 600 docker/.env
 POSTGRES_PASSWORD=<openssl rand -hex 24>
 ADMIN_API_KEY=<openssl rand -hex 32>
 ADMIN_EMAILS=<อีเมล Owner A>
+OWNER_EMAILS=<อีเมล Owner A>,<อีเมล Owner B>
 ALLOW_DEV_AUTH=0
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
@@ -69,7 +70,7 @@ BACKUP_DIR=/opt/backups sh docker/deploy.sh
 
 สคริปต์ปฏิเสธถ้ามีคนสอบอยู่ (ใช้ `FORCE=1` เมื่อจำเป็น), สำรอง DB + uploads + certificates + cert-keys, pull, build, สลับ และรอ `/health`. Migration 0017–0024 รันเองตอน backend เริ่ม และเป็นแบบเพิ่มอย่างเดียว
 
-หลัง deploy ครั้งแรกที่มี SoW ให้เปิด backup overlay ด้วยคำสั่ง `up -d --build` ในข้อ 1.1
+หลัง deploy ครั้งแรกที่มี SoW ให้เปิด backup overlay ด้วยคำสั่ง `up -d --build` ในข้อ 1.1 ต้องตั้ง `BACKUP_AGE_RECIPIENT` ก่อน (ไม่ตั้งแล้ว compose จะไม่ยอมรัน) และ overlay เปลี่ยน `command` ของ postgres ทำให้ container ฐานข้อมูลถูกสร้างใหม่และหยุดไม่กี่วินาที ให้ทำตอนไม่มีคนสอบ (ใช้คำสั่งตรวจในขั้นที่ 1/6 ของ `deploy.sh`) ระบบยังไม่ลบ bundle เก่าหรือ WAL เอง ต้องเฝ้าดูพื้นที่ volume `backups_data` / `wal_archive` จนกว่า Owner จะอนุมัติรอบเก็บ
 
 ### 1.3 Smoke check
 
@@ -79,17 +80,19 @@ curl -sI http://pipoltutor.org | head -3              # ต้อง redirect �
 curl -sI https://pipoltutor.org | grep -i strict-transport
 curl -fsS https://pipoltutor.org/sitemap.xml | head
 docker compose -f docker/docker-compose.yml logs --tail 50 backend   # ไม่มี error ซ้ำ ๆ
-docker compose -f docker/docker-compose.yml exec -T backend ls -la /app/cert-keys   # มี PEM, ไม่ใช่ world-readable
+docker compose -f docker/docker-compose.yml exec -T backend ls -la /app/cert-keys   # ว่างจนกว่าจะออกใบแรก จากนั้นมี PEM สิทธิ์ -rw------- (0600)
 ```
 
-ผ่านเมื่อ: health ตอบ `db: up`, HTTPS ใช้ได้, sitemap มีบทความที่เผยแพร่ และเปิด `https://<โดเมน>/admin/` ได้
+ผ่านเมื่อ: health ตอบ `db: up`, HTTPS ใช้ได้, sitemap มีบทความที่เผยแพร่ (ถ้ามี) และเปิด `https://<โดเมน>/admin/` ได้
+
+signing key ถูกสร้างตอนออกเกียรติบัตรใบแรก (`src/certificates/keys.ts`) ไม่ใช่ตอน deploy หลังออกใบแรกให้สำรอง volume `cert_keys_data` แยกจากฐานข้อมูลทันที
 
 ---
 
 ## 2. ตั้งค่าของ Owner (ทำก่อนตรวจ AC)
 
-1. Owner A login ด้วย Google ที่หน้าเว็บ แล้วเข้า `/admin/` → ผู้ใช้และสิทธิ์
-2. มอบ role **Owner** ให้บัญชี B (Owner สำรอง) — SoW 8.2 ต้องมี Owner อย่างน้อยสองบัญชี
+1. ตรวจว่า `OWNER_EMAILS` ใน `docker/.env` มีอีเมล Owner A และ B แล้วส่งเข้า backend จริง: `docker compose -f docker/docker-compose.yml exec -T backend printenv OWNER_EMAILS` ถ้าว่าง admin ทุกคนจะได้ 403 ที่หน้าผู้ใช้และสิทธิ์ (admin จัดการผู้ใช้ไม่ได้ มีแต่ Owner) แก้ `.env` แล้วรัน `docker compose -f docker/docker-compose.yml up -d backend`
+2. Owner A login ด้วย Google ที่หน้าเว็บ แล้วเข้า `/admin/` → ผู้ใช้และสิทธิ์ แล้วบันทึก role **Owner** ให้ทั้งบัญชี A และ B ในฐานข้อมูล — SoW 8.2 ต้องมี Owner อย่างน้อยสองบัญชี เมื่อบันทึกแล้ว role ในฐานข้อมูลใช้แทนค่าใน `OWNER_EMAILS`
 3. ทดสอบ last-Owner guard: ลองถอด Owner ทั้งสองบัญชี ระบบต้องไม่ยอมให้เหลือ 0
 4. หน้า Operations → Retention: ทบทวนค่าเสนอ (technical logs 30 วัน, หมวดอื่น 365 วัน) แก้ตามที่ Owner ต้องการ แล้วกด **อนุมัติ** บันทึก version ที่อนุมัติ
 5. Certificates → ตรวจว่ามี signing key ที่ active และ key history; Owner เท่านั้นเห็นปุ่มหมุน key
@@ -235,16 +238,16 @@ SoW 1.2 ต้องไม่ทำให้ระบบเดิมเสีย
 
 | ข้อ | วันที่/เวลา | ผู้ทดสอบ | ผล (PASS/FAIL) | หลักฐาน (ชื่อไฟล์/ลิงก์) | หมายเหตุ |
 |---|---|---|---|---|---|
-| Deploy + smoke (1.3) | | | | | |
+| Deploy + smoke (1.3) | 2026-11-15 00:47 | Claude Code บน server | PASS | log ใน session | deploy 6fdc709 → 1025874, backup `/opt/backups/db-20261115-003845.dump`; ยังไม่มีบทความเผยแพร่และยังไม่ออกใบ จึงยังไม่มี PEM |
 | Owner สำรอง + last-Owner guard (2) | | | | | |
 | Retention อนุมัติ version | | | | | |
 | Backup off-site ตั้งแล้ว | | | | | ปลายทาง: |
-| AC-01 | | | | | |
+| AC-01 | 2026-11-15 00:49 | Claude Code บน server | ยังไม่ครบ | log ใน session | ส่วนไม่ login ผ่าน: `/api/attempts/<id>` (+`/questions`, `/review`) = 401, หน้าผลสอบ redirect ไป login; ยังต้องทดสอบด้วยบัญชี C/D |
 | AC-05 | | | | | iOS / Android |
 | AC-21 | | | | | |
 | AC-23 (โฮสต์จริง) | | | | | |
 | AC-25 | | | | | |
-| AC-39 สคริปต์ (7.1) | | | | | |
+| AC-39 สคริปต์ (7.1) | 2026-11-15 00:48–00:53 | Claude Code บน server | PASS | `restore-drill-result.json`, `pitr-drill-result.json` | restore RTO 0.83 วิ, PITR RTO 2.5 วิ (fixture); `test:pitr` ล้มบน Linux จน `ready()` เปลี่ยนไปตรวจผ่าน TCP |
 | AC-39 backup จริง (7.2) | | | | | RPO = ____ RTO = ____ |
 | AC-40 | | | | | p95 รวม = ____ error = ____ |
 | Regression ระบบเดิม (9) | | | | | |

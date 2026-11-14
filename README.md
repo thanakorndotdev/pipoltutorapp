@@ -47,6 +47,7 @@ This file is the single source of config. Compose reads it, and host-side runs r
 | `BACKEND_PORT` | Backend port (default 3001) |
 | `ADMIN_API_KEY` | Static admin key, sent as the `x-admin-key` header. Generate one with `openssl rand -hex 32` |
 | `ADMIN_EMAILS` | Comma-separated emails that get role `admin` on their first Google sign-in |
+| `OWNER_EMAILS` | Comma-separated emails that get staff role Owner (users and permissions, signing keys) until a staff role is saved for them in admin. Set at least two; admins cannot manage users |
 | `ALLOW_DEV_AUTH` | `1` makes the backend accept an `x-dev-user-email` header as a login. **Never set this in production** |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth (redirect URIs are listed in `.env.example`) |
 | `PUBLIC_URL` / `PUBLIC_URL_DOCKER` | Origin the browser sees. Used for the OAuth redirect and Secure cookies |
