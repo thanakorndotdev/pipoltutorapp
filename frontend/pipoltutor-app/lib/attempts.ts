@@ -4,7 +4,13 @@ import type { Attempt, ExamQuestion } from "./exam";
 
 export type AttemptSummary = Attempt & { title: string; slug: string; durationSeconds: number; showReview: boolean };
 
-export type HistoryAttempt = Omit<Attempt, "allowedSeconds" | "secondsLeft"> & { title: string; slug: string; showReview: boolean };
+export type HistoryAttempt = Omit<Attempt, "allowedSeconds" | "secondsLeft"> & {
+  title: string;
+  slug: string;
+  showReview: boolean;
+  level?: "m1" | "m4" | null;
+  subjectLabel?: string | null;
+};
 
 export type ReviewedQuestion = ExamQuestion & {
   explanation: string | null;

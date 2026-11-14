@@ -15,6 +15,8 @@ const userColumns = {
   displayName: users.displayName,
   avatarUrl: users.avatarUrl,
   role: users.role,
+  staffRole:users.staffRole,
+  modulePermissions:users.modulePermissions,
   firstName: users.firstName,
   lastName: users.lastName,
   nickname: users.nickname,

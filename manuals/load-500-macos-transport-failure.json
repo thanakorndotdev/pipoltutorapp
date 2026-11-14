@@ -1,0 +1,209 @@
+{
+  "date": "2026-11-13T16:59:54.221Z",
+  "environment": "local macOS Bun API + Docker PostgreSQL; synthetic isolated data; HTTP loopback",
+  "virtualUsers": 500,
+  "peakConcurrentHttp": 500,
+  "serverPendingPeak": 258,
+  "failureSamples": [
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "Unable to connect. Is the computer able to access the url?"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    {
+      "scenario": "session_read",
+      "status": 0,
+      "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    }
+  ],
+  "iterations": 10,
+  "elapsedSeconds": 14.55,
+  "requestsPerSecond": 378.04,
+  "requests": 5500,
+  "errors": 50,
+  "p50Ms": 867,
+  "p95Ms": 1548,
+  "p99Ms": 2618,
+  "scenarios": {
+    "session_read": {
+      "requests": 500,
+      "errors": 50,
+      "p50Ms": 92,
+      "p95Ms": 131,
+      "p99Ms": 135
+    },
+    "article_read": {
+      "requests": 1500,
+      "errors": 0,
+      "p50Ms": 848,
+      "p95Ms": 1236,
+      "p99Ms": 1334
+    },
+    "daily_submit": {
+      "requests": 75,
+      "errors": 0,
+      "p50Ms": 810,
+      "p95Ms": 1208,
+      "p99Ms": 1225
+    },
+    "certificate_download": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 835,
+      "p95Ms": 1323,
+      "p99Ms": 1333
+    },
+    "certificate_verify": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 819,
+      "p95Ms": 1300,
+      "p99Ms": 1302
+    },
+    "rank_read": {
+      "requests": 750,
+      "errors": 0,
+      "p50Ms": 1010,
+      "p95Ms": 1446,
+      "p99Ms": 1451
+    },
+    "article_search": {
+      "requests": 750,
+      "errors": 0,
+      "p50Ms": 1286,
+      "p95Ms": 1798,
+      "p99Ms": 1907
+    },
+    "daily_read": {
+      "requests": 675,
+      "errors": 0,
+      "p50Ms": 813,
+      "p95Ms": 1459,
+      "p99Ms": 1486
+    },
+    "admin_preview": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 1337,
+      "p95Ms": 2554,
+      "p99Ms": 2705
+    },
+    "exam_submit": {
+      "requests": 50,
+      "errors": 0,
+      "p50Ms": 3057,
+      "p95Ms": 3083,
+      "p99Ms": 3084
+    },
+    "exam_result": {
+      "requests": 450,
+      "errors": 0,
+      "p50Ms": 1026,
+      "p95Ms": 1548,
+      "p99Ms": 1555
+    }
+  },
+  "certificateJobs": [
+    {
+      "status": "done",
+      "n": 50
+    }
+  ],
+  "queueDrainSeconds": 11.23,
+  "limits": [
+    "Local evidence, not a production hosting capacity guarantee",
+    "Google OAuth provider roundtrip excluded; real server session validation exercised",
+    "A mixed profile, not 500 simultaneous certificate renders",
+    "No Owner-approved production SLA or sustained external-network test yet"
+  ]
+}

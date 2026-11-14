@@ -1,0 +1,6567 @@
+{
+  "generatedAt": "2026-11-14T13:17:24.573Z",
+  "format": "Elysia TypeBox schemas; see api-contract.md for response/privacy/permission notes",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/attachments/:name",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/media/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/media/attachments",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "default": "File",
+              "maxSize": 10485760,
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/media/:name",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "alt",
+            "caption"
+          ],
+          "properties": {
+            "alt": {
+              "maxLength": 300,
+              "type": "string"
+            },
+            "caption": {
+              "maxLength": 300,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/site/home",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/module-health/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/daily/today",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/daily/fire",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/daily/recover",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/daily/submit",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "date",
+            "questionId",
+            "requestId",
+            "answer"
+          ],
+          "properties": {
+            "date": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            },
+            "questionId": {
+              "maxLength": 80,
+              "type": "string"
+            },
+            "requestId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "answer": {
+              "type": "object",
+              "required": [
+                "selectedChoices",
+                "textAnswer"
+              ],
+              "properties": {
+                "selectedChoices": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "maxLength": 8,
+                    "type": "string"
+                  }
+                },
+                "textAnswer": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "maxLength": 500,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/daily/archive",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/daily/archive/:date",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "date"
+          ],
+          "properties": {
+            "date": {
+              "maxLength": 10,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/daily/archive/:date/practice",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "questionId",
+            "answer"
+          ],
+          "properties": {
+            "questionId": {
+              "maxLength": 80,
+              "type": "string"
+            },
+            "answer": {
+              "type": "object",
+              "required": [
+                "selectedChoices",
+                "textAnswer"
+              ],
+              "properties": {
+                "selectedChoices": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "maxLength": 8,
+                    "type": "string"
+                  }
+                },
+                "textAnswer": {
+                  "nullable": true,
+                  "anyOf": [
+                    {
+                      "maxLength": 500,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "date"
+          ],
+          "properties": {
+            "date": {
+              "maxLength": 10,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/attempts/:id/ranking",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/profile/delete",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "certificatePolicy",
+            "consent",
+            "confirmation"
+          ],
+          "properties": {
+            "certificatePolicy": {
+              "anyOf": [
+                {
+                  "const": "keep",
+                  "type": "string"
+                },
+                {
+                  "const": "revoke",
+                  "type": "string"
+                }
+              ]
+            },
+            "consent": {
+              "const": true,
+              "type": "boolean"
+            },
+            "confirmation": {
+              "const": "ลบบัญชีของฉัน",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/products",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/products/count",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/auth/google",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "next": {
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/auth/google/callback",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "authuser": {
+              "type": "string"
+            },
+            "prompt": {
+              "type": "string"
+            },
+            "hd": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/campuses/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/orders/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "productId",
+            "studentName",
+            "currentSchool",
+            "targetCampus",
+            "studentInstagram",
+            "parentPhone",
+            "receiptEmail"
+          ],
+          "properties": {
+            "productId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "studentName": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "currentSchool": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            },
+            "targetCampus": {
+              "default": "chiang_rai",
+              "type": "string",
+              "enum": [
+                "chiang_rai",
+                "phitsanulok",
+                "lopburi",
+                "loei",
+                "mukdahan",
+                "buriram",
+                "pathum_thani",
+                "chonburi",
+                "phetchaburi",
+                "nakhon_si_thammarat",
+                "trang",
+                "satun",
+                "lampang",
+                "kamphaeng_phet",
+                "kalasin",
+                "ubon_ratchathani",
+                "suphan_buri",
+                "sa_kaeo"
+              ]
+            },
+            "studentInstagram": {
+              "maxLength": 31,
+              "type": "string"
+            },
+            "parentPhone": {
+              "minLength": 9,
+              "maxLength": 20,
+              "type": "string"
+            },
+            "receiptEmail": {
+              "format": "email",
+              "maxLength": 254,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/orders/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/entitlements/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/entitlements/line-invite",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/fortune/readings",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "name",
+            "dob",
+            "campus",
+            "question"
+          ],
+          "properties": {
+            "name": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "dob": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            },
+            "birthTime": {
+              "pattern": "^\\d{2}:\\d{2}$",
+              "type": "string"
+            },
+            "campus": {
+              "default": "chiang_rai",
+              "type": "string",
+              "enum": [
+                "chiang_rai",
+                "phitsanulok",
+                "lopburi",
+                "loei",
+                "mukdahan",
+                "buriram",
+                "pathum_thani",
+                "chonburi",
+                "phetchaburi",
+                "nakhon_si_thammarat",
+                "trang",
+                "satun",
+                "lampang",
+                "kamphaeng_phet",
+                "kalasin",
+                "ubon_ratchathani",
+                "suphan_buri",
+                "sa_kaeo"
+              ]
+            },
+            "question": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            },
+            "productSlug": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/fortune/readings",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "order": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/fortune/readings/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/fortune/readings/:id/consent",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "parentConsent"
+          ],
+          "properties": {
+            "parentConsent": {
+              "type": "boolean"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/payments/config",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/payments/charge",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "orderId",
+            "method"
+          ],
+          "properties": {
+            "orderId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "method": {
+              "anyOf": [
+                {
+                  "const": "promptpay",
+                  "type": "string"
+                },
+                {
+                  "const": "card",
+                  "type": "string"
+                }
+              ]
+            },
+            "token": {
+              "minLength": 1,
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/payments/sync",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "orderId"
+          ],
+          "properties": {
+            "orderId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/webhooks/omise",
+      "request": {
+        "body": {
+          "additionalProperties": true,
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "data": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "object": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/settings/exam",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/settings/admin/verify",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/settings/exam",
+      "request": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "examDate": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "examVenueLabel": {
+              "minLength": 1,
+              "maxLength": 40,
+              "type": "string"
+            },
+            "enrollCloseAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "urgentDays": {
+              "minimum": 0,
+              "maximum": 365,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 365,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/profile/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/profile/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "firstName",
+            "lastName",
+            "nickname",
+            "campus"
+          ],
+          "properties": {
+            "firstName": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            },
+            "lastName": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            },
+            "nickname": {
+              "minLength": 1,
+              "maxLength": 40,
+              "type": "string"
+            },
+            "campus": {
+              "default": "chiang_rai",
+              "type": "string",
+              "enum": [
+                "chiang_rai",
+                "phitsanulok",
+                "lopburi",
+                "loei",
+                "mukdahan",
+                "buriram",
+                "pathum_thani",
+                "chonburi",
+                "phetchaburi",
+                "nakhon_si_thammarat",
+                "trang",
+                "satun",
+                "lampang",
+                "kamphaeng_phet",
+                "kalasin",
+                "ubon_ratchathani",
+                "suphan_buri",
+                "sa_kaeo"
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/exam-packs/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/exam-packs/:slug",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "slug"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/attempts/:id/heartbeat",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/attempts/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/attempts/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "packId"
+          ],
+          "properties": {
+            "packId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/attempts/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/attempts/:id/questions",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/attempts/:id/answers/:questionId",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "selectedChoices",
+            "flagged"
+          ],
+          "properties": {
+            "selectedChoices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 4,
+                "type": "string"
+              }
+            },
+            "textAnswer": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "flagged": {
+              "type": "boolean"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id",
+            "questionId"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "questionId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/attempts/:id/submit",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/attempts/:id/review",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/attempts/:id/activity/streams",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "clientId"
+          ],
+          "properties": {
+            "clientId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/attempts/:id/activity/:streamId",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "sequence",
+            "elapsedMs",
+            "activeMs",
+            "offlineMs"
+          ],
+          "properties": {
+            "sequence": {
+              "minimum": 1,
+              "maximum": 10000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 10000,
+                  "type": "integer"
+                }
+              ]
+            },
+            "elapsedMs": {
+              "minimum": 0,
+              "maximum": 86400000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 86400000,
+                  "type": "integer"
+                }
+              ]
+            },
+            "activeMs": {
+              "minimum": 0,
+              "maximum": 86400000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 86400000,
+                  "type": "integer"
+                }
+              ]
+            },
+            "offlineMs": {
+              "minimum": 0,
+              "maximum": 86400000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 86400000,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id",
+            "streamId"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "streamId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/certificates/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/certificates/:id/file",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "maxLength": 4,
+              "type": "string"
+            },
+            "download": {
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/cert/keys",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/cert/:publicId",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "publicId"
+          ],
+          "properties": {
+            "publicId": {
+              "minLength": 8,
+              "maxLength": 40,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/cert/:publicId/verify-name",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "publicId"
+          ],
+          "properties": {
+            "publicId": {
+              "minLength": 8,
+              "maxLength": 40,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/cert/:publicId/mine",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "publicId"
+          ],
+          "properties": {
+            "publicId": {
+              "minLength": 8,
+              "maxLength": 40,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "all": {
+              "anyOf": [
+                {
+                  "const": "0",
+                  "type": "string"
+                },
+                {
+                  "const": "1",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/:id/dismiss",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/articles/",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "q": {
+              "maxLength": 120,
+              "type": "string"
+            },
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "lesson",
+                  "type": "string"
+                },
+                {
+                  "const": "news",
+                  "type": "string"
+                }
+              ]
+            },
+            "level": {
+              "maxLength": 10,
+              "type": "string"
+            },
+            "subject": {
+              "maxLength": 120,
+              "type": "string"
+            },
+            "category": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "from": {
+              "maxLength": 10,
+              "type": "string"
+            },
+            "to": {
+              "maxLength": 10,
+              "type": "string"
+            },
+            "offset": {
+              "minimum": 0,
+              "maximum": 10000,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "type": "number"
+                }
+              ]
+            },
+            "limit": {
+              "minimum": 1,
+              "maximum": 100,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/articles/:slug",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "slug"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/articles/:slug/event",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "view",
+                  "type": "string"
+                },
+                {
+                  "const": "click_in",
+                  "type": "string"
+                },
+                {
+                  "const": "click_out",
+                  "type": "string"
+                }
+              ]
+            },
+            "referrer": {
+              "maxLength": 2000,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "slug"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/articles/:slug/comments",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "offset": {
+              "minimum": 0,
+              "maximum": 10000,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "type": "number"
+                }
+              ]
+            },
+            "limit": {
+              "minimum": 1,
+              "maximum": 100,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "slug"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/articles/:slug/comments",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "minLength": 1,
+              "maxLength": 3000,
+              "type": "string"
+            },
+            "parentId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "slug"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/ranking/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/ranking/:id",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "q": {
+              "maxLength": 150,
+              "type": "string"
+            },
+            "flag": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/ranking/:id/settings",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "policy",
+            "visibility",
+            "publishedFinal",
+            "suspiciousSeconds",
+            "baseVersion",
+            "reason"
+          ],
+          "properties": {
+            "policy": {
+              "anyOf": [
+                {
+                  "const": "best",
+                  "type": "string"
+                },
+                {
+                  "const": "first",
+                  "type": "string"
+                },
+                {
+                  "const": "latest",
+                  "type": "string"
+                }
+              ]
+            },
+            "visibility": {
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "const": "score",
+                    "type": "string"
+                  },
+                  {
+                    "const": "rank",
+                    "type": "string"
+                  },
+                  {
+                    "const": "mean",
+                    "type": "string"
+                  },
+                  {
+                    "const": "sd",
+                    "type": "string"
+                  },
+                  {
+                    "const": "z",
+                    "type": "string"
+                  },
+                  {
+                    "const": "percentile",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "publishedFinal": {
+              "type": "boolean"
+            },
+            "suspiciousSeconds": {
+              "minimum": 0,
+              "maximum": 3600,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 3600,
+                  "type": "integer"
+                }
+              ]
+            },
+            "baseVersion": {
+              "minimum": 0,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              ]
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/ranking/:id/preview",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "changes"
+          ],
+          "properties": {
+            "changes": {
+              "minItems": 1,
+              "maxItems": 5000,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "reason"
+                ],
+                "properties": {
+                  "userId": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "attemptId": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "included": {
+                    "type": "boolean"
+                  },
+                  "clearMetrics": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "const": "score",
+                          "type": "string"
+                        },
+                        {
+                          "const": "rank",
+                          "type": "string"
+                        },
+                        {
+                          "const": "mean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "sd",
+                          "type": "string"
+                        },
+                        {
+                          "const": "z",
+                          "type": "string"
+                        },
+                        {
+                          "const": "percentile",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "metrics": {
+                    "type": "object",
+                    "properties": {
+                      "score": {
+                        "type": "number"
+                      },
+                      "rank": {
+                        "type": "number"
+                      },
+                      "mean": {
+                        "type": "number"
+                      },
+                      "sd": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      },
+                      "percentile": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "reason": {
+                    "minLength": 3,
+                    "maxLength": 500,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/ranking/:id/commit",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "previewId"
+          ],
+          "properties": {
+            "previewId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/ranking/:id/import",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "default": "File",
+              "maxSize": 3145728,
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/ranking/:id/export",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/ranking/:id/versions/:versionId",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id",
+            "versionId"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "versionId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/ranking/:id/rollback",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "versionId",
+            "baseVersion",
+            "reason"
+          ],
+          "properties": {
+            "versionId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "baseVersion": {
+              "minimum": 1,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              ]
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/ranking/:id/activity/:attemptId",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id",
+            "attemptId"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "attemptId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/ranking/:id/time/preview",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "attemptId",
+            "activeSeconds",
+            "reason"
+          ],
+          "properties": {
+            "attemptId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "activeSeconds": {
+              "minimum": 0,
+              "maximum": 86400,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 86400,
+                  "type": "integer"
+                }
+              ]
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/ranking/:id/time",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "previewId"
+          ],
+          "properties": {
+            "previewId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/daily/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "title",
+            "date",
+            "status",
+            "queueOrder",
+            "questions"
+          ],
+          "properties": {
+            "title": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            },
+            "date": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 10,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "const": "draft",
+                  "type": "string"
+                },
+                {
+                  "const": "scheduled",
+                  "type": "string"
+                }
+              ]
+            },
+            "queueOrder": {
+              "minimum": 0,
+              "maximum": 100000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 100000,
+                  "type": "integer"
+                }
+              ]
+            },
+            "questions": {
+              "minItems": 1,
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "type",
+                  "subject",
+                  "topic",
+                  "prompt",
+                  "choices",
+                  "correctChoices",
+                  "acceptedAnswers",
+                  "hint",
+                  "showHint",
+                  "explanation",
+                  "reveal"
+                ],
+                "properties": {
+                  "id": {
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  "type": {
+                    "anyOf": [
+                      {
+                        "const": "single",
+                        "type": "string"
+                      },
+                      {
+                        "const": "multiple",
+                        "type": "string"
+                      },
+                      {
+                        "const": "short",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "subject": {
+                    "anyOf": [
+                      {
+                        "const": "math",
+                        "type": "string"
+                      },
+                      {
+                        "const": "science",
+                        "type": "string"
+                      },
+                      {
+                        "const": "general_aptitude",
+                        "type": "string"
+                      },
+                      {
+                        "const": "thai",
+                        "type": "string"
+                      },
+                      {
+                        "const": "english",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "topic": {
+                    "minLength": 1,
+                    "maxLength": 150,
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "minLength": 1,
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "choices": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "text"
+                      ],
+                      "properties": {
+                        "key": {
+                          "minLength": 1,
+                          "maxLength": 8,
+                          "type": "string"
+                        },
+                        "text": {
+                          "maxLength": 2000,
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "correctChoices": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 8,
+                      "type": "string"
+                    }
+                  },
+                  "acceptedAnswers": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 500,
+                      "type": "string"
+                    }
+                  },
+                  "hint": {
+                    "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "showHint": {
+                    "type": "boolean"
+                  },
+                  "explanation": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "reveal": {
+                    "anyOf": [
+                      {
+                        "const": "finished",
+                        "type": "string"
+                      },
+                      {
+                        "const": "next_day",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/daily/analytics",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "maxLength": 10,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/daily/template",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/import",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "file",
+            "reason"
+          ],
+          "properties": {
+            "file": {
+              "default": "File",
+              "maxSize": 3145728,
+              "type": "string",
+              "format": "binary"
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/import/commit",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "previewId"
+          ],
+          "properties": {
+            "previewId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/outage/preview",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "from",
+            "to",
+            "userIds",
+            "mode",
+            "reason"
+          ],
+          "properties": {
+            "from": {
+              "maxLength": 10,
+              "type": "string"
+            },
+            "to": {
+              "maxLength": 10,
+              "type": "string"
+            },
+            "userIds": {
+              "maxItems": 10000,
+              "type": "array",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "mode": {
+              "anyOf": [
+                {
+                  "const": "protect",
+                  "type": "string"
+                },
+                {
+                  "const": "compensate",
+                  "type": "string"
+                },
+                {
+                  "const": "bulk_recover",
+                  "type": "string"
+                },
+                {
+                  "const": "extend",
+                  "type": "string"
+                }
+              ]
+            },
+            "until": {
+              "maxLength": 40,
+              "type": "string"
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/outage/commit",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "previewId"
+          ],
+          "properties": {
+            "previewId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/:id/preview",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "title",
+            "date",
+            "status",
+            "queueOrder",
+            "questions",
+            "reason",
+            "keepFire",
+            "resetTries"
+          ],
+          "properties": {
+            "title": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            },
+            "date": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 10,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "const": "draft",
+                  "type": "string"
+                },
+                {
+                  "const": "scheduled",
+                  "type": "string"
+                }
+              ]
+            },
+            "queueOrder": {
+              "minimum": 0,
+              "maximum": 100000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 100000,
+                  "type": "integer"
+                }
+              ]
+            },
+            "questions": {
+              "minItems": 1,
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "type",
+                  "subject",
+                  "topic",
+                  "prompt",
+                  "choices",
+                  "correctChoices",
+                  "acceptedAnswers",
+                  "hint",
+                  "showHint",
+                  "explanation",
+                  "reveal"
+                ],
+                "properties": {
+                  "id": {
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  "type": {
+                    "anyOf": [
+                      {
+                        "const": "single",
+                        "type": "string"
+                      },
+                      {
+                        "const": "multiple",
+                        "type": "string"
+                      },
+                      {
+                        "const": "short",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "subject": {
+                    "anyOf": [
+                      {
+                        "const": "math",
+                        "type": "string"
+                      },
+                      {
+                        "const": "science",
+                        "type": "string"
+                      },
+                      {
+                        "const": "general_aptitude",
+                        "type": "string"
+                      },
+                      {
+                        "const": "thai",
+                        "type": "string"
+                      },
+                      {
+                        "const": "english",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "topic": {
+                    "minLength": 1,
+                    "maxLength": 150,
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "minLength": 1,
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "choices": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "text"
+                      ],
+                      "properties": {
+                        "key": {
+                          "minLength": 1,
+                          "maxLength": 8,
+                          "type": "string"
+                        },
+                        "text": {
+                          "maxLength": 2000,
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "correctChoices": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 8,
+                      "type": "string"
+                    }
+                  },
+                  "acceptedAnswers": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 500,
+                      "type": "string"
+                    }
+                  },
+                  "hint": {
+                    "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "showHint": {
+                    "type": "boolean"
+                  },
+                  "explanation": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "reveal": {
+                    "anyOf": [
+                      {
+                        "const": "finished",
+                        "type": "string"
+                      },
+                      {
+                        "const": "next_day",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            },
+            "keepFire": {
+              "type": "boolean"
+            },
+            "resetTries": {
+              "type": "boolean"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/:id/commit",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "previewId"
+          ],
+          "properties": {
+            "previewId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/audit",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "maxLength": 40,
+              "type": "string"
+            },
+            "q": {
+              "maxLength": 100,
+              "type": "string"
+            },
+            "offset": {
+              "minimum": 0,
+              "maximum": 100000,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 100000,
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/errors",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/retention",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/retention/:category",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "days",
+            "baseVersion",
+            "reason"
+          ],
+          "properties": {
+            "days": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "maximum": 3650,
+                  "anyOf": [
+                    {
+                      "format": "integer",
+                      "default": 0,
+                      "type": "string"
+                    },
+                    {
+                      "minimum": 1,
+                      "maximum": 3650,
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "baseVersion": {
+              "minimum": 1,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              ]
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "category"
+          ],
+          "properties": {
+            "category": {
+              "maxLength": 40,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/permissions/templates",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/users/:id/permissions",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "staffRole",
+            "modulePermissions",
+            "reason"
+          ],
+          "properties": {
+            "staffRole": {
+              "anyOf": [
+                {
+                  "const": "owner",
+                  "type": "string"
+                },
+                {
+                  "const": "admin",
+                  "type": "string"
+                },
+                {
+                  "const": "author",
+                  "type": "string"
+                },
+                {
+                  "const": "moderator",
+                  "type": "string"
+                },
+                {
+                  "const": "results_viewer",
+                  "type": "string"
+                },
+                {
+                  "const": "none",
+                  "type": "string"
+                }
+              ]
+            },
+            "modulePermissions": {
+              "additionalProperties": false,
+              "type": "object",
+              "patternProperties": {
+                "^(exam|certificate|ranking|article|comment|daily|audit|users|site)$": {
+                  "uniqueItems": true,
+                  "type": "array",
+                  "items": {
+                    "pattern": "^(read|write|publish|export)$",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/cms/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cms/categories",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "name",
+            "kind",
+            "slug",
+            "parentId",
+            "sortOrder"
+          ],
+          "properties": {
+            "name": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "subject",
+                  "type": "string"
+                },
+                {
+                  "const": "category",
+                  "type": "string"
+                },
+                {
+                  "const": "chapter",
+                  "type": "string"
+                },
+                {
+                  "const": "topic",
+                  "type": "string"
+                }
+              ]
+            },
+            "slug": {
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$",
+              "type": "string"
+            },
+            "parentId": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sortOrder": {
+              "minimum": 0,
+              "maximum": 100000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 100000,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/cms/categories/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "name",
+            "parentId",
+            "sortOrder"
+          ],
+          "properties": {
+            "name": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "parentId": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sortOrder": {
+              "minimum": 0,
+              "maximum": 100000,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 100000,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/cms/categories/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "reason"
+          ],
+          "properties": {
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cms/merge/preview",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "from",
+            "to",
+            "reason"
+          ],
+          "properties": {
+            "from": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "to": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cms/merge/commit",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "previewId"
+          ],
+          "properties": {
+            "previewId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/cms/settings",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "synonyms",
+            "moderationWords",
+            "home"
+          ],
+          "properties": {
+            "synonyms": {
+              "type": "object",
+              "patternProperties": {
+                "^(.*)$": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "maxLength": 120,
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "moderationWords": {
+              "maxItems": 500,
+              "type": "array",
+              "items": {
+                "maxLength": 100,
+                "type": "string"
+              }
+            },
+            "home": {
+              "maxItems": 6,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "enabled",
+                  "articleIds"
+                ],
+                "properties": {
+                  "key": {
+                    "anyOf": [
+                      {
+                        "const": "hero",
+                        "type": "string"
+                      },
+                      {
+                        "const": "news",
+                        "type": "string"
+                      },
+                      {
+                        "const": "lessons",
+                        "type": "string"
+                      },
+                      {
+                        "const": "courses",
+                        "type": "string"
+                      },
+                      {
+                        "const": "exams",
+                        "type": "string"
+                      },
+                      {
+                        "const": "daily",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "articleIds": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "format": "uuid",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/comments/",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "maxLength": 30,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/comments/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "action",
+            "reason"
+          ],
+          "properties": {
+            "action": {
+              "anyOf": [
+                {
+                  "const": "approve",
+                  "type": "string"
+                },
+                {
+                  "const": "reject",
+                  "type": "string"
+                },
+                {
+                  "const": "hide",
+                  "type": "string"
+                },
+                {
+                  "const": "delete",
+                  "type": "string"
+                }
+              ]
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/stats/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/questions/",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "subject": {
+              "anyOf": [
+                {
+                  "const": "math",
+                  "type": "string"
+                },
+                {
+                  "const": "science",
+                  "type": "string"
+                },
+                {
+                  "const": "general_aptitude",
+                  "type": "string"
+                },
+                {
+                  "const": "thai",
+                  "type": "string"
+                },
+                {
+                  "const": "english",
+                  "type": "string"
+                }
+              ]
+            },
+            "topic": {
+              "maxLength": 120,
+              "type": "string"
+            },
+            "q": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "active": {
+              "anyOf": [
+                {
+                  "const": "true",
+                  "type": "string"
+                },
+                {
+                  "const": "false",
+                  "type": "string"
+                }
+              ]
+            },
+            "limit": {
+              "minimum": 1,
+              "maximum": 200,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 200,
+                  "type": "integer"
+                }
+              ]
+            },
+            "offset": {
+              "minimum": 0,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/questions/topics",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/questions/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "subject",
+            "topic",
+            "prompt",
+            "type",
+            "points",
+            "choices",
+            "correctChoices"
+          ],
+          "properties": {
+            "subject": {
+              "default": "math",
+              "type": "string",
+              "enum": [
+                "math",
+                "science",
+                "general_aptitude",
+                "thai",
+                "english"
+              ]
+            },
+            "topic": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "prompt": {
+              "minLength": 1,
+              "maxLength": 4000,
+              "type": "string"
+            },
+            "imageUrls": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "maxLength": 2000,
+                "type": "string"
+              }
+            },
+            "linkUrls": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "maxLength": 2000,
+                "type": "string"
+              }
+            },
+            "type": {
+              "default": "single",
+              "type": "string",
+              "enum": [
+                "single",
+                "multiple",
+                "short"
+              ]
+            },
+            "points": {
+              "minimum": 0,
+              "maximum": 1000,
+              "type": "number"
+            },
+            "scoring": {
+              "default": "exact",
+              "type": "string",
+              "enum": [
+                "exact",
+                "partial"
+              ]
+            },
+            "choices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "text"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "maxLength": 4,
+                    "type": "string"
+                  },
+                  "text": {
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "correctChoices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 4,
+                "type": "string"
+              }
+            },
+            "acceptedAnswers": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 500,
+                "type": "string"
+              }
+            },
+            "explanation": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 4000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "active": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/questions/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "subject",
+            "topic",
+            "prompt",
+            "type",
+            "points",
+            "choices",
+            "correctChoices"
+          ],
+          "properties": {
+            "subject": {
+              "default": "math",
+              "type": "string",
+              "enum": [
+                "math",
+                "science",
+                "general_aptitude",
+                "thai",
+                "english"
+              ]
+            },
+            "topic": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "prompt": {
+              "minLength": 1,
+              "maxLength": 4000,
+              "type": "string"
+            },
+            "imageUrls": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "maxLength": 2000,
+                "type": "string"
+              }
+            },
+            "linkUrls": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "maxLength": 2000,
+                "type": "string"
+              }
+            },
+            "type": {
+              "default": "single",
+              "type": "string",
+              "enum": [
+                "single",
+                "multiple",
+                "short"
+              ]
+            },
+            "points": {
+              "minimum": 0,
+              "maximum": 1000,
+              "type": "number"
+            },
+            "scoring": {
+              "default": "exact",
+              "type": "string",
+              "enum": [
+                "exact",
+                "partial"
+              ]
+            },
+            "choices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "text"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "maxLength": 4,
+                    "type": "string"
+                  },
+                  "text": {
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "correctChoices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 4,
+                "type": "string"
+              }
+            },
+            "acceptedAnswers": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 500,
+                "type": "string"
+              }
+            },
+            "explanation": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 4000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "active": {
+              "type": "boolean"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/questions/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/packs/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/packs/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "slug",
+            "title",
+            "questionCount",
+            "durationSeconds",
+            "maxAttempts",
+            "opensAt",
+            "closesAt",
+            "published",
+            "showReview"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$",
+              "type": "string"
+            },
+            "title": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            },
+            "description": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "questionCount": {
+              "minimum": 1,
+              "maximum": 500,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 500,
+                  "type": "integer"
+                }
+              ]
+            },
+            "durationSeconds": {
+              "minimum": 60,
+              "maximum": 21600,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 60,
+                  "maximum": 21600,
+                  "type": "integer"
+                }
+              ]
+            },
+            "maxAttempts": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "anyOf": [
+                    {
+                      "format": "integer",
+                      "default": 0,
+                      "type": "string"
+                    },
+                    {
+                      "minimum": 1,
+                      "maximum": 100,
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "opensAt": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "closesAt": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "published": {
+              "type": "boolean"
+            },
+            "showReview": {
+              "type": "boolean"
+            },
+            "paperUrl": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "level": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "const": "m1",
+                      "type": "string"
+                    },
+                    {
+                      "const": "m4",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "subjectLabel": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "certificateEnabled": {
+              "type": "boolean"
+            },
+            "certOnAutoSubmit": {
+              "type": "boolean"
+            },
+            "certOnHardCutoff": {
+              "type": "boolean"
+            },
+            "certOnReopen": {
+              "type": "boolean"
+            },
+            "certTemplateId": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/packs/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/packs/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "slug",
+            "title",
+            "questionCount",
+            "durationSeconds",
+            "maxAttempts",
+            "opensAt",
+            "closesAt",
+            "published",
+            "showReview"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$",
+              "type": "string"
+            },
+            "title": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            },
+            "description": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "questionCount": {
+              "minimum": 1,
+              "maximum": 500,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 500,
+                  "type": "integer"
+                }
+              ]
+            },
+            "durationSeconds": {
+              "minimum": 60,
+              "maximum": 21600,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 60,
+                  "maximum": 21600,
+                  "type": "integer"
+                }
+              ]
+            },
+            "maxAttempts": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "anyOf": [
+                    {
+                      "format": "integer",
+                      "default": 0,
+                      "type": "string"
+                    },
+                    {
+                      "minimum": 1,
+                      "maximum": 100,
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "opensAt": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "closesAt": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "published": {
+              "type": "boolean"
+            },
+            "showReview": {
+              "type": "boolean"
+            },
+            "paperUrl": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "level": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "const": "m1",
+                      "type": "string"
+                    },
+                    {
+                      "const": "m4",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "subjectLabel": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "certificateEnabled": {
+              "type": "boolean"
+            },
+            "certOnAutoSubmit": {
+              "type": "boolean"
+            },
+            "certOnHardCutoff": {
+              "type": "boolean"
+            },
+            "certOnReopen": {
+              "type": "boolean"
+            },
+            "certTemplateId": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/packs/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/packs/:id/questions",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/packs/:id/questions",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "items"
+          ],
+          "properties": {
+            "items": {
+              "maxItems": 500,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "questionId"
+                ],
+                "properties": {
+                  "questionId": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "section": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/packs/:id/attempts",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/attempts/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/packs/:id/reset",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "userId"
+          ],
+          "properties": {
+            "userId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/packs/:id/regrade",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "apply"
+          ],
+          "properties": {
+            "apply": {
+              "type": "boolean"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/packs/:id/export",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "anyOf": [
+                {
+                  "const": "summary",
+                  "type": "string"
+                },
+                {
+                  "const": "wide",
+                  "type": "string"
+                },
+                {
+                  "const": "long",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/products/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/products/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "slug",
+            "kind",
+            "title",
+            "description",
+            "priceSatang",
+            "active",
+            "badge",
+            "unit",
+            "ctaLabel",
+            "features",
+            "featured",
+            "sortOrder"
+          ],
+          "properties": {
+            "slug": {
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$",
+              "type": "string"
+            },
+            "kind": {
+              "default": "course",
+              "type": "string",
+              "enum": [
+                "course",
+                "exam_pack",
+                "bundle",
+                "fortune"
+              ]
+            },
+            "title": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "priceSatang": {
+              "minimum": 2000,
+              "maximum": 100000000,
+              "multipleOf": 100,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 2000,
+                  "maximum": 100000000,
+                  "multipleOf": 100,
+                  "type": "integer"
+                }
+              ]
+            },
+            "active": {
+              "type": "boolean"
+            },
+            "badge": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "unit": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ctaLabel": {
+              "anyOf": [
+                {
+                  "maxLength": 60,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "features": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "maxLength": 200,
+                "type": "string"
+              }
+            },
+            "featured": {
+              "type": "boolean"
+            },
+            "sortOrder": {
+              "minimum": 0,
+              "maximum": 9999,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 9999,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/products/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "title",
+            "description",
+            "priceSatang",
+            "active",
+            "badge",
+            "unit",
+            "ctaLabel",
+            "features",
+            "featured",
+            "sortOrder"
+          ],
+          "properties": {
+            "title": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "priceSatang": {
+              "minimum": 2000,
+              "maximum": 100000000,
+              "multipleOf": 100,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 2000,
+                  "maximum": 100000000,
+                  "multipleOf": 100,
+                  "type": "integer"
+                }
+              ]
+            },
+            "active": {
+              "type": "boolean"
+            },
+            "badge": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "unit": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ctaLabel": {
+              "anyOf": [
+                {
+                  "maxLength": 60,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "features": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "maxLength": 200,
+                "type": "string"
+              }
+            },
+            "featured": {
+              "type": "boolean"
+            },
+            "sortOrder": {
+              "minimum": 0,
+              "maximum": 9999,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 9999,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/products/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/articles/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/articles/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/articles/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "title",
+            "excerpt",
+            "coverUrl",
+            "blocks"
+          ],
+          "properties": {
+            "title": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            },
+            "excerpt": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 400,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "coverUrl": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "blocks": {},
+            "published": {
+              "type": "boolean"
+            },
+            "slug": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "pattern": "^[a-z0-9-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "lesson",
+                  "type": "string"
+                },
+                {
+                  "const": "news",
+                  "type": "string"
+                }
+              ]
+            },
+            "levels": {
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "const": "m1",
+                    "type": "string"
+                  },
+                  {
+                    "const": "m4",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "subjects": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "maxLength": 120,
+                "type": "string"
+              }
+            },
+            "categoryIds": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "tags": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "maxLength": 60,
+                "type": "string"
+              }
+            },
+            "sourceUrl": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sourceCredit": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sourceDate": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 10,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "deadline": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "viewMode": {
+              "anyOf": [
+                {
+                  "const": "none",
+                  "type": "string"
+                },
+                {
+                  "const": "views",
+                  "type": "string"
+                },
+                {
+                  "const": "popular",
+                  "type": "string"
+                }
+              ]
+            },
+            "baseRevision": {
+              "minimum": 0,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/articles/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "title",
+            "excerpt",
+            "coverUrl",
+            "blocks"
+          ],
+          "properties": {
+            "title": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            },
+            "excerpt": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 400,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "coverUrl": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "blocks": {},
+            "published": {
+              "type": "boolean"
+            },
+            "slug": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "pattern": "^[a-z0-9-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "lesson",
+                  "type": "string"
+                },
+                {
+                  "const": "news",
+                  "type": "string"
+                }
+              ]
+            },
+            "levels": {
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "const": "m1",
+                    "type": "string"
+                  },
+                  {
+                    "const": "m4",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "subjects": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "maxLength": 120,
+                "type": "string"
+              }
+            },
+            "categoryIds": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "tags": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "maxLength": 60,
+                "type": "string"
+              }
+            },
+            "sourceUrl": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sourceCredit": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sourceDate": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 10,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "deadline": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "viewMode": {
+              "anyOf": [
+                {
+                  "const": "none",
+                  "type": "string"
+                },
+                {
+                  "const": "views",
+                  "type": "string"
+                },
+                {
+                  "const": "popular",
+                  "type": "string"
+                }
+              ]
+            },
+            "baseRevision": {
+              "minimum": 0,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/articles/:id/workflow",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "action",
+            "baseRevision"
+          ],
+          "properties": {
+            "action": {
+              "anyOf": [
+                {
+                  "const": "submit",
+                  "type": "string"
+                },
+                {
+                  "const": "approve",
+                  "type": "string"
+                },
+                {
+                  "const": "schedule",
+                  "type": "string"
+                },
+                {
+                  "const": "publish",
+                  "type": "string"
+                },
+                {
+                  "const": "archive",
+                  "type": "string"
+                },
+                {
+                  "const": "delete",
+                  "type": "string"
+                },
+                {
+                  "const": "restore",
+                  "type": "string"
+                }
+              ]
+            },
+            "baseRevision": {
+              "minimum": 0,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              ]
+            },
+            "scheduledAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/articles/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/certificates/",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "packId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "const": "queued",
+                  "type": "string"
+                },
+                {
+                  "const": "valid",
+                  "type": "string"
+                },
+                {
+                  "const": "render_failed",
+                  "type": "string"
+                },
+                {
+                  "const": "revoked",
+                  "type": "string"
+                },
+                {
+                  "const": "previous_valid",
+                  "type": "string"
+                },
+                {
+                  "const": "superseded",
+                  "type": "string"
+                }
+              ]
+            },
+            "q": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/certificates/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/certificates/:id/revoke",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "reason"
+          ],
+          "properties": {
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/certificates/:id/reissue",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "reason"
+          ],
+          "properties": {
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/certificates/:id/retry",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/certificates/packs/list",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/certificates/packs/:id/settings",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "level",
+            "subjectLabel",
+            "certificateEnabled",
+            "certOnAutoSubmit",
+            "certOnHardCutoff",
+            "certOnReopen",
+            "certTemplateId"
+          ],
+          "properties": {
+            "level": {
+              "anyOf": [
+                {
+                  "const": "m1",
+                  "type": "string"
+                },
+                {
+                  "const": "m4",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "subjectLabel": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "certificateEnabled": {
+              "type": "boolean"
+            },
+            "certOnAutoSubmit": {
+              "type": "boolean"
+            },
+            "certOnHardCutoff": {
+              "type": "boolean"
+            },
+            "certOnReopen": {
+              "type": "boolean"
+            },
+            "certTemplateId": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/certificates/packs/:id/issue",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/certificates/packs/:id/impact",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/certificates/packs/:id/reissue",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "oldPolicy",
+            "reason"
+          ],
+          "properties": {
+            "oldPolicy": {
+              "anyOf": [
+                {
+                  "const": "previous_valid",
+                  "type": "string"
+                },
+                {
+                  "const": "superseded",
+                  "type": "string"
+                }
+              ]
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/certificates/keys/list",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/certificates/keys/rotate",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "reason"
+          ],
+          "properties": {
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/cert-templates/",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/cert-templates/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cert-templates/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "fromId": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/cert-templates/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "name",
+            "layout"
+          ],
+          "properties": {
+            "name": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "layout": {
+              "type": "object",
+              "required": [
+                "paper",
+                "background",
+                "decor",
+                "elements"
+              ],
+              "properties": {
+                "paper": {
+                  "anyOf": [
+                    {
+                      "const": "a4-landscape",
+                      "type": "string"
+                    },
+                    {
+                      "const": "a4-portrait",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "background": {
+                  "anyOf": [
+                    {
+                      "maxLength": 200,
+                      "pattern": "^/api/uploads/[a-f0-9]{32}\\.(png|jpg|webp|gif)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "backgroundFit": {
+                  "type": "object",
+                  "required": [
+                    "zoom",
+                    "offsetX",
+                    "offsetY"
+                  ],
+                  "properties": {
+                    "zoom": {
+                      "minimum": 1,
+                      "maximum": 4,
+                      "type": "number"
+                    },
+                    "offsetX": {
+                      "minimum": -1,
+                      "maximum": 1,
+                      "type": "number"
+                    },
+                    "offsetY": {
+                      "minimum": -1,
+                      "maximum": 1,
+                      "type": "number"
+                    }
+                  }
+                },
+                "decor": {
+                  "anyOf": [
+                    {
+                      "const": "standard",
+                      "type": "string"
+                    },
+                    {
+                      "const": "none",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "elements": {
+                  "maxItems": 60,
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "text",
+                          "x",
+                          "y",
+                          "w",
+                          "size",
+                          "weight",
+                          "font",
+                          "color",
+                          "align"
+                        ],
+                        "properties": {
+                          "id": {
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          "type": {
+                            "const": "text",
+                            "type": "string"
+                          },
+                          "text": {
+                            "maxLength": 1000,
+                            "type": "string"
+                          },
+                          "x": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "y": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "w": {
+                            "minimum": 0.02,
+                            "maximum": 1,
+                            "type": "number"
+                          },
+                          "size": {
+                            "minimum": 8,
+                            "maximum": 400,
+                            "type": "number"
+                          },
+                          "weight": {
+                            "anyOf": [
+                              {
+                                "const": 400,
+                                "type": "number"
+                              },
+                              {
+                                "const": 500,
+                                "type": "number"
+                              },
+                              {
+                                "const": 600,
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "font": {
+                            "anyOf": [
+                              {
+                                "const": "display",
+                                "type": "string"
+                              },
+                              {
+                                "const": "body",
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          "color": {
+                            "pattern": "^#[0-9a-fA-F]{6}$",
+                            "type": "string"
+                          },
+                          "align": {
+                            "anyOf": [
+                              {
+                                "const": "left",
+                                "type": "string"
+                              },
+                              {
+                                "const": "center",
+                                "type": "string"
+                              },
+                              {
+                                "const": "right",
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          "fit": {
+                            "type": "boolean"
+                          },
+                          "lineHeight": {
+                            "minimum": 1.6,
+                            "maximum": 3,
+                            "type": "number"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "url",
+                          "x",
+                          "y",
+                          "w",
+                          "h"
+                        ],
+                        "properties": {
+                          "id": {
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          "type": {
+                            "const": "image",
+                            "type": "string"
+                          },
+                          "url": {
+                            "maxLength": 200,
+                            "pattern": "^/api/uploads/[a-f0-9]{32}\\.(png|jpg|webp|gif)$",
+                            "type": "string"
+                          },
+                          "x": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "y": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "w": {
+                            "minimum": 0.01,
+                            "maximum": 1,
+                            "type": "number"
+                          },
+                          "h": {
+                            "minimum": 0.01,
+                            "maximum": 1,
+                            "type": "number"
+                          },
+                          "crop": {
+                            "type": "object",
+                            "required": [
+                              "zoom",
+                              "offsetX",
+                              "offsetY"
+                            ],
+                            "properties": {
+                              "zoom": {
+                                "minimum": 1,
+                                "maximum": 4,
+                                "type": "number"
+                              },
+                              "offsetX": {
+                                "minimum": -1,
+                                "maximum": 1,
+                                "type": "number"
+                              },
+                              "offsetY": {
+                                "minimum": -1,
+                                "maximum": 1,
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "x",
+                          "y",
+                          "size"
+                        ],
+                        "properties": {
+                          "id": {
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          "type": {
+                            "const": "qr",
+                            "type": "string"
+                          },
+                          "x": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "y": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "size": {
+                            "minimum": 0.05,
+                            "maximum": 0.4,
+                            "type": "number"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cert-templates/:id/publish",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/cert-templates/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cert-templates/preview",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "layout"
+          ],
+          "properties": {
+            "layout": {
+              "type": "object",
+              "required": [
+                "paper",
+                "background",
+                "decor",
+                "elements"
+              ],
+              "properties": {
+                "paper": {
+                  "anyOf": [
+                    {
+                      "const": "a4-landscape",
+                      "type": "string"
+                    },
+                    {
+                      "const": "a4-portrait",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "background": {
+                  "anyOf": [
+                    {
+                      "maxLength": 200,
+                      "pattern": "^/api/uploads/[a-f0-9]{32}\\.(png|jpg|webp|gif)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "backgroundFit": {
+                  "type": "object",
+                  "required": [
+                    "zoom",
+                    "offsetX",
+                    "offsetY"
+                  ],
+                  "properties": {
+                    "zoom": {
+                      "minimum": 1,
+                      "maximum": 4,
+                      "type": "number"
+                    },
+                    "offsetX": {
+                      "minimum": -1,
+                      "maximum": 1,
+                      "type": "number"
+                    },
+                    "offsetY": {
+                      "minimum": -1,
+                      "maximum": 1,
+                      "type": "number"
+                    }
+                  }
+                },
+                "decor": {
+                  "anyOf": [
+                    {
+                      "const": "standard",
+                      "type": "string"
+                    },
+                    {
+                      "const": "none",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "elements": {
+                  "maxItems": 60,
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "text",
+                          "x",
+                          "y",
+                          "w",
+                          "size",
+                          "weight",
+                          "font",
+                          "color",
+                          "align"
+                        ],
+                        "properties": {
+                          "id": {
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          "type": {
+                            "const": "text",
+                            "type": "string"
+                          },
+                          "text": {
+                            "maxLength": 1000,
+                            "type": "string"
+                          },
+                          "x": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "y": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "w": {
+                            "minimum": 0.02,
+                            "maximum": 1,
+                            "type": "number"
+                          },
+                          "size": {
+                            "minimum": 8,
+                            "maximum": 400,
+                            "type": "number"
+                          },
+                          "weight": {
+                            "anyOf": [
+                              {
+                                "const": 400,
+                                "type": "number"
+                              },
+                              {
+                                "const": 500,
+                                "type": "number"
+                              },
+                              {
+                                "const": 600,
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "font": {
+                            "anyOf": [
+                              {
+                                "const": "display",
+                                "type": "string"
+                              },
+                              {
+                                "const": "body",
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          "color": {
+                            "pattern": "^#[0-9a-fA-F]{6}$",
+                            "type": "string"
+                          },
+                          "align": {
+                            "anyOf": [
+                              {
+                                "const": "left",
+                                "type": "string"
+                              },
+                              {
+                                "const": "center",
+                                "type": "string"
+                              },
+                              {
+                                "const": "right",
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          "fit": {
+                            "type": "boolean"
+                          },
+                          "lineHeight": {
+                            "minimum": 1.6,
+                            "maximum": 3,
+                            "type": "number"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "url",
+                          "x",
+                          "y",
+                          "w",
+                          "h"
+                        ],
+                        "properties": {
+                          "id": {
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          "type": {
+                            "const": "image",
+                            "type": "string"
+                          },
+                          "url": {
+                            "maxLength": 200,
+                            "pattern": "^/api/uploads/[a-f0-9]{32}\\.(png|jpg|webp|gif)$",
+                            "type": "string"
+                          },
+                          "x": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "y": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "w": {
+                            "minimum": 0.01,
+                            "maximum": 1,
+                            "type": "number"
+                          },
+                          "h": {
+                            "minimum": 0.01,
+                            "maximum": 1,
+                            "type": "number"
+                          },
+                          "crop": {
+                            "type": "object",
+                            "required": [
+                              "zoom",
+                              "offsetX",
+                              "offsetY"
+                            ],
+                            "properties": {
+                              "zoom": {
+                                "minimum": 1,
+                                "maximum": 4,
+                                "type": "number"
+                              },
+                              "offsetX": {
+                                "minimum": -1,
+                                "maximum": 1,
+                                "type": "number"
+                              },
+                              "offsetY": {
+                                "minimum": -1,
+                                "maximum": 1,
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "x",
+                          "y",
+                          "size"
+                        ],
+                        "properties": {
+                          "id": {
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          "type": {
+                            "const": "qr",
+                            "type": "string"
+                          },
+                          "x": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "y": {
+                            "minimum": -0.5,
+                            "maximum": 1.5,
+                            "type": "number"
+                          },
+                          "size": {
+                            "minimum": 0.05,
+                            "maximum": 0.4,
+                            "type": "number"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "longEnglishName": {
+              "type": "boolean"
+            },
+            "format": {
+              "anyOf": [
+                {
+                  "const": "png",
+                  "type": "string"
+                },
+                {
+                  "const": "pdf",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "q": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/users/:id",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "role"
+          ],
+          "properties": {
+            "role": {
+              "anyOf": [
+                {
+                  "const": "admin",
+                  "type": "string"
+                },
+                {
+                  "const": "dev",
+                  "type": "string"
+                },
+                {
+                  "const": "test",
+                  "type": "string"
+                },
+                {
+                  "const": "student",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/uploads/:name",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/site/assets",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/site/texts",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/site/assets",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/site/assets/:key",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "imageUrl"
+          ],
+          "properties": {
+            "imageUrl": {
+              "minLength": 1,
+              "maxLength": 2000,
+              "type": "string"
+            },
+            "alt": {
+              "maxLength": 300,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "key"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/site/assets/:key",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "key"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/site/texts",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/site/texts/:key",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "maxLength": 20000,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "key"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/site/texts/:key",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "key"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/uploads/",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "default": "File",
+              "maxSize": 5242880,
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      },
+      "response": null
+    }
+  ]
+}

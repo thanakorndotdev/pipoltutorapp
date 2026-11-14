@@ -1,4 +1,5 @@
 "use client";
+import { HeaderFire } from "./fire-card";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,10 +15,18 @@ export function BrandMark({ onDark = false }: { onDark?: boolean }) {
   const logo = useSiteAsset("logo");
   const { t } = useCopy();
   return (
-    <Link href="/" className="flex items-center gap-[11px]" aria-label="pipoltutor หน้าแรก">
+    <Link
+      href="/"
+      className="flex items-center gap-[11px]"
+      aria-label="pipoltutor หน้าแรก"
+    >
       {logo ? (
         // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded logo
-        <img src={logo.imageUrl} alt={logo.alt} className="size-[42px] shrink-0 rounded-[13px] object-contain" />
+        <img
+          src={logo.imageUrl}
+          alt={logo.alt}
+          className="size-[42px] shrink-0 rounded-[13px] object-contain"
+        />
       ) : (
         <span
           className={`flex size-[42px] shrink-0 items-center justify-center rounded-[13px] font-display text-[15px] font-medium ${
@@ -28,10 +37,14 @@ export function BrandMark({ onDark = false }: { onDark?: boolean }) {
         </span>
       )}
       <span className="flex flex-col">
-        <span className={`font-display text-[16px] leading-[1.28] ${onDark ? "text-white" : "text-ink"}`}>
+        <span
+          className={`font-display text-[16px] leading-[1.28] ${onDark ? "text-white" : "text-ink"}`}
+        >
           pipoltutor
         </span>
-        <span className={`text-[12.5px] leading-[1.4] ${onDark ? "text-on-grad-soft" : "text-ink3"}`}>
+        <span
+          className={`text-[12.5px] leading-[1.4] ${onDark ? "text-on-grad-soft" : "text-ink3"}`}
+        >
           {t("brand.tagline", "ติวเข้า ม.1 จภ.")}
         </span>
       </span>
@@ -41,10 +54,26 @@ export function BrandMark({ onDark = false }: { onDark?: boolean }) {
 
 /** Signed-in destinations, in the order a student reaches for them. */
 const USER_MENU = [
-  { href: "/dashboard", icon: "grid_view", label: "เมนูหลัก", sub: "ความคืบหน้าและทางลัดทั้งหมด" },
-  { href: "/exam", icon: "quiz", label: "คลังข้อสอบ", sub: "ชุดข้อสอบเสมือนจริง" },
-  { href: "/courses/full-course", icon: "play_lesson", label: "คอร์สของฉัน", sub: "คลิปย้อนหลังและเอกสาร" },
-  { href: "/exam/result", icon: "insights", label: "ผลคะแนน", sub: "สรุปรายบทและจุดอ่อน" },
+  {
+    href: "/dashboard",
+    icon: "grid_view",
+    label: "Dashboard ของฉัน",
+    sub: "ความคืบหน้าและทางลัดทั้งหมด",
+  },
+  { href: "/profile", icon: "person", label: "โปรไฟล์", sub: "แก้ไขข้อมูลของฉัน" },
+  {
+    href: "/dashboard#history",
+    icon: "history",
+    label: "ประวัติข้อสอบ",
+    sub: "คะแนนและอันดับของฉัน",
+  },
+  {
+    href: "/dashboard#certificates",
+    icon: "workspace_premium",
+    label: "เกียรติบัตร",
+    sub: "ดาวน์โหลดและตรวจสอบ",
+  },
+  { href: "/daily", icon: "quiz", label: "โจทย์วันนี้", sub: "เพิ่มและรักษาไฟ" },
 ] as const;
 
 /**
@@ -58,15 +87,20 @@ export function SiteHeader({ current }: { current: NavId; app?: boolean }) {
   const { t } = useCopy();
   const user = useSessionUser();
   const tutor = t("brand.tutor_name", TUTOR_NAME);
-  const nav = NAV.map((item) => (item.id === "about" ? { ...item, label: `รู้จัก${tutor}` } : item));
+  const nav = NAV.map((item) =>
+    item.id === "about" ? { ...item, label: `รู้จัก${tutor}` } : item,
+  );
   const currentLabel = nav.find((i) => i.id === current)?.label ?? "";
 
   return (
     <header className="w-full bg-card px-5 md:px-10 lg:px-[72px]">
-      <div className="mx-auto flex w-full max-w-[1296px] items-center justify-between gap-5 py-3.5 md:grid md:grid-cols-[1fr_auto_1fr]">
+      <div className="mx-auto flex w-full max-w-[1296px] items-center justify-between gap-5 py-3.5 xl:grid xl:grid-cols-[1fr_auto_1fr]">
         <BrandMark />
 
-        <nav aria-label="เมนูหลัก" className="hidden items-center gap-4 md:flex lg:gap-6">
+        <nav
+          aria-label="เมนูหลัก"
+          className="hidden items-center gap-4 xl:flex lg:gap-6"
+        >
           {nav.map((item) => {
             const on = item.id === current;
             return (
@@ -75,25 +109,35 @@ export function SiteHeader({ current }: { current: NavId; app?: boolean }) {
                 href={item.href}
                 aria-current={on ? "page" : undefined}
                 className={`flex flex-col items-center gap-1.5 whitespace-nowrap text-[13.5px] transition-colors lg:text-[15.5px] ${
-                  on ? "font-display font-medium text-brand" : "text-ink2 hover:text-ink"
+                  on
+                    ? "font-display font-medium text-brand"
+                    : "text-ink2 hover:text-ink"
                 }`}
               >
                 {item.label}
-                <span className={`h-0.5 w-full min-w-6 rounded-full ${on ? "bg-accent" : "bg-transparent"}`} />
+                <span
+                  className={`h-0.5 w-full min-w-6 rounded-full ${on ? "bg-accent" : "bg-transparent"}`}
+                />
               </Link>
             );
           })}
         </nav>
 
-        <div className="hidden items-center gap-2.5 md:flex md:justify-end">
+        <div className="hidden items-center gap-2.5 xl:flex xl:justify-end">
           <ThemeToggle />
-          {user ? <UserMenu user={user} /> : <Button href="/login" icon="login" size="sm">เข้าสู่ระบบ</Button>}
+          {user ? (
+            <UserMenu user={user} />
+          ) : (
+            <Button href="/login" icon="login" size="sm">
+              เข้าสู่ระบบ
+            </Button>
+          )}
         </div>
 
         {/* phone: current label + burger */}
-        <div className="flex items-center gap-2.5 md:hidden">
+        <div className="flex items-center gap-2.5 xl:hidden">
           <ThemeToggle />
-          <span className="rounded-full bg-brand-50 px-3.5 py-[7px] font-display text-[14px] font-medium text-brand">
+          <span className="hidden whitespace-nowrap rounded-full bg-brand-50 px-3.5 py-[7px] font-display text-[14px] font-medium text-brand min-[430px]:inline">
             {currentLabel}
           </span>
           <button
@@ -109,7 +153,11 @@ export function SiteHeader({ current }: { current: NavId; app?: boolean }) {
         </div>
       </div>
 
-      <div id="mobile-nav" hidden={!open} className="mx-auto w-full max-w-[1296px] border-t border-border pb-4 md:hidden">
+      <div
+        id="mobile-nav"
+        hidden={!open}
+        className="mx-auto w-full max-w-[1296px] border-t border-border pb-4 xl:hidden"
+      >
         <nav aria-label="เมนูหลัก (มือถือ)" className="flex flex-col py-2">
           {nav.map((item) => (
             <Link
@@ -117,7 +165,9 @@ export function SiteHeader({ current }: { current: NavId; app?: boolean }) {
               href={item.href}
               onClick={() => setOpen(false)}
               className={`min-h-[44px] py-2.5 text-[16px] ${
-                item.id === current ? "font-display font-medium text-brand" : "text-ink2"
+                item.id === current
+                  ? "font-display font-medium text-brand"
+                  : "text-ink2"
               }`}
             >
               {item.label}
@@ -127,7 +177,9 @@ export function SiteHeader({ current }: { current: NavId; app?: boolean }) {
         {user ? (
           <MobileAccount user={user} onNavigate={() => setOpen(false)} />
         ) : (
-          <Button href="/login" icon="login" className="w-full">เข้าสู่ระบบ</Button>
+          <Button href="/login" icon="login" className="w-full">
+            เข้าสู่ระบบ
+          </Button>
         )}
       </div>
     </header>
@@ -138,9 +190,16 @@ function Avatar({ user, size }: { user: SessionUser; size: 34 | 44 }) {
   const cls = `shrink-0 rounded-full ${size === 44 ? "size-11" : "size-[34px]"}`;
   return user.avatarUrl ? (
     // eslint-disable-next-line @next/next/no-img-element -- Google profile photo
-    <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className={`${cls} object-cover`} />
+    <img
+      src={user.avatarUrl}
+      alt=""
+      referrerPolicy="no-referrer"
+      className={`${cls} object-cover`}
+    />
   ) : (
-    <span className={`${cls} flex items-center justify-center bg-brand-100 text-brand`}>
+    <span
+      className={`${cls} flex items-center justify-center bg-brand-100 text-brand`}
+    >
       <Icon name="person" size={size === 44 ? 24 : 19} fill />
     </span>
   );
@@ -197,12 +256,21 @@ function UserMenu({ user }: { user: SessionUser }) {
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
         className={`flex min-h-[46px] items-center gap-2.5 rounded-full border py-1 pl-1 pr-2.5 transition-colors ${
-          open ? "border-brand/40 bg-brand-50" : "border-border bg-page hover:border-border-strong"
+          open
+            ? "border-brand/40 bg-brand-50"
+            : "border-border bg-page hover:border-border-strong"
         }`}
       >
         <Avatar user={user} size={34} />
-        <span className="hidden max-w-[160px] truncate font-display text-[14px] font-medium leading-[1.3] lg:block">{name}</span>
-        <Icon name="expand_more" size={20} className={`text-ink3 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <span className="hidden max-w-[160px] truncate font-display text-[14px] font-medium leading-[1.3] lg:block">
+          {name}
+        </span>
+        <HeaderFire />
+        <Icon
+          name="expand_more"
+          size={20}
+          className={`text-ink3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       <div
@@ -215,8 +283,13 @@ function UserMenu({ user }: { user: SessionUser }) {
         <div className="flex items-center gap-3 px-4 pb-3.5 pt-4">
           <Avatar user={user} size={44} />
           <div className="flex min-w-0 flex-col">
-            <span className="truncate font-display text-[15px] font-medium leading-[1.3] text-ink">{name}</span>
-            <span className="truncate text-[12.5px] leading-[1.5] text-ink3">{user.email}</span>
+            <HeaderFire />
+            <span className="truncate font-display text-[15px] font-medium leading-[1.3] text-ink">
+              {name}
+            </span>
+            <span className="truncate text-[12.5px] leading-[1.5] text-ink3">
+              {user.email}
+            </span>
           </div>
         </div>
         <div className="mx-4 h-px bg-border" />
@@ -233,8 +306,12 @@ function UserMenu({ user }: { user: SessionUser }) {
                   <Icon name={m.icon} size={20} fill />
                 </span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="font-display text-[14.5px] font-medium leading-[1.3] text-ink">{m.label}</span>
-                  <span className="truncate text-[12.5px] leading-[1.5] text-ink3">{m.sub}</span>
+                  <span className="font-display text-[14.5px] font-medium leading-[1.3] text-ink">
+                    {m.label}
+                  </span>
+                  <span className="truncate text-[12.5px] leading-[1.5] text-ink3">
+                    {m.sub}
+                  </span>
                 </span>
               </Link>
             </li>
@@ -252,7 +329,9 @@ function UserMenu({ user }: { user: SessionUser }) {
             <span className="flex size-9 shrink-0 items-center justify-center rounded-[11px] bg-page text-red">
               <Icon name="logout" size={20} />
             </span>
-            <span className="font-display text-[14.5px] font-medium leading-[1.3] text-red">{busy ? "กำลังออก…" : "ออกจากระบบ"}</span>
+            <span className="font-display text-[14.5px] font-medium leading-[1.3] text-red">
+              {busy ? "กำลังออก…" : "ออกจากระบบ"}
+            </span>
           </button>
         </div>
       </div>
@@ -261,7 +340,13 @@ function UserMenu({ user }: { user: SessionUser }) {
 }
 
 /** Phone: the same destinations laid flat inside the burger panel. */
-function MobileAccount({ user, onNavigate }: { user: SessionUser; onNavigate: () => void }) {
+function MobileAccount({
+  user,
+  onNavigate,
+}: {
+  user: SessionUser;
+  onNavigate: () => void;
+}) {
   const { busy, signOut } = useSignOut();
   const name = user.displayName?.trim() || user.email;
   return (
@@ -269,8 +354,13 @@ function MobileAccount({ user, onNavigate }: { user: SessionUser; onNavigate: ()
       <div className="flex items-center gap-3 px-1.5 pb-1 pt-1.5">
         <Avatar user={user} size={44} />
         <div className="flex min-w-0 flex-col">
-          <span className="truncate font-display text-[15px] font-medium leading-[1.3] text-ink">{name}</span>
-          <span className="truncate text-[12.5px] leading-[1.5] text-ink3">{user.email}</span>
+          <HeaderFire />
+          <span className="truncate font-display text-[15px] font-medium leading-[1.3] text-ink">
+            {name}
+          </span>
+          <span className="truncate text-[12.5px] leading-[1.5] text-ink3">
+            {user.email}
+          </span>
         </div>
       </div>
       <ul className="grid grid-cols-2 gap-2">
@@ -282,7 +372,9 @@ function MobileAccount({ user, onNavigate }: { user: SessionUser; onNavigate: ()
               className="flex min-h-[48px] items-center gap-2.5 rounded-[14px] bg-card px-3 py-2.5 shadow-s"
             >
               <Icon name={m.icon} size={20} fill className="text-brand" />
-              <span className="font-display text-[14.5px] font-medium leading-[1.3] text-ink">{m.label}</span>
+              <span className="font-display text-[14.5px] font-medium leading-[1.3] text-ink">
+                {m.label}
+              </span>
             </Link>
           </li>
         ))}

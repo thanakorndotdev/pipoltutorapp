@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-14T13:48:58.770Z",
+  "source": "original signed certificate PDF from isolated API test",
+  "renderer": "PyMuPDF",
+  "results": [
+    {
+      "scale": 2,
+      "width": 1684,
+      "height": 1191,
+      "decoded": true
+    },
+    {
+      "scale": 1,
+      "width": 842,
+      "height": 596,
+      "decoded": true
+    }
+  ],
+  "limits": [
+    "Automated raster decoding; physical paper and camera remain a human acceptance check"
+  ]
+}

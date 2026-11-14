@@ -1,0 +1,1 @@
+ALTER TABLE "fire_daily_ledger" ADD COLUMN "previous_current" integer;

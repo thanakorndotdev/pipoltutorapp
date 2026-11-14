@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-14T13:49:02.291Z",
+  "passed": 14,
+  "checks": [
+    "admin endpoints require authentication",
+    "creating a pack rejects unpublished certificate templates",
+    "draft save records audit data and publishes a version with line spacing",
+    "PNG/PDF previews render both paper orientations and long Thai/English names; invalid spacing is rejected",
+    "pack create/update preserves every certificate setting",
+    "AC-08: first render fails, automatic retry succeeds with the same certificate and job; concurrent issue does not duplicate",
+    "AC-05 original PDF QR decodes at 144dpi and 72dpi after actual page rasterization",
+    "AC-03/05 QR decodes original PNG and half-size share image; tampered printed name does not match",
+    "owner-only downloads are stable; public verification hides personal data; tampering fails and key rotation preserves old verification",
+    "name changes revoke the old certificate and render a new revision with a new public ID",
+    "AC-09 template reissue honours previous-valid and superseded policies",
+    "AC-07 multiple attempts list separately and best score is the default certificate",
+    "AC-10 automatic submit issuance follows per-pack eligibility",
+    "CERT-15 both keep and revoke deletion consent paths preserve referential integrity"
+  ]
+}

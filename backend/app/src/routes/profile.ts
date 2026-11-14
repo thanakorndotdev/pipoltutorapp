@@ -1,3 +1,6 @@
+import { audit } from "../audit";
+import { reissueForRename } from "../certificates/issue";
+import { kickCertificateWorker } from "../certificates/worker";
 import { Elysia, t } from "elysia";
 import { eq } from "drizzle-orm";
 
@@ -52,7 +55,16 @@ export const profileRoutes = new Elysia({ prefix: "/profile" })
         set.status = 404;
         return { error: "ไม่พบผู้ใช้" };
       }
-      return { profile: { ...row, complete: profileComplete(row) } };
+      // CERT-05: a new name revokes every certificate printed with the old one and queues replacements.
+      let certificatesReissued = 0;
+      if (patch.firstName !== (user.firstName ?? "") || patch.lastName !== (user.lastName ?? "")) {
+        certificatesReissued = await reissueForRename(user.id);
+        if (certificatesReissued > 0) {
+          await audit({ id: user.id, kind: "user" }, { action: "certificate.reissue_rename", module: "certificate", targetId: user.id, after: { count: certificatesReissued } });
+          void kickCertificateWorker();
+        }
+      }
+      return { profile: { ...row, complete: profileComplete(row) }, certificatesReissued };
     },
     {
       body: t.Object({

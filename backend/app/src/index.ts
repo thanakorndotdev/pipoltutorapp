@@ -1,62 +1,33 @@
-import { Elysia } from "elysia";
-import { count } from "drizzle-orm";
-
-import { db, ping } from "./db";
-import { products } from "./db/schema";
-import { adminRoutes } from "./routes/admin";
-import { authRoutes } from "./routes/auth";
-import { campusesRoutes } from "./routes/campuses";
-import { entitlementsRoutes } from "./routes/entitlements";
-import { attemptsRoutes, examPacksRoutes } from "./routes/exam";
-import { fortuneRoutes } from "./routes/fortune";
-import { ordersRoutes } from "./routes/orders";
-import { paymentsRoutes, webhookRoutes } from "./routes/payments";
-import { profileRoutes } from "./routes/profile";
-import { settingsRoutes } from "./routes/settings";
-import { adminSiteRoutes, siteRoutes } from "./routes/site";
-import { adminUploadsRoutes, uploadsRoutes } from "./routes/uploads";
-import { APP_VERSION } from "./version";
-
+import { app } from "./app";
+import { startCertificateWorker } from "./certificates/worker";
+import { archiveDaily, ensureDay } from "./features/daily";
+import { publishDue } from "./features/cms";
+import { purgeExpired } from "./features/retention";
+import { bangkokDay } from "./features/common";
+import { db } from "./db";
 const port = Number(process.env.PORT ?? 3001);
-
-const app = new Elysia()
-  .get("/", () => "Hello Elysia")
-  .get("/health", async ({ set }) => {
-    try {
-      await ping();
-      return { status: "ok", db: "up", version: APP_VERSION };
-    } catch (error) {
-      // The driver message can name the host, user or database; log it, don't serve it.
-      console.error("health: db ping failed:", error instanceof Error ? error.message : String(error));
-      set.status = 503;
-      return { status: "degraded", db: "down", version: APP_VERSION };
+app.listen(port);
+startCertificateWorker();
+let maintaining = false,
+  lastPurge = 0;
+async function maintenance() {
+  if (maintaining) return;
+  maintaining = true;
+  try {
+    await publishDue();
+    await db.transaction((tx) => ensureDay(tx, bangkokDay()));
+    await archiveDaily();
+    // Hourly is enough for day-granular retention.
+    if (Date.now() - lastPurge > 3600_000) {
+      await purgeExpired();
+      lastPurge = Date.now();
     }
-  })
-  .get("/products", () =>
-    db.select().from(products)
-  )
-  .get("/products/count", async () => {
-    const [row] = await db.select({ total: count() }).from(products);
-    return { total: row?.total ?? 0 };
-  })
-  .use(authRoutes)
-  .use(campusesRoutes)
-  .use(ordersRoutes)
-  .use(entitlementsRoutes)
-  .use(fortuneRoutes)
-  .use(paymentsRoutes)
-  .use(webhookRoutes)
-  .use(settingsRoutes)
-  .use(profileRoutes)
-  .use(examPacksRoutes)
-  .use(attemptsRoutes)
-  .use(adminRoutes)
-  .use(uploadsRoutes)
-  .use(siteRoutes)
-  .use(adminSiteRoutes)
-  .use(adminUploadsRoutes)
-  .listen(port);
-
-console.log(
-  `🦊 PIPOL TUTOR API v${APP_VERSION} running at ${app.server?.hostname}:${app.server?.port}`
-);
+  } catch {
+    console.error("Scheduled maintenance failed; it will retry");
+  } finally {
+    maintaining = false;
+  }
+}
+void maintenance();
+setInterval(() => void maintenance(), 30_000);
+console.log(`PIPOL TUTOR API listening on ${port}`);

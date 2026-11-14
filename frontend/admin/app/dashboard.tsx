@@ -9,11 +9,33 @@ import { errorMessage, useAdmin } from "@/lib/admin";
 import { formatBaht, formatNumber, formatThaiDateTime } from "@/lib/format";
 import type { ExamSettings, Stats } from "@/lib/types";
 
+type Health = {
+  certificateQueue: { status: string; n: number }[];
+  drafts: number;
+  pendingComments: number;
+  /** Ranking rows flagged as suspicious that no admin has decided on yet. */
+  pendingFlags: number;
+  dailyTitle: string;
+  fire: { date: string; questions: number | null; today: { state: string; n: number }[]; pendingRecovery: number };
+};
+
+const FIRE_STATE: Record<string, string> = {
+  increased: "เพิ่มไฟ",
+  protected: "รักษาไฟ",
+  protected_by_exam: "รักษาด้วยข้อสอบ",
+  auto_protected: "ระบบรักษาให้",
+  admin_protected: "ผู้ดูแลรักษาให้",
+  recovered: "กู้ไฟ",
+  pending: "รอกู้ไฟ",
+  lost: "ไฟเริ่มนับใหม่",
+};
+
 const ORDER_TONE = { pending: "amber", paid: "green", failed: "red", refunded: "neutral" } as const;
 const ORDER_LABEL = { pending: "รอชำระ", paid: "ชำระแล้ว", failed: "ไม่สำเร็จ", refunded: "คืนเงิน" } as const;
 
 export function Dashboard() {
   const { api } = useAdmin();
+  const [health,setHealth] = useState<Health|null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [settings, setSettings] = useState<ExamSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +43,9 @@ export function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([api<Stats>("/admin/stats"), api<ExamSettings>("/settings/exam")])
-      .then(([s, e]) => {
+    Promise.all([api<Stats>("/admin/stats"), api<ExamSettings>("/settings/exam"), api<Health>("/admin/module-health")])
+      .then(([s, e, h]) => {
+        setHealth(h);
         if (cancelled) return;
         setStats(s);
         setSettings(e);
@@ -47,6 +70,18 @@ export function Dashboard() {
       />
       {error ? <Note tone="error">{error}</Note> : null}
       {!stats && !error ? <Spinner /> : null}
+      {health ? <Card className="flex flex-col gap-3"><h2 className="text-[19px] font-semibold">สถานะโมดูลใหม่</h2><div className="flex flex-wrap gap-4 text-[15px]"><Link href="/certificates/" className="text-brand">คิวเกียรติบัตร {health.certificateQueue.filter(j=>j.status!=="done").reduce((n,j)=>n+j.n,0)} งาน</Link><Link href="/articles/" className="text-brand">บทความร่าง {health.drafts}</Link><Link href="/comments/" className="text-brand">ความคิดเห็นรอตรวจ {health.pendingComments}</Link><Link href="/ranking/" className="text-brand">ธงอันดับรอตัดสิน {health.pendingFlags}</Link></div>
+        <p className="text-[14px] text-ink2">
+          โจทย์วันนี้: {health.dailyTitle}
+          {health.fire.questions === null ? "" : ` · ${health.fire.questions} ข้อ`}
+        </p>
+        <p className="text-[14px] text-ink2">
+          <Link href="/daily/" className="text-brand">ไฟวันนี้</Link>{" "}
+          {health.fire.today.length
+            ? health.fire.today.map((s) => `${FIRE_STATE[s.state] ?? s.state} ${s.n} คน`).join(" · ")
+            : "ยังไม่มีผู้ทำโจทย์"}
+          {` · รอกู้ไฟ ${health.fire.pendingRecovery} คน`}
+        </p></Card> : null}
       {stats ? (
         <>
           <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4" aria-label="ตัวเลขรวม">

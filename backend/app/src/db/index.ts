@@ -3,6 +3,7 @@ import postgres from "postgres";
 
 import { databaseUrl } from "./env";
 import * as schema from "./schema";
+import * as features from "./features";
 
 /**
  * One pool for the process. `max` stays small because the API runs as a single
@@ -15,7 +16,7 @@ export const sql = postgres(databaseUrl(), {
   onnotice: () => {},
 });
 
-export const db = drizzle(sql, { schema });
+export const db = drizzle(sql, { schema: { ...schema, ...features } });
 
 export async function ping(): Promise<boolean> {
   const [row] = await sql`select 1 as ok`;

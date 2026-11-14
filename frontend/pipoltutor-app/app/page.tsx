@@ -1,3 +1,4 @@
+import { ConfiguredHome,getHomeSections } from "@/components/configured-home";
 import { DEFAULT_HERO_CHIPS, DEFAULT_HERO_FOOTNOTE, HeroCopy, PlanGrid, Portrait } from "@/components/blocks";
 import { Suspense } from "react";
 
@@ -39,6 +40,8 @@ const DEFAULT_REVIEWS: string[][] = [
 
 export default async function Home() {
   const c = await getCopy();
+  const configured=await getHomeSections();
+  if(configured.length)return <><SiteHeader current="home"/><main className="flex-1"><ConfiguredHome sections={configured} title={c.t("home.hero_title_1",`ติวเข้า ม.1 จภ. กับ${TUTOR_NAME}`)} lede={c.t("home.hero_lede","คอร์สสอนสดและคลังข้อสอบเสมือนจริง พร้อมผลวิเคราะห์การสอบ")}/></main><SiteFooter/></>;
   const lineUrl = c.t("brand.line_url", LINE_URL);
   const features = c.rows("home.features", DEFAULT_FEATURES);
   const parents = c.rows("home.parents", DEFAULT_PARENTS);

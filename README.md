@@ -35,7 +35,7 @@ docker compose -f docker/docker-compose.yml up -d --build
 cd backend/app && bun install && bun run db:seed    # products, exam settings, sample pack
 ```
 
-The site is at `https://localhost`. The admin is not deployed; see the admin section below. The certificate is self-signed, so use `curl -k`.
+The site is at `https://localhost`; the admin static export is served by Caddy at `/admin/`. See the admin section below. The certificate is self-signed, so use `curl -k`.
 
 ### `docker/.env`
 
@@ -126,8 +126,10 @@ To sign in, use Google with an admin-role account, or paste `ADMIN_API_KEY` on t
 | คลังข้อสอบ | Question bank: create, edit and deactivate questions; upload figures |
 | ชุดข้อสอบ | Exam packs: title, slug, question count, duration, which products unlock them (none = free), and question order |
 | สินค้าและราคา | Products: add, edit title/description/price/on-off, delete |
+| บทความ | Articles for `/articles`: write (heading / text / image blocks), save as draft or publish, edit, delete |
 | วันสอบ | Exam date, enrollment close, countdown urgency |
 | รูปภาพเว็บไซต์ / ข้อความเว็บไซต์ | CMS for site images and copy |
+| เกียรติบัตร / เทมเพลตเกียรติบัตร | Per-pack eligibility, issue/revoke/reissue, render queue, signing keys, versioned layout editor with real PNG/PDF previews |
 | ผู้ใช้และสิทธิ์ | Users and roles (admin / dev / test / student) |
 
 ### Products and prices
@@ -305,6 +307,17 @@ URL=$(curl -sk -X POST "$API/admin/uploads" -H "x-admin-key: $KEY" -F "file=@her
 adm PUT /admin/site/assets/<slot-key> "{\"imageUrl\":\"$URL\",\"alt\":\"พี่พิพล\"}" | jq
 ```
 
+### Articles (บทความ)
+
+```bash
+adm GET /admin/articles | jq -r '.articles[] | [.id, .slug, .published, .title] | @tsv'
+# slug is optional (generated when blank) and fixed after creation; block types: heading | text | image
+adm POST /admin/articles '{"slug":"exam-tips","title":"เทคนิคทำข้อสอบ","excerpt":null,"coverUrl":null,"published":false,
+  "blocks":[{"type":"heading","text":"หัวข้อ"},{"type":"text","text":"ย่อหน้า **ตัวหนา**"},{"type":"image","url":"/api/uploads/<name>.png","alt":"","caption":""}]}' | jq
+adm PUT /admin/articles/<id> '<same JSON without slug>' | jq       # "published": true puts it on /articles
+adm DELETE /admin/articles/<id> | jq
+```
+
 ### Straight to the database
 
 Use this for things the API doesn't cover, such as giving a student access by hand or checking orders:
@@ -337,6 +350,14 @@ Always prefer the API or dashboard for anything they cover, because they validat
 - The server owns the clock: allowed time = the pack duration, capped at its hard deadline.
 - Answers and flags autosave, grading is server-side, and results show a per-topic breakdown.
 
+**Certificates (เกียรติบัตร):** server-rendered PNG/PDF, one active revision per eligible attempt. `GET /certificates` lists the student's revisions and marks the best attempt per pack as the default. Eligibility, exam level/subject, and the published template are configurable in the pack form or the certificates screen. The template editor supports draft/publish versions, background crop/zoom, element positioning and sizing, Thai fonts, line spacing, dynamic fields, and long Thai/English name previews; its PDF download renders the unsaved layout without issuing a certificate. A name change revokes old active certificates and queues replacements. Public `/cert/:publicId` verification checks an RSA-PSS signature and never returns a recipient name, email, or score; files require the owner's session (or an admin session).
+
+Compose persists rendered files in `certificates_data` (`CERT_DIR=/app/certificates`) and private signing keys in `cert_keys_data` (`CERT_KEY_DIR=/app/cert-keys`). Preserve both volumes during rebuilds; back up keys separately from the database, which keeps public keys for old signatures. Set `PUBLIC_URL_DOCKER` to the real browser origin before issuing production certificates. Host runtime files, uploads, and PEM keys are excluded from Docker build context.
+
+From `backend/app`, `bun run test:certificates` creates a disposable database on the configured PostgreSQL server, applies every migration, checks certificate routes/signatures/queue retry, and removes that database afterward (requires CREATE DATABASE permission). `bun run scripts/certificate-render-smoke.ts` renders PNG/PDF samples to the system temp directory without querying the database; use `docker compose -f docker/docker-compose.yml run --rm --no-deps backend bun run scripts/certificate-render-smoke.ts` from the repo root to check Alpine native modules and bundled Thai fonts. Evidence and limitations: [manuals/m1-certificate-validation.md](manuals/m1-certificate-validation.md).
+
+**Articles (บทความ):** the body is a validated list of blocks in `articles.blocks` (jsonb), rendered as text, never as HTML. Drafts 404 for everyone except an admin session.
+
 **Fortune (ดูดวง):**
 - **Access:** unlocked by a paid order, not an entitlement, because each reading is bought separately.
 - **Generation:** the text is generated lazily on the first read after payment. It uses Cloudflare Workers AI, with a rule-based fallback if the AI fails or isn't configured.
@@ -347,11 +368,11 @@ Every path below is behind `/api` when going through Caddy.
 
 | Area | Endpoints |
 | --- | --- |
-| Public | `GET /health`, `GET /products`, `GET /campuses`, `GET /settings/exam`, `GET /site/assets`, `GET /site/texts`, `GET /uploads/:name` |
+| Public | `GET /health`, `GET /products`, `GET /campuses`, `GET /settings/exam`, `GET /site/assets`, `GET /site/texts`, `GET /uploads/:name`, `GET /articles`, `GET /articles/:slug` |
 | Auth | `GET /auth/google`, `GET /auth/google/callback`, `GET /auth/me`, `POST /auth/logout` |
-| Student | `/orders`, `/payments/charge`, `/payments/sync`, `/entitlements`, `/exam-packs`, `/attempts`, `/fortune/readings` |
+| Student | `/orders`, `/payments/charge`, `/payments/sync`, `/entitlements`, `/exam-packs`, `/attempts`, `/certificates`, `/fortune/readings` |
 | Webhook | `POST /webhooks/omise` |
-| Admin (`x-admin-key` or admin session) | `/admin/stats`, `/admin/questions`, `/admin/packs`, `/admin/products`, `/admin/users`, `/admin/site`, `/admin/uploads`, `PUT /settings/exam` |
+| Admin (`x-admin-key` or admin session) | `/admin/stats`, `/admin/questions`, `/admin/packs`, `/admin/products`, `/admin/articles`, `/admin/users`, `/admin/site`, `/admin/uploads`, `PUT /settings/exam` |
 
 ## Conventions
 
@@ -376,3 +397,14 @@ Patch against quotation QT-2026-0001, plus security fixes.
 - **Upload hardening.** An admin image upload must start with real PNG, JPEG, GIF or WebP bytes that match its declared type. Uploaded files are served with `X-Content-Type-Options: nosniff`.
 - **Security headers.** Caddy now sends HSTS, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and `Permissions-Policy` headers, and drops the `Server` header.
 - **Health endpoint.** `GET /health` no longer returns the database driver's error text. The error is logged instead.
+
+
+## SoW 2026 continuation (2026-11-14)
+
+M1 certificates, M2 ranking/statistics, M3 article CMS and M4 Daily/Fire are implemented with additive migrations through 0024. Read [HANDOFF.md](HANDOFF.md) for source mapping and current status. Local test results do not imply production acceptance.
+
+- [Acceptance matrix AC-01–40](manuals/acceptance-matrix.md) and machine-readable reports in `manuals/`.
+- [Student/admin guide](manuals/user-admin-guide.md), [operations and recovery](manuals/operations-guide.md), [load evidence](manuals/load-test-notes.md).
+- [API contract notes](manuals/api-contract.md) and [exported mounted request schemas](manuals/api-contract.json).
+
+From `backend/app`: `bun run test:sow`, `bun run test:certificates`, `bun run test:restore`, `bun run test:pitr`, `bun run test:load:docker`. Tests create disposable fixtures. See the guides for Docker image prerequisites. No production deployment, commit or push is included in this continuation.

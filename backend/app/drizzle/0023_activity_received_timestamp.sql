@@ -1,0 +1,1 @@
+ALTER TABLE "attempt_activity_streams" ADD COLUMN "updated_at" timestamp with time zone DEFAULT now() NOT NULL;

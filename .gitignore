@@ -6,3 +6,7 @@
 
 .DS_Store
 node_modules/
+
+# Client commercial/confidential documents (repository is public)
+pipoltutor_scope_of_work_2026.pdf
+ใบเสนอราคา-*.docx

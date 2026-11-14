@@ -3,9 +3,18 @@ import { and, asc, count, desc, eq, inArray, lte, sql } from "drizzle-orm";
 
 import { currentUser } from "../auth";
 import { db } from "../db";
-import { attemptAnswers, attempts, examPacks, packQuestions, questions, type UserRole } from "../db/schema";
+import {
+  attemptAnswers,
+  attempts,
+  examPacks,
+  packQuestions,
+  questions,
+  type UserRole,
+} from "../db/schema";
 import { countsTowardLimit, gradeAttempt, settleIfExpired } from "../grading";
 import { profileComplete } from "../sessions";
+import { readRanking, studentAttemptResult } from "../features/ranking";
+import { checkpoint, heartbeat } from "../features/active-time";
 
 /**
  * Mock exams are free: any signed-in student with a complete profile may
@@ -27,10 +36,17 @@ const packColumns = {
   showReview: examPacks.showReview,
 };
 
-type PackRow = { opensAt: Date | null; closesAt: Date | null; published: boolean };
+type PackRow = {
+  opensAt: Date | null;
+  closesAt: Date | null;
+  published: boolean;
+};
 export type PackAvailability = "upcoming" | "open" | "closed";
 
-export function availability(pack: PackRow, now = new Date()): PackAvailability {
+export function availability(
+  pack: PackRow,
+  now = new Date(),
+): PackAvailability {
   if (pack.opensAt && now < pack.opensAt) return "upcoming";
   if (pack.closesAt && now >= pack.closesAt) return "closed";
   return "open";
@@ -38,12 +54,18 @@ export function availability(pack: PackRow, now = new Date()): PackAvailability 
 
 /** Staff and QA accounts may open hidden packs, ignore the window and the attempt limit, to test. */
 function isStaff(user: { role: UserRole } | null) {
-  return user !== null && (user.role === "admin" || user.role === "dev" || user.role === "test");
+  return (
+    user !== null &&
+    (user.role === "admin" || user.role === "dev" || user.role === "test")
+  );
 }
 
 /** Seconds a student gets on this pack; the hard deadline may cut an attempt shorter. */
 function packTiming(pack: { durationSeconds: number }) {
-  return { durationSeconds: pack.durationSeconds, allowedSeconds: pack.durationSeconds };
+  return {
+    durationSeconds: pack.durationSeconds,
+    allowedSeconds: pack.durationSeconds,
+  };
 }
 
 /** Per-user attempt counts on these packs: used (not reset) and the open attempt, if any. */
@@ -51,7 +73,12 @@ async function myAttemptState(userId: string, packIds: string[]) {
   const map = new Map<string, { used: number; openAttemptId: string | null }>();
   if (packIds.length === 0) return map;
   const rows = await db
-    .select({ id: attempts.id, packId: attempts.packId, status: attempts.status, resetAt: attempts.resetAt })
+    .select({
+      id: attempts.id,
+      packId: attempts.packId,
+      status: attempts.status,
+      resetAt: attempts.resetAt,
+    })
     .from(attempts)
     .where(and(eq(attempts.userId, userId), inArray(attempts.packId, packIds)));
   for (const r of rows) {
@@ -66,7 +93,11 @@ async function myAttemptState(userId: string, packIds: string[]) {
 /** What the instructions screen shows: sections, points, question types. No key. */
 async function packSummary(packId: string) {
   const rows = await db
-    .select({ section: packQuestions.section, type: questions.type, points: questions.points })
+    .select({
+      section: packQuestions.section,
+      type: questions.type,
+      points: questions.points,
+    })
     .from(packQuestions)
     .innerJoin(questions, eq(questions.id, packQuestions.questionId))
     .where(eq(packQuestions.packId, packId))
@@ -101,6 +132,8 @@ const attemptColumns = {
   startedAt: attempts.startedAt,
   expiresAt: attempts.expiresAt,
   submittedAt: attempts.submittedAt,
+  activeSeconds: attempts.activeSeconds,
+  activeVerified: attempts.activeVerified,
   score: attempts.score,
   maxScore: attempts.maxScore,
   topicBreakdown: attempts.topicBreakdown,
@@ -121,7 +154,12 @@ export const examPacksRoutes = new Elysia({ prefix: "/exam-packs" })
       .from(examPacks)
       .where(staff ? undefined : eq(examPacks.published, true))
       .orderBy(examPacks.title);
-    const mine = user ? await myAttemptState(user.id, rows.map((r) => r.id)) : new Map();
+    const mine = user
+      ? await myAttemptState(
+          user.id,
+          rows.map((r) => r.id),
+        )
+      : new Map();
     const now = new Date();
     return {
       packs: rows.map((pack) => {
@@ -141,7 +179,11 @@ export const examPacksRoutes = new Elysia({ prefix: "/exam-packs" })
     "/:slug",
     async ({ params, headers, set }) => {
       const user = await currentUser(headers);
-      const [pack] = await db.select(packColumns).from(examPacks).where(eq(examPacks.slug, params.slug)).limit(1);
+      const [pack] = await db
+        .select(packColumns)
+        .from(examPacks)
+        .where(eq(examPacks.slug, params.slug))
+        .limit(1);
       if (!pack || (!pack.published && !isStaff(user))) {
         set.status = 404;
         return { error: "ไม่พบชุดข้อสอบ" };
@@ -165,7 +207,7 @@ export const examPacksRoutes = new Elysia({ prefix: "/exam-packs" })
         serverNow: now.toISOString(),
       };
     },
-    { params: t.Object({ slug: t.String({ minLength: 1, maxLength: 80 }) }) }
+    { params: t.Object({ slug: t.String({ minLength: 1, maxLength: 80 }) }) },
   );
 
 /**
@@ -189,14 +231,19 @@ async function ownedAttempt(userId: string, attemptId: string) {
 type AttemptRow = NonNullable<Awaited<ReturnType<typeof ownedAttempt>>>;
 
 /** Attempt as the client sees it, with the time left by the server clock. */
-function attemptView(attempt: AttemptRow) {
+async function attemptView(attempt: AttemptRow) {
   const now = new Date();
   return {
-    ...attempt,
-    allowedSeconds: Math.round((attempt.expiresAt.getTime() - attempt.startedAt.getTime()) / 1000),
+    ...(await studentAttemptResult(attempt)),
+    allowedSeconds: Math.round(
+      (attempt.expiresAt.getTime() - attempt.startedAt.getTime()) / 1000,
+    ),
     secondsLeft:
       attempt.status === "in_progress"
-        ? Math.max(0, Math.floor((attempt.expiresAt.getTime() - now.getTime()) / 1000))
+        ? Math.max(
+            0,
+            Math.floor((attempt.expiresAt.getTime() - now.getTime()) / 1000),
+          )
         : 0,
     serverNow: now.toISOString(),
   };
@@ -224,6 +271,18 @@ const CLOSED_ERROR = "หมดเวลาหรือส่งคำตอบ�
 const MAX_TEXT_ANSWER = 500;
 
 export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
+  .post(
+    "/:id/heartbeat",
+    async ({ params, headers, set }) => {
+      const user = await currentUser(headers);
+      if (!user) {
+        set.status = 401;
+        return { error: "กรุณาเข้าสู่ระบบ" };
+      }
+      return heartbeat(user.id, params.id);
+    },
+    { params: t.Object({ id: t.String({ format: "uuid" }) }) },
+  )
   /** The caller's attempt history, newest first, reset attempts included and marked. */
   .get("/", async ({ headers, set }) => {
     const user = await currentUser(headers);
@@ -235,17 +294,31 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
     const stale = await db
       .select({ id: attempts.id })
       .from(attempts)
-      .where(and(eq(attempts.userId, user.id), eq(attempts.status, "in_progress"), lte(attempts.expiresAt, new Date())));
+      .where(
+        and(
+          eq(attempts.userId, user.id),
+          eq(attempts.status, "in_progress"),
+          lte(attempts.expiresAt, new Date()),
+        ),
+      );
     for (const s of stale) await gradeAttempt(s.id, "expired");
 
     const rows = await db
-      .select({ ...attemptColumns, title: examPacks.title, slug: examPacks.slug, showReview: examPacks.showReview })
+      .select({
+        ...attemptColumns,
+        title: examPacks.title,
+        slug: examPacks.slug,
+        showReview: examPacks.showReview,
+        // SoW 7.1: history shows the pack's level and subject next to the title.
+        level: examPacks.level,
+        subjectLabel: examPacks.subjectLabel,
+      })
       .from(attempts)
       .innerJoin(examPacks, eq(examPacks.id, attempts.packId))
       .where(eq(attempts.userId, user.id))
       .orderBy(desc(attempts.startedAt))
       .limit(200);
-    return { attempts: rows };
+    return { attempts: await Promise.all(rows.map(studentAttemptResult)) };
   })
   /**
    * Start an attempt — the student pressed "เริ่มทำข้อสอบ" on the
@@ -263,17 +336,27 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       }
       if (!profileComplete(user)) {
         set.status = 409;
-        return { error: "กรอกข้อมูลส่วนตัวให้ครบก่อนเริ่มทำข้อสอบ", code: "profile_required" };
+        return {
+          error: "กรอกข้อมูลส่วนตัวให้ครบก่อนเริ่มทำข้อสอบ",
+          code: "profile_required",
+        };
       }
 
-      const [pack] = await db.select(packColumns).from(examPacks).where(eq(examPacks.id, body.packId)).limit(1);
+      const [pack] = await db
+        .select(packColumns)
+        .from(examPacks)
+        .where(eq(examPacks.id, body.packId))
+        .limit(1);
       const staff = isStaff(user);
       if (!pack || (!pack.published && !staff)) {
         set.status = 404;
         return { error: "ไม่พบชุดข้อสอบ" };
       }
 
-      const [{ n }] = await db.select({ n: count() }).from(packQuestions).where(eq(packQuestions.packId, pack.id));
+      const [{ n }] = await db
+        .select({ n: count() })
+        .from(packQuestions)
+        .where(eq(packQuestions.packId, pack.id));
       if (n === 0) {
         set.status = 409;
         return { error: "ชุดนี้ยังไม่มีข้อสอบ" };
@@ -289,8 +372,8 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
             eq(attempts.userId, user.id),
             eq(attempts.packId, pack.id),
             eq(attempts.status, "in_progress"),
-            lte(attempts.expiresAt, new Date())
-          )
+            lte(attempts.expiresAt, new Date()),
+          ),
         );
       for (const s of stale) await gradeAttempt(s.id, "expired");
 
@@ -300,23 +383,41 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         db
           .select(attemptColumns)
           .from(attempts)
-          .where(and(eq(attempts.userId, user.id), eq(attempts.packId, pack.id), eq(attempts.status, "in_progress")))
+          .where(
+            and(
+              eq(attempts.userId, user.id),
+              eq(attempts.packId, pack.id),
+              eq(attempts.status, "in_progress"),
+            ),
+          )
           .limit(1);
       const [open] = await findOpen();
       const timing = packTiming(pack);
-      if (open) return { attempt: { ...timing, ...attemptView(open) }, resumed: true };
+      if (open)
+        return {
+          attempt: { ...timing, ...(await attemptView(open)) },
+          resumed: true,
+        };
 
       const state = availability(pack);
       if (state !== "open" && !staff) {
         set.status = 403;
-        return { error: state === "upcoming" ? "ชุดนี้ยังไม่เปิดให้ทำ" : "ชุดนี้ปิดรับคำตอบแล้ว" };
+        return {
+          error: state === "upcoming" ? "ชุดนี้ยังไม่เปิดให้ทำ" : "ชุดนี้ปิดรับคำตอบแล้ว",
+        };
       }
 
-      const [{ used }] = await db.select({ used: count() }).from(attempts).where(countsTowardLimit(user.id, pack.id));
+      const [{ used }] = await db
+        .select({ used: count() })
+        .from(attempts)
+        .where(countsTowardLimit(user.id, pack.id));
       if (pack.maxAttempts !== null && used >= pack.maxAttempts && !staff) {
         set.status = 403;
         return {
-          error: pack.maxAttempts === 1 ? "ทำชุดนี้ไปแล้ว ชุดนี้ทำได้ 1 ครั้ง" : `ทำชุดนี้ครบ ${pack.maxAttempts} ครั้งแล้ว`,
+          error:
+            pack.maxAttempts === 1
+              ? "ทำชุดนี้ไปแล้ว ชุดนี้ทำได้ 1 ครั้ง"
+              : `ทำชุดนี้ครบ ${pack.maxAttempts} ครั้งแล้ว`,
           code: "attempt_limit",
         };
       }
@@ -330,7 +431,11 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       // pack; a concurrent start loses the insert and resumes the winner.
       const startedAt = new Date();
       const byDuration = startedAt.getTime() + timing.allowedSeconds * 1000;
-      const expiresAt = new Date(pack.closesAt ? Math.min(byDuration, pack.closesAt.getTime()) : byDuration);
+      const expiresAt = new Date(
+        pack.closesAt
+          ? Math.min(byDuration, pack.closesAt.getTime())
+          : byDuration,
+      );
       const [attempt] = await db
         .insert(attempts)
         .values({
@@ -338,6 +443,9 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
           packId: pack.id,
           startedAt,
           expiresAt,
+          activeSeconds: 0,
+          activeVerified: true,
+          activeCheckpointAt: startedAt,
           attemptNo: total + 1,
           studentFirstName: user.firstName,
           studentLastName: user.lastName,
@@ -352,13 +460,19 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         .returning(attemptColumns);
       if (!attempt) {
         const [winner] = await findOpen();
-        return { attempt: { ...timing, ...attemptView(winner) }, resumed: true };
+        return {
+          attempt: { ...timing, ...(await attemptView(winner)) },
+          resumed: true,
+        };
       }
 
       set.status = 201;
-      return { attempt: { ...timing, ...attemptView(attempt) }, resumed: false };
+      return {
+        attempt: { ...timing, ...(await attemptView(attempt)) },
+        resumed: false,
+      };
     },
-    { body: t.Object({ packId: t.String({ format: "uuid" }) }) }
+    { body: t.Object({ packId: t.String({ format: "uuid" }) }) },
   )
   .get(
     "/:id",
@@ -375,13 +489,24 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         return { error: "ไม่พบการทำข้อสอบ" };
       }
       const [pack] = await db
-        .select({ title: examPacks.title, slug: examPacks.slug, durationSeconds: examPacks.durationSeconds, showReview: examPacks.showReview })
+        .select({
+          title: examPacks.title,
+          slug: examPacks.slug,
+          durationSeconds: examPacks.durationSeconds,
+          showReview: examPacks.showReview,
+        })
         .from(examPacks)
         .where(eq(examPacks.id, attempt.packId))
         .limit(1);
-      return { attempt: { ...attemptView(attempt), ...pack, showReview: Boolean(pack?.showReview) || isStaff(user) } };
+      return {
+        attempt: {
+          ...(await attemptView(attempt)),
+          ...pack,
+          showReview: Boolean(pack?.showReview) || isStaff(user),
+        },
+      };
     },
-    { params: t.Object({ id: t.String({ format: "uuid" }) }) }
+    { params: t.Object({ id: t.String({ format: "uuid" }) }) },
   )
   /**
    * The questions of an open attempt plus the answers and flags saved so
@@ -402,7 +527,7 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       }
       if (attempt.status !== "in_progress") {
         set.status = 409;
-        return { error: CLOSED_ERROR, attempt: attemptView(attempt) };
+        return { error: CLOSED_ERROR, attempt: await attemptView(attempt) };
       }
 
       const [rows, answers, [pack]] = await Promise.all([
@@ -422,11 +547,20 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
           .from(attemptAnswers)
           .where(eq(attemptAnswers.attemptId, attempt.id)),
         // The paper link is only handed out once the clock is running.
-        db.select({ paperUrl: examPacks.paperUrl }).from(examPacks).where(eq(examPacks.id, attempt.packId)).limit(1),
+        db
+          .select({ paperUrl: examPacks.paperUrl })
+          .from(examPacks)
+          .where(eq(examPacks.id, attempt.packId))
+          .limit(1),
       ]);
-      return { attempt: attemptView(attempt), questions: rows, answers, paperUrl: pack?.paperUrl ?? null };
+      return {
+        attempt: await attemptView(attempt),
+        questions: rows,
+        answers,
+        paperUrl: pack?.paperUrl ?? null,
+      };
     },
-    { params: t.Object({ id: t.String({ format: "uuid" }) }) }
+    { params: t.Object({ id: t.String({ format: "uuid" }) }) },
   )
   /**
    * Autosave one question: its full state (choices or typed text, plus the
@@ -449,7 +583,7 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       }
       if (attempt.status !== "in_progress") {
         set.status = 409;
-        return { error: CLOSED_ERROR, attempt: attemptView(attempt) };
+        return { error: CLOSED_ERROR, attempt: await attemptView(attempt) };
       }
 
       // The question must belong to this attempt's pack, and the answer must
@@ -459,7 +593,12 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         .select({ type: questions.type, choices: questions.choices })
         .from(packQuestions)
         .innerJoin(questions, eq(questions.id, packQuestions.questionId))
-        .where(and(eq(packQuestions.packId, attempt.packId), eq(packQuestions.questionId, params.questionId)))
+        .where(
+          and(
+            eq(packQuestions.packId, attempt.packId),
+            eq(packQuestions.questionId, params.questionId),
+          ),
+        )
         .limit(1);
       if (!question) {
         set.status = 404;
@@ -481,7 +620,11 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       }
       const textAnswer = text === "" ? null : text;
       const hasAnswer = picked.length > 0 || textAnswer !== null;
-      const state = body.flagged ? "flagged" : hasAnswer ? "answered" : "untouched";
+      const state = body.flagged
+        ? "flagged"
+        : hasAnswer
+          ? "answered"
+          : "untouched";
 
       // Share-lock the attempt so the write cannot slip in after grading has
       // started, and re-check the deadline under the lock.
@@ -490,26 +633,51 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
           .select({ status: attempts.status, expiresAt: attempts.expiresAt })
           .from(attempts)
           .where(eq(attempts.id, attempt.id))
-          .for("share");
-        if (!live || live.status !== "in_progress" || live.expiresAt.getTime() <= Date.now()) return false;
+          .for("update");
+        if (
+          !live ||
+          live.status !== "in_progress" ||
+          live.expiresAt.getTime() <= Date.now()
+        )
+          return false;
+        await checkpoint(tx, attempt.id);
         await tx
           .insert(attemptAnswers)
-          .values({ attemptId: attempt.id, questionId: params.questionId, selectedChoices: picked, textAnswer, state })
+          .values({
+            attemptId: attempt.id,
+            questionId: params.questionId,
+            selectedChoices: picked,
+            textAnswer,
+            state,
+          })
           .onConflictDoUpdate({
             target: [attemptAnswers.attemptId, attemptAnswers.questionId],
-            set: { selectedChoices: picked, textAnswer, state, updatedAt: new Date() },
+            set: {
+              selectedChoices: picked,
+              textAnswer,
+              state,
+              updatedAt: new Date(),
+            },
           });
         return true;
       });
       if (!saved) {
         const closed = await ownedAttempt(user.id, attempt.id);
         set.status = 409;
-        return { error: CLOSED_ERROR, attempt: closed ? attemptView(closed) : null };
+        return {
+          error: CLOSED_ERROR,
+          attempt: closed ? await attemptView(closed) : null,
+        };
       }
 
       return {
-        answer: { questionId: params.questionId, selectedChoices: picked, textAnswer, state },
-        attempt: attemptView(attempt),
+        answer: {
+          questionId: params.questionId,
+          selectedChoices: picked,
+          textAnswer,
+          state,
+        },
+        attempt: await attemptView(attempt),
       };
     },
     {
@@ -518,11 +686,15 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         questionId: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        selectedChoices: t.Array(t.String({ minLength: 1, maxLength: 4 }), { maxItems: 10 }),
-        textAnswer: t.Optional(t.Nullable(t.String({ maxLength: MAX_TEXT_ANSWER }))),
+        selectedChoices: t.Array(t.String({ minLength: 1, maxLength: 4 }), {
+          maxItems: 10,
+        }),
+        textAnswer: t.Optional(
+          t.Nullable(t.String({ maxLength: MAX_TEXT_ANSWER })),
+        ),
         flagged: t.Boolean(),
       }),
-    }
+    },
   )
   /**
    * Finish and grade. The body carries nothing: answers are whatever the
@@ -548,7 +720,7 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
       }
       return { attempt: attempt ? attemptView(attempt) : null };
     },
-    { params: t.Object({ id: t.String({ format: "uuid" }) }) }
+    { params: t.Object({ id: t.String({ format: "uuid" }) }) },
   )
   /**
    * Per-question review of a finished attempt: what the student answered,
@@ -577,7 +749,11 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         .from(examPacks)
         .where(eq(examPacks.id, attempt.packId))
         .limit(1);
-      if (!pack?.showReview && !isStaff(user)) {
+      const ranking = await readRanking(attempt.packId);
+      if (
+        (!pack?.showReview || !ranking.snapshot.visibility.includes("score")) &&
+        !isStaff(user)
+      ) {
         set.status = 403;
         return { error: "ชุดนี้ยังไม่เปิดให้ดูเฉลยรายข้อ" };
       }
@@ -594,11 +770,14 @@ export const attemptsRoutes = new Elysia({ prefix: "/attempts" })
         .innerJoin(questions, eq(questions.id, attemptAnswers.questionId))
         .innerJoin(
           packQuestions,
-          and(eq(packQuestions.questionId, questions.id), eq(packQuestions.packId, attempt.packId))
+          and(
+            eq(packQuestions.questionId, questions.id),
+            eq(packQuestions.packId, attempt.packId),
+          ),
         )
         .where(eq(attemptAnswers.attemptId, attempt.id))
         .orderBy(asc(packQuestions.position));
-      return { attempt: attemptView(attempt), questions: rows };
+      return { attempt: await attemptView(attempt), questions: rows };
     },
-    { params: t.Object({ id: t.String({ format: "uuid" }) }) }
+    { params: t.Object({ id: t.String({ format: "uuid" }) }) },
   );

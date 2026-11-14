@@ -23,6 +23,8 @@ export type Attempt = {
   startedAt: string;
   expiresAt: string;
   submittedAt: string | null;
+  activeSeconds: number | null;
+  activeVerified: boolean;
   /** Points earned; may be fractional. */
   score: number | null;
   maxScore: number | null;

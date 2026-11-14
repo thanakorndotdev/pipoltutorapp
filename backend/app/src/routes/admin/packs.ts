@@ -2,7 +2,10 @@ import { Elysia, t } from "elysia";
 import { and, asc, count, eq, gt, inArray, sql } from "drizzle-orm";
 
 import { db } from "../../db";
-import { attempts, examPacks, packQuestions, questions } from "../../db/schema";
+import { actorOf, audit } from "../../audit";
+import { reconcilePack } from "../../certificates/issue";
+import { kickCertificateWorker } from "../../certificates/worker";
+import { attempts, certTemplates, examPacks, packQuestions, PACK_LEVELS, questions } from "../../db/schema";
 import { adminGuard } from "./guard";
 
 const packBody = t.Object({
@@ -22,6 +25,15 @@ const packBody = t.Object({
   showReview: t.Boolean(),
   /** PDF of the paper (e.g. a Google Drive link); https only. */
   paperUrl: t.Optional(t.Nullable(t.String({ maxLength: 2000 }))),
+  /** Certificate settings (CERT-01). All optional so older scripts that PUT the row keep working. */
+  level: t.Optional(t.Nullable(t.Union(PACK_LEVELS.map((l) => t.Literal(l))))),
+  subjectLabel: t.Optional(t.Nullable(t.String({ maxLength: 120 }))),
+  certificateEnabled: t.Optional(t.Boolean()),
+  certOnAutoSubmit: t.Optional(t.Boolean()),
+  certOnHardCutoff: t.Optional(t.Boolean()),
+  certOnReopen: t.Optional(t.Boolean()),
+  /** A published template, or null for the built-in layout. */
+  certTemplateId: t.Optional(t.Nullable(t.String({ format: "uuid" }))),
 });
 
 const packColumns = {
@@ -37,6 +49,13 @@ const packColumns = {
   published: examPacks.published,
   showReview: examPacks.showReview,
   paperUrl: examPacks.paperUrl,
+  level: examPacks.level,
+  subjectLabel: examPacks.subjectLabel,
+  certificateEnabled: examPacks.certificateEnabled,
+  certOnAutoSubmit: examPacks.certOnAutoSubmit,
+  certOnHardCutoff: examPacks.certOnHardCutoff,
+  certOnReopen: examPacks.certOnReopen,
+  certTemplateId: examPacks.certTemplateId,
   createdAt: examPacks.createdAt,
 };
 
@@ -69,6 +88,13 @@ function packValues(body: typeof packBody.static) {
       published: body.published,
       showReview: body.showReview,
       ...(paperUrl === undefined ? {} : { paperUrl }),
+      ...(body.level === undefined ? {} : { level: body.level }),
+      ...(body.subjectLabel === undefined ? {} : { subjectLabel: body.subjectLabel?.trim() || null }),
+      ...(body.certificateEnabled === undefined ? {} : { certificateEnabled: body.certificateEnabled }),
+      ...(body.certOnAutoSubmit === undefined ? {} : { certOnAutoSubmit: body.certOnAutoSubmit }),
+      ...(body.certOnHardCutoff === undefined ? {} : { certOnHardCutoff: body.certOnHardCutoff }),
+      ...(body.certOnReopen === undefined ? {} : { certOnReopen: body.certOnReopen }),
+      ...(body.certTemplateId === undefined ? {} : { certTemplateId: body.certTemplateId }),
     },
   };
 }
@@ -83,6 +109,12 @@ async function liveAttempts(packId: string) {
 }
 
 const idParam = t.Object({ id: t.String({ format: "uuid" }) });
+
+async function publishedTemplate(id: string | null | undefined): Promise<boolean> {
+  if (!id) return true;
+  const [template] = await db.select({ version: certTemplates.publishedVersion }).from(certTemplates).where(eq(certTemplates.id, id)).limit(1);
+  return Boolean(template && template.version > 0);
+}
 
 async function packWithCounts(id: string) {
   const [pack] = await db.select(packColumns).from(examPacks).where(eq(examPacks.id, id)).limit(1);
@@ -122,11 +154,15 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
   })
   .post(
     "/",
-    async ({ body, set }) => {
+    async ({ body, headers, set }) => {
       const checked = packValues(body);
       if ("error" in checked) {
         set.status = 422;
         return { error: checked.error };
+      }
+      if (!(await publishedTemplate(body.certTemplateId))) {
+        set.status = 422;
+        return { error: "เทมเพลตเกียรติบัตรนี้ยังไม่ได้เผยแพร่" };
       }
       const [pack] = await db
         .insert(examPacks)
@@ -137,6 +173,7 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
         set.status = 409;
         return { error: "slug นี้มีอยู่แล้ว" };
       }
+      await audit(await actorOf(headers), { action: "pack.create", module: "certificate", targetId: pack.id, after: checked.values });
       set.status = 201;
       return { pack: await packWithCounts(pack.id) };
     },
@@ -156,12 +193,21 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
   )
   .put(
     "/:id",
-    async ({ params, body, set }) => {
+    async ({ params, body, headers, set }) => {
       const checked = packValues(body);
       if ("error" in checked) {
         set.status = 422;
         return { error: checked.error };
       }
+      if (!(await publishedTemplate(body.certTemplateId))) {
+        set.status = 422;
+        return { error: "เทมเพลตเกียรติบัตรนี้ยังไม่ได้เผยแพร่" };
+      }
+      const [before] = await db
+        .select({ certificateEnabled: examPacks.certificateEnabled, certOnAutoSubmit: examPacks.certOnAutoSubmit, certOnHardCutoff: examPacks.certOnHardCutoff, certOnReopen: examPacks.certOnReopen, level: examPacks.level, subjectLabel: examPacks.subjectLabel, certTemplateId: examPacks.certTemplateId })
+        .from(examPacks)
+        .where(eq(examPacks.id, params.id))
+        .limit(1);
       // An open attempt's deadline was fixed at start, so a new duration or
       // closing time applies to attempts started from now on.
       const [updated] = await db
@@ -172,6 +218,18 @@ export const adminPacksRoutes = new Elysia({ prefix: "/admin/packs" })
       if (!updated) {
         set.status = 404;
         return { error: "ไม่พบชุดข้อสอบ" };
+      }
+      // Eligibility rules changed: issue what is now owed and revoke what no longer qualifies.
+      const rules = ["certificateEnabled", "certOnAutoSubmit", "certOnHardCutoff", "certOnReopen"] as const;
+      if (before && rules.some((k) => body[k] !== undefined && body[k] !== before[k])) {
+        const after = Object.fromEntries(rules.map((k) => [k, body[k] ?? before[k]]));
+        const result = await reconcilePack(params.id);
+        await audit(await actorOf(headers), { action: "pack.certificate_rules", module: "certificate", targetId: params.id, before, after: { ...after, ...result } });
+        void kickCertificateWorker();
+      }
+      const metadata = ["level", "subjectLabel", "certTemplateId"] as const;
+      if (before && metadata.some((k) => body[k] !== undefined && body[k] !== before[k])) {
+        await audit(await actorOf(headers), { action: "pack.certificate_metadata", module: "certificate", targetId: params.id, before: Object.fromEntries(metadata.map((k) => [k, before[k]])), after: Object.fromEntries(metadata.map((k) => [k, body[k] === undefined ? before[k] : checked.values[k] ?? null])) });
       }
       return { pack: await packWithCounts(params.id) };
     },

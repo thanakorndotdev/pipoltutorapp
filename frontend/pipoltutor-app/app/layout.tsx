@@ -1,3 +1,4 @@
+import { NotificationPopups } from "@/components/notification-popups";
 import type { Metadata } from "next";
 import { Anuphan, Mitr } from "next/font/google";
 import "./globals.css";
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <SiteAssetsProvider assets={assets} texts={texts} user={user}>
           {children}
+          {user?<NotificationPopups/>:null}
         </SiteAssetsProvider>
       </body>
     </html>

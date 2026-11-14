@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-14T13:49:03.991Z",
+  "passed": 8,
+  "checks": [
+    "CMS-02 taxonomy rejects cycles; merge preview/commit updates children, published snapshot and historical category alias once",
+    "CMS published snapshot stays frozen during draft edits; views deduplicate and retain referrer hostname only",
+    "AC-22 media uploads/downloads PDF and Office; rejects spoofed MIME, active PDF, macros and unauthorized writers",
+    "Dashboard notification history keeps dismissed notices; another account cannot dismiss them",
+    "SoW 6.4 daily analytics count participants, first-try success, hints and weak topics across both tries",
+    "SoW 8.1 overview counts unresolved flags and today's Fire; explicit review clears the pending count",
+    "STAT-07 bulk exclusion of 100 selected attempts needs preview, commits once with audit; ranking keeps all 120",
+    "SoW 10.2 approved retention purges expired technical logs and article events only, with system audit; linked data untouched"
+  ]
+}

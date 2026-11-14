@@ -61,7 +61,7 @@ export type QuestionInput = {
   active: boolean;
 };
 
-export type Pack = {
+export type Pack = CertPackSettings & {
   id: string;
   slug: string;
   title: string;
@@ -86,7 +86,7 @@ export type Pack = {
   liveAttempts?: number;
 };
 
-export type PackInput = {
+export type PackInput = CertPackSettings & {
   slug: string;
   title: string;
   description: string | null;
@@ -200,6 +200,43 @@ export type ProductInput = {
   sortOrder: number;
 };
 
+/** One piece of an article body; mirrors ArticleBlock in backend/app/src/db/schema.ts. */
+export type ArticleBlock =
+  | { type: "heading"; text: string }
+  /** Paragraphs split on blank lines; **bold** and bare https links are the only inline marks. */
+  | { type: "text"; text: string }
+  | { type: "image"; url: string; alt: string; caption: string; width?: number; align?: "left" | "center" | "right" }
+  | { type: "rich"; text: string; fontSize?: number; color?: string; background?: string; align?: "left" | "center" | "right" }
+  | { type: "list"; items: string[]; ordered: boolean }
+  | { type: "quote" | "code" | "callout" | "math"; text: string }
+  | { type: "separator" }
+  | { type: "button" | "attachment"; text: string; url: string }
+  | { type: "video"; url: string; title: string }
+  | { type: "columns"; columns: ArticleBlock[][] }
+  | { type: "table"; rows: { text: string; rowSpan?: number; colSpan?: number; align?: "left" | "center" | "right"; background?: string }[][] };
+
+export type ArticleCard = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  coverUrl: string | null;
+  published: boolean;
+  /** Set the first time it was published. */
+  publishedAt: string | null;
+  updatedAt: string;
+};
+
+export type Article = ArticleCard & { blocks: ArticleBlock[] };
+
+export type ArticleInput = {
+  title: string;
+  excerpt: string | null;
+  coverUrl: string | null;
+  blocks: ArticleBlock[];
+  published: boolean;
+};
+
 export type CountdownStatus = "upcoming" | "urgent" | "passed";
 
 export type ExamSettings = {
@@ -275,6 +312,9 @@ export const ROLES: { id: UserRole; label: string; desc: string; tone: "brand" |
 export const roleMeta = (id: UserRole) => ROLES.find((r) => r.id === id) ?? ROLES[3];
 
 export type AdminUser = {
+  effectivePermissions?: Record<string, string[]>;
+  staffRole?:string|null;
+  modulePermissions?:Record<string,string[]>;
   id: string;
   email: string;
   displayName: string | null;
@@ -313,3 +353,63 @@ export const CAMPUS_LABEL: Record<string, string> = {
 
 export const fmtPoints = (n: number | null | undefined) =>
   n === null || n === undefined ? "—" : Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, "");
+
+/** Certificates (SoW M1). Shapes from /admin/certificates and /admin/cert-templates. */
+export type CertStatus = "queued" | "valid" | "render_failed" | "revoked" | "previous_valid" | "superseded";
+
+export const CERT_STATUS: Record<CertStatus, { label: string; tone: "amber" | "green" | "red" | "brand" | "neutral" }> = {
+  queued: { label: "รอสร้างไฟล์", tone: "amber" },
+  valid: { label: "ใช้ได้", tone: "green" },
+  render_failed: { label: "สร้างไม่สำเร็จ (ลองใหม่ได้)", tone: "red" },
+  revoked: { label: "เพิกถอนแล้ว", tone: "neutral" },
+  previous_valid: { label: "ฉบับก่อนหน้า (ยังใช้ได้)", tone: "brand" },
+  superseded: { label: "ถูกแทนที่", tone: "neutral" },
+};
+
+export type AdminCertificate = {
+  id: string;
+  publicId: string;
+  serial: string;
+  status: CertStatus;
+  revision: number;
+  recipientName: string;
+  issuedAt: string;
+  revokedAt: string | null;
+  revokeReason: string | null;
+  attemptId: string;
+  packId: string;
+  packTitle: string;
+  email: string;
+  jobStatus: "pending" | "running" | "done" | "failed" | null;
+  jobTries: number | null;
+  jobError: string | null;
+};
+
+export type CertPackSettings = {
+  level: "m1" | "m4" | null;
+  subjectLabel: string | null;
+  certificateEnabled: boolean;
+  certOnAutoSubmit: boolean;
+  certOnHardCutoff: boolean;
+  certOnReopen: boolean;
+  certTemplateId: string | null;
+};
+
+export type CertPack = CertPackSettings & { id: string; title: string; slug: string; live: number };
+
+export type CertElement =
+  | { id: string; type: "text"; text: string; x: number; y: number; w: number; size: number; weight: 400 | 500 | 600; font: "display" | "body"; color: string; align: "left" | "center" | "right"; fit?: boolean; lineHeight?: number }
+  | { id: string; type: "image"; url: string; x: number; y: number; w: number; h: number; crop?: { zoom: number; offsetX: number; offsetY: number } }
+  | { id: string; type: "qr"; x: number; y: number; size: number };
+
+export type CertLayout = {
+  paper: "a4-landscape" | "a4-portrait";
+  background: string | null;
+  backgroundFit?: { zoom: number; offsetX: number; offsetY: number };
+  decor: "standard" | "none";
+  elements: CertElement[];
+};
+
+export type CertTemplate = { id: string; name: string; status: "draft" | "published" | "archived"; publishedVersion: number; updatedAt: string; usedByPacks?: number; layout?: CertLayout };
+
+export type CertSigningKey = { keyId: string; algorithm: string; active: boolean; createdAt: string; retiredAt: string | null };

@@ -226,7 +226,7 @@ export function QuestionForm({
       <fieldset className="flex flex-col gap-2">
         <legend className="display mb-1 text-[14px] font-medium">รูป/ลิงก์ประกอบ (ถ้ามี)</legend>
         <p className="text-[13px] text-ink3">
-          แต่ละรายการเลือกได้ว่าจะแสดงเป็น "รูป" (แสดงรูปใต้โจทย์ อัปโหลดจากเครื่อง PNG, JPEG, WebP, GIF ไม่เกิน 5 MB หรือวางลิงก์ไฟล์รูปที่ขึ้นต้นด้วย https://) หรือ "ลิงก์" (นักเรียนเห็นเป็นลิงก์ "ลิงก์ประกอบโจทย์ข้อ …" กดแล้วเปิดแท็บใหม่ เช่น Google Drive หรือหน้าเว็บ) นักเรียนจะเห็นรูปทั้งหมดก่อน แล้วตามด้วยลิงก์
+          แต่ละรายการเลือกได้ว่าจะแสดงเป็น &ldquo;รูป&rdquo; (แสดงรูปใต้โจทย์ อัปโหลดจากเครื่อง PNG, JPEG, WebP, GIF ไม่เกิน 5 MB หรือวางลิงก์ไฟล์รูปที่ขึ้นต้นด้วย https://) หรือ &ldquo;ลิงก์&rdquo; (นักเรียนเห็นเป็นลิงก์ &ldquo;ลิงก์ประกอบโจทย์ข้อ …&rdquo; กดแล้วเปิดแท็บใหม่ เช่น Google Drive หรือหน้าเว็บ) นักเรียนจะเห็นรูปทั้งหมดก่อน แล้วตามด้วยลิงก์
         </p>
         {d.attachments.map((a, i) => (
           <div key={i} className="flex flex-col gap-2 rounded-[12px] border border-border p-3">

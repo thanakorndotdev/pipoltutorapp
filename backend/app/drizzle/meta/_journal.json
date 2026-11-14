@@ -120,6 +120,62 @@
       "when": 1793108434327,
       "tag": "0016_product_card_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794505868310,
+      "tag": "0017_articles",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794542565388,
+      "tag": "0018_certificates",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794566172887,
+      "tag": "0019_sow_modules",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794566951117,
+      "tag": "0020_audit_provenance",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794587081892,
+      "tag": "0021_fire_recovery_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794590518738,
+      "tag": "0022_exam_activity_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794590629917,
+      "tag": "0023_activity_received_timestamp",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794661867496,
+      "tag": "0024_daily_extensions",
+      "breakpoints": true
     }
   ]
 }

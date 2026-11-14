@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-13T11:15:09.526Z",
+  "kind": "isolated logical backup/restore with authenticated encryption",
+  "databaseRestored": true,
+  "certificateMetadata": true,
+  "signatureValid": true,
+  "filesRestored": true,
+  "backupSha256": "c43d85a7333ff46f583fb13a821e5a7328f027b68625e959d17749a91daa649f",
+  "rtoSeconds": 0.425,
+  "totalSeconds": 1.453,
+  "rpo": "fixture snapshot only; production PITR unverified"
+}

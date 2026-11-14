@@ -1,3 +1,4 @@
+import { DeleteAccount } from "@/components/delete-account";
 import { redirect } from "next/navigation";
 
 import { SiteFooter } from "@/components/site-footer";
@@ -68,6 +69,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 }}
               />
             </Card>
+            {!first ? <DeleteAccount/> : null}
           </div>
         </Band>
       </main>

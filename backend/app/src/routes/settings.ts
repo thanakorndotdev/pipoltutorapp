@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 
 import { currentUser, hasAdminKey, isAdmin } from "../auth";
+import { MODULES, ACTIONS, permitted } from "../permissions";
 import {
   getExamSettings,
   publicExamSettings,
@@ -21,7 +22,20 @@ export const settingsRoutes = new Elysia({ prefix: "/settings" })
   .get("/admin/verify", async ({ headers, set }) => {
     if (hasAdminKey(headers)) return { ok: true, via: "key", user: null };
     const user = await currentUser(headers);
-    if (isAdmin(user)) return { ok: true, via: "session", user };
+    if (user && MODULES.some((m) => permitted(user, m, "read")))
+      return {
+        ok: true,
+        via: "session",
+        user: {
+          ...user,
+          effectivePermissions: Object.fromEntries(
+            MODULES.map((m) => [
+              m,
+              ACTIONS.filter((a) => permitted(user, m, a)),
+            ]),
+          ),
+        },
+      };
     if (user) {
       // Signed in with Google but not an admin/dev: tell the gate which account to promote.
       set.status = 403;
@@ -52,7 +66,10 @@ export const settingsRoutes = new Elysia({ prefix: "/settings" })
         ? new Date(body.enrollCloseAt)
         : undefined;
       // Validate the merged result, not just the fields in this request.
-      if ((enrollCloseAt ?? current.enrollCloseAt) > (examDate ?? current.examDate)) {
+      if (
+        (enrollCloseAt ?? current.enrollCloseAt) >
+        (examDate ?? current.examDate)
+      ) {
         set.status = 422;
         return { error: "วันปิดรับสมัครต้องไม่เกินวันสอบ" };
       }
@@ -65,5 +82,5 @@ export const settingsRoutes = new Elysia({ prefix: "/settings" })
       });
       return publicExamSettings(row);
     },
-    { body: patchBody }
+    { body: patchBody },
   );

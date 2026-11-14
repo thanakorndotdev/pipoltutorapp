@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useExamActivity } from "@/lib/use-exam-activity";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -54,6 +55,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const [phase, setPhase] = useState<"loading" | "ready" | "submitting" | "error">("loading");
   const [loadError, setLoadError] = useState("");
   const [attemptId, setAttemptId] = useState("");
+  useEffect(()=>{if(!attemptId||phase!=="ready")return;const tick=()=>{if(!document.hidden&&navigator.onLine)void fetch(`/api/attempts/${attemptId}/heartbeat`,{method:"POST"}).catch(()=>{});};const timer=setInterval(tick,10000);tick();return()=>clearInterval(timer);},[attemptId,phase]);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [paperUrl, setPaperUrl] = useState<string | null>(null);
   const [entries, setEntries] = useState<Record<string, Entry>>({});
@@ -64,6 +66,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [msg, setMsg] = useState<Msg>(null);
   const warned = useRef(false);
+  const flushActivity=useExamActivity(attemptId,phase === "ready");
 
   // Autosave queue: latest unsent state per question, drained one request
   // at a time so writes for a question never arrive out of order.
@@ -75,6 +78,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
     async (id: string) => {
       if (finishing.current) return;
       finishing.current = true;
+      await flushActivity();
       setPhase("submitting");
       // Give queued saves a moment to land; the server grades what it holds.
       for (let i = 0; i < 20 && (pending.current.size > 0 || flushing.current); i++) await wait(500);
@@ -89,7 +93,7 @@ export function ExamClient({ packId, packTitle, studentName }: Props) {
       }
       router.push(`/exam/result?attempt=${id}`);
     },
-    [router]
+    [router,flushActivity]
   );
 
   const flush = useCallback(async () => {

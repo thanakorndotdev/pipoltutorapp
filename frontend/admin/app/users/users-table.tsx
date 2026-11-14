@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PermissionEditor } from "@/components/permission-editor";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button, Card, Empty, Icon, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
@@ -153,6 +154,7 @@ function UserRow({ user, self, onSaved }: { user: AdminUser; self: boolean; onSa
           </select>
         </label>
       </div>
+      <PermissionEditor user={user}/>
       {error ? <Note tone="error">{error}</Note> : null}
     </Card>
   );

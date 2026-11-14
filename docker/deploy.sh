@@ -32,6 +32,13 @@ mkdir -p "$BACKUP_DIR"
 chmod 700 "$BACKUP_DIR"
 $DC exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$BACKUP_DIR/db-$STAMP.dump"
 $DC exec -T backend tar czf - -C /app/uploads . > "$BACKUP_DIR/uploads-$STAMP.tgz"
+# Signing keys and issued certificate files exist once the certificate module
+# has run; losing the keys makes every issued certificate unverifiable.
+for d in certificates cert-keys; do
+  if $DC exec -T backend test -d "/app/$d"; then
+    $DC exec -T backend tar czf - -C "/app/$d" . > "$BACKUP_DIR/$d-$STAMP.tgz"
+  fi
+done
 if [ ! -s "$BACKUP_DIR/db-$STAMP.dump" ]; then
   echo "Stopped: database backup is empty."
   exit 1

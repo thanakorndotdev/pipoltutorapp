@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 
 import { db } from "./db";
 import { hostEnv } from "./db/env";
@@ -24,6 +24,8 @@ export type SessionUser = {
   displayName: string | null;
   avatarUrl: string | null;
   role: UserRole;
+  staffRole: "owner" | "admin" | "author" | "moderator" | "results_viewer" | "none" | null;
+  modulePermissions: Record<string, string[]>;
   firstName: string | null;
   lastName: string | null;
   nickname: string | null;
@@ -37,6 +39,8 @@ export const sessionUserColumns = {
   displayName: users.displayName,
   avatarUrl: users.avatarUrl,
   role: users.role,
+  staffRole: users.staffRole,
+  modulePermissions: users.modulePermissions,
   firstName: users.firstName,
   lastName: users.lastName,
   nickname: users.nickname,
@@ -81,7 +85,7 @@ export async function userForToken(token: string): Promise<SessionUser | null> {
     .select(sessionUserColumns)
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.tokenHash, hashToken(token)), gt(sessions.expiresAt, new Date())))
+    .where(and(eq(sessions.tokenHash, hashToken(token)), gt(sessions.expiresAt, new Date()), isNull(users.deletedAt)))
     .limit(1);
   return row ?? null;
 }

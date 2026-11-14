@@ -2,7 +2,12 @@ import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "./db";
 import { attemptAnswers, attempts, packQuestions, questions } from "./db/schema";
+import { reconcileAttempt } from "./certificates/issue";
+import { kickCertificateWorker } from "./certificates/worker";
 import { scoreAnswer, sumPoints, type GivenAnswer } from "./scoring";
+import { checkpoint } from "./features/active-time";
+import { refreshRanking } from "./features/ranking";
+import { protectByExam } from "./features/daily";
 
 /**
  * Server-side grading. This module and /admin are the only code that reads
@@ -88,6 +93,7 @@ export async function gradeAttempt(attemptId: string, status: FinalStatus) {
       .where(eq(attempts.id, attemptId))
       .for("update");
     if (!attempt || attempt.status !== "in_progress") return;
+    await checkpoint(tx,attemptId);
 
     const { rows, topicBreakdown, score, maxScore } = await markAttempt(tx, attemptId, attempt.packId);
     await writeMarks(tx, rows);
@@ -96,6 +102,15 @@ export async function gradeAttempt(attemptId: string, status: FinalStatus) {
       .set({ status, submittedAt: new Date(), score, maxScore, topicBreakdown })
       .where(and(eq(attempts.id, attemptId), eq(attempts.status, "in_progress")));
   });
+  const [graded]=await db.select({packId:attempts.packId}).from(attempts).where(eq(attempts.id,attemptId));
+  if(graded){await refreshRanking(graded.packId);await protectByExam(attemptId);}
+  // Outside the grading transaction on purpose: a certificate problem must
+  // never undo or delay a grade. Issuing is idempotent, so a repeat is harmless.
+  try {
+    if (await reconcileAttempt(attemptId)) void kickCertificateWorker();
+  } catch (error) {
+    console.error("certificate issue after grading failed:", error instanceof Error ? error.message : String(error));
+  }
 }
 
 export type RegradeChange = {
@@ -113,7 +128,7 @@ export type RegradeChange = {
  * old one is appended to scoreHistory. Answers themselves are never touched.
  */
 export async function regradePack(packId: string, apply: boolean) {
-  return db.transaction(async (tx) => {
+  const result=await db.transaction(async (tx) => {
     const finished = await tx
       .select({
         id: attempts.id,
@@ -148,6 +163,8 @@ export async function regradePack(packId: string, apply: boolean) {
     }
     return { checked: finished.length, changes };
   });
+  if(apply&&result.changes.length){await refreshRanking(packId);const { reissueForScoreChange }=await import("./certificates/issue");await reissueForScoreChange(packId);void kickCertificateWorker();}
+  return result;
 }
 
 /**

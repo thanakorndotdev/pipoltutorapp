@@ -1,3 +1,5 @@
+import { RankingCard } from "@/components/ranking-card";
+import { ActivityRecovery } from "@/components/activity-recovery";
 import { LinkedText } from "@/components/linked-text";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -40,11 +42,11 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
   const review = graded?.showReview ? await fetchMyReview(graded.id) : null;
 
   const score = graded?.score ?? 0;
+  const hasScore = graded?.score != null;
   const maxScore = graded?.maxScore ?? 0;
   const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
   const unanswered = review?.filter((q) => !answerLabel(q)).length ?? 0;
-  const usedSeconds =
-    graded?.submittedAt ? (new Date(graded.submittedAt).getTime() - new Date(graded.startedAt).getTime()) / 1000 : 0;
+  const usedSeconds = graded?.activeVerified ? graded.activeSeconds : null;
   const topics = Object.entries(review ? (graded?.topicBreakdown ?? {}) : {})
     .map(([topic, t]) => ({ topic, ...t, pct: t.maxPoints ? (t.points ?? 0) / t.maxPoints : t.total ? t.correct / t.total : 0 }))
     .sort((a, b) => a.pct - b.pct);
@@ -53,6 +55,7 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
   return (
     <>
       <SiteHeader current="exam" app />
+      {graded ? <ActivityRecovery attemptId={graded.id} /> : null}
       <main className="flex-1">
         <Band className="pb-14 pt-10 md:pb-[72px]">
           <div className="flex flex-col gap-[26px]">
@@ -77,17 +80,19 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
                 ) : null}
               </div>
               <div className="flex flex-col items-center gap-1.5 self-start rounded-[24px] border border-white/20 bg-white/12 px-[34px] py-6 lg:self-auto">
-                <span className="tabular font-display text-[64px] font-semibold leading-[1.05] text-white">{graded ? pts(score) : EMPTY}</span>
-                <span className="whitespace-nowrap text-[14px] text-on-grad-soft">คะแนนเบื้องต้น จาก {graded ? pts(maxScore) : EMPTY}</span>
+                <span className="tabular font-display text-[64px] font-semibold leading-[1.05] text-white">{hasScore ? pts(score) : EMPTY}</span>
+                <span className="whitespace-nowrap text-[14px] text-on-grad-soft">คะแนนที่เผยแพร่ จาก {graded ? pts(maxScore) : EMPTY}</span>
               </div>
             </section>
 
+            {graded ? <RankingCard attemptId={graded.id}/> : null}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-              <StatCard icon="star" tileClass="bg-green-50 text-green" value={graded ? `${pts(score)}/${pts(maxScore)}` : EMPTY} label="คะแนนที่ได้" />
-              <StatCard icon="percent" tileClass="bg-brand-50 text-brand" value={graded ? `${pct}%` : EMPTY} label="คิดเป็นร้อยละ" />
+              <StatCard icon="star" tileClass="bg-green-50 text-green" value={hasScore ? `${pts(score)}/${pts(maxScore)}` : EMPTY} label="คะแนนที่เผยแพร่" />
+              <StatCard icon="percent" tileClass="bg-brand-50 text-brand" value={hasScore ? `${pct}%` : EMPTY} label="คิดเป็นร้อยละ" />
               <StatCard icon="help" tileClass="bg-amber-50 text-amber-icon" value={graded && review ? `${unanswered} ข้อ` : EMPTY} label="ไม่ได้ตอบ" />
-              <StatCard icon="timer" tileClass="bg-accent-50 text-accent-dark" value={graded ? duration(usedSeconds) : EMPTY} label="เวลาที่ใช้" />
+              <StatCard icon="timer" tileClass="bg-accent-50 text-accent-dark" value={usedSeconds != null ? duration(usedSeconds) : EMPTY} label="เวลาทำสะสมที่ตรวจรับ" />
             </div>
+            {graded && usedSeconds == null ? <Note icon="schedule">เวลาทำสะสมอยู่ระหว่างตรวจรับ บันทึกช่วงออฟไลน์จะส่งเมื่อเชื่อมต่อได้อีกครั้ง</Note> : null}
 
             <div className="flex flex-col gap-7 lg:flex-row lg:items-start lg:gap-10">
               <div className="flex min-w-0 flex-1 flex-col gap-7">

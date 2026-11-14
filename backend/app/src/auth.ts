@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./db";
 import { hostEnv } from "./db/env";
@@ -33,7 +33,7 @@ export async function currentUser(
   if (!email) return null;
 
   const cols = sessionUserColumns;
-  const [existing] = await db.select(cols).from(users).where(eq(users.email, email)).limit(1);
+  const [existing] = await db.select(cols).from(users).where(and(eq(users.email, email), isNull(users.deletedAt))).limit(1);
   if (existing) return existing;
 
   const [created] = await db
@@ -63,7 +63,7 @@ export function isBootstrapAdminEmail(email: string): boolean {
 const ADMIN_ROLES: ReadonlySet<UserRole> = new Set<UserRole>(["admin", "dev"]);
 
 export function isAdmin(user: SessionUser | null): boolean {
-  return user !== null && (ADMIN_ROLES.has(user.role) || isBootstrapAdminEmail(user.email));
+  return user !== null && (user.staffRole ? ["owner", "admin"].includes(user.staffRole) : ADMIN_ROLES.has(user.role) || isBootstrapAdminEmail(user.email));
 }
 
 /**

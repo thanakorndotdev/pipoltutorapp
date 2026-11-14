@@ -5,6 +5,7 @@ import { PCSHS_CAMPUSES } from "../../campuses";
 import { db } from "../../db";
 import { attemptAnswers, attempts, examPacks, packQuestions, questions } from "../../db/schema";
 import { gradeAttempt, regradePack } from "../../grading";
+import { reconcileAttempt } from "../../certificates/issue";
 import { adminGuard } from "./guard";
 
 const idParam = t.Object({ id: t.String({ format: "uuid" }) });
@@ -233,6 +234,8 @@ export const adminResultsRoutes = new Elysia({ prefix: "/admin" })
         .set({ resetAt: new Date() })
         .where(and(eq(attempts.packId, params.id), eq(attempts.userId, body.userId), isNull(attempts.resetAt), ne(attempts.status, "in_progress")))
         .returning({ id: attempts.id });
+      // A reset attempt keeps its certificate only when the pack says reopened attempts qualify.
+      for (const a of reset) await reconcileAttempt(a.id);
       return { reset: reset.length };
     },
     { params: idParam, body: t.Object({ userId: t.String({ format: "uuid" }) }) }

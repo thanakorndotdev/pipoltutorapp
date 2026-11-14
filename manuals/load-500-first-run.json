@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-13T16:16:59.538Z",
+  "environment": "local macOS Bun API + Docker PostgreSQL; synthetic isolated data; HTTP loopback",
+  "virtualUsers": 500,
+  "peakConcurrentHttp": 500,
+  "iterations": 10,
+  "elapsedSeconds": 15.25,
+  "requestsPerSecond": 360.57,
+  "requests": 5500,
+  "errors": 5,
+  "p50Ms": 854,
+  "p95Ms": 1656,
+  "p99Ms": 2989,
+  "scenarios": {
+    "session_read": {
+      "requests": 500,
+      "errors": 5,
+      "p50Ms": 99,
+      "p95Ms": 142,
+      "p99Ms": 146
+    },
+    "article_read": {
+      "requests": 1500,
+      "errors": 0,
+      "p50Ms": 786,
+      "p95Ms": 1616,
+      "p99Ms": 1675
+    },
+    "daily_submit": {
+      "requests": 75,
+      "errors": 0,
+      "p50Ms": 1048,
+      "p95Ms": 1221,
+      "p99Ms": 1243
+    },
+    "rank_read": {
+      "requests": 750,
+      "errors": 0,
+      "p50Ms": 1013,
+      "p95Ms": 1747,
+      "p99Ms": 1775
+    },
+    "article_search": {
+      "requests": 750,
+      "errors": 0,
+      "p50Ms": 1425,
+      "p95Ms": 1783,
+      "p99Ms": 1841
+    },
+    "certificate_download": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 868,
+      "p95Ms": 1604,
+      "p99Ms": 1611
+    },
+    "certificate_verify": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 846,
+      "p95Ms": 1618,
+      "p99Ms": 1620
+    },
+    "daily_read": {
+      "requests": 675,
+      "errors": 0,
+      "p50Ms": 860,
+      "p95Ms": 1206,
+      "p99Ms": 1419
+    },
+    "admin_preview": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 1336,
+      "p95Ms": 2891,
+      "p99Ms": 3059
+    },
+    "exam_submit": {
+      "requests": 50,
+      "errors": 0,
+      "p50Ms": 3458,
+      "p95Ms": 3977,
+      "p99Ms": 3984
+    },
+    "exam_result": {
+      "requests": 450,
+      "errors": 0,
+      "p50Ms": 866,
+      "p95Ms": 1114,
+      "p99Ms": 1126
+    }
+  },
+  "certificateJobs": [
+    {
+      "status": "done",
+      "n": 50
+    }
+  ],
+  "queueDrainSeconds": 11.45,
+  "limits": [
+    "Local evidence, not a production hosting capacity guarantee",
+    "Google OAuth provider roundtrip excluded; real server session validation exercised",
+    "A mixed profile, not 500 simultaneous certificate renders",
+    "No Owner-approved production SLA or sustained external-network test yet"
+  ]
+}

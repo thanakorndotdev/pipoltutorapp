@@ -1,0 +1,51 @@
+# Optional production backup/PITR layer. Review runbook and set an Owner-held age recipient first.
+services:
+  wal-init:
+    image: postgres:16-alpine
+    user: root
+    entrypoint: ["sh", "-c", "chown postgres:postgres /wal-archive && chmod 700 /wal-archive"]
+    volumes:
+      - wal_archive:/wal-archive
+    restart: "no"
+  postgres:
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_timeout=60s
+      - -c
+      - archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f
+    volumes:
+      - wal_archive:/wal-archive
+    depends_on:
+      wal-init:
+        condition: service_completed_successfully
+  backups:
+    build:
+      context: ..
+      dockerfile: docker/backup.Dockerfile
+    restart: unless-stopped
+    # Localhost replication follows the image's existing pg_hba rules; no broad replication allow rule.
+    network_mode: service:postgres
+    environment:
+      PGHOST: 127.0.0.1
+      PGUSER: ${POSTGRES_USER:?}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      PGDATABASE: ${POSTGRES_DB:?}
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?set Owner age public recipient}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    volumes:
+      - backups_data:/backups
+      - wal_archive:/wal-archive:ro
+      - certificates_data:/assets/certificates:ro
+      - cert_keys_data:/assets/cert-keys:ro
+      - uploads_data:/assets/uploads:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  wal_archive:
+  backups_data:

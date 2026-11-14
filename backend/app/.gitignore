@@ -43,5 +43,8 @@ package-lock.json
 # local env
 .env
 
-# question figures uploaded through /admin/uploads (see src/routes/uploads.ts)
+# Rendered certificates and signing keys (private; back up separately)
+/certificates
+/cert-keys
+# Question figures uploaded through /admin/uploads (see src/routes/uploads.ts)
 /uploads

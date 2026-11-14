@@ -1,0 +1,117 @@
+{
+  "date": "2026-11-13T17:01:58.120Z",
+  "environment": "local Linux/arm64 Bun 1.3.14 API and generator in Docker; PostgreSQL16 on Docker host; synthetic isolated data; HTTP loopback",
+  "virtualUsers": 500,
+  "peakConcurrentHttp": 500,
+  "serverPendingPeak": 256,
+  "failureSamples": [],
+  "iterations": 10,
+  "elapsedSeconds": 21.23,
+  "requestsPerSecond": 259.03,
+  "requests": 5500,
+  "errors": 0,
+  "p50Ms": 1397,
+  "p95Ms": 2395,
+  "p99Ms": 3922,
+  "scenarios": {
+    "session_read": {
+      "requests": 500,
+      "errors": 0,
+      "p50Ms": 182,
+      "p95Ms": 234,
+      "p99Ms": 243
+    },
+    "article_read": {
+      "requests": 1500,
+      "errors": 0,
+      "p50Ms": 1455,
+      "p95Ms": 2064,
+      "p99Ms": 2075
+    },
+    "daily_submit": {
+      "requests": 75,
+      "errors": 0,
+      "p50Ms": 1375,
+      "p95Ms": 1626,
+      "p99Ms": 1669
+    },
+    "certificate_download": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 1279,
+      "p95Ms": 2232,
+      "p99Ms": 2257
+    },
+    "rank_read": {
+      "requests": 750,
+      "errors": 0,
+      "p50Ms": 1527,
+      "p95Ms": 2391,
+      "p99Ms": 2400
+    },
+    "article_search": {
+      "requests": 750,
+      "errors": 0,
+      "p50Ms": 2063,
+      "p95Ms": 2878,
+      "p99Ms": 3109
+    },
+    "certificate_verify": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 1206,
+      "p95Ms": 2268,
+      "p99Ms": 2271
+    },
+    "daily_read": {
+      "requests": 675,
+      "errors": 0,
+      "p50Ms": 1331,
+      "p95Ms": 1973,
+      "p99Ms": 2008
+    },
+    "admin_preview": {
+      "requests": 250,
+      "errors": 0,
+      "p50Ms": 2151,
+      "p95Ms": 3818,
+      "p99Ms": 4053
+    },
+    "exam_submit": {
+      "requests": 50,
+      "errors": 0,
+      "p50Ms": 4750,
+      "p95Ms": 5483,
+      "p99Ms": 5484
+    },
+    "exam_result": {
+      "requests": 450,
+      "errors": 0,
+      "p50Ms": 1652,
+      "p95Ms": 2012,
+      "p99Ms": 2131
+    }
+  },
+  "certificateJobs": [
+    {
+      "status": "done",
+      "n": 50
+    }
+  ],
+  "queueDrainSeconds": 9.67,
+  "limits": [
+    "Local evidence, not a production hosting capacity guarantee",
+    "Google OAuth provider roundtrip excluded; real server session validation exercised",
+    "A mixed profile, not 500 simultaneous certificate renders",
+    "No Owner-approved production SLA or sustained external-network test yet"
+  ],
+  "runtime": {
+    "platform": "linux",
+    "architecture": "arm64",
+    "bun": "1.3.14",
+    "database": "PostgreSQL16",
+    "poolMax": 10,
+    "renderWorkers": 1,
+    "clientFetchConnectionLimit": 256
+  }
+}

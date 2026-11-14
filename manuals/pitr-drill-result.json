@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-13T16:36:46.021Z",
+  "environment": "disposable local Docker PostgreSQL16 + age",
+  "encryptedBundle": true,
+  "authenticatedDecryption": true,
+  "assetsRestored": true,
+  "physicalBaseBackup": true,
+  "walReplay": true,
+  "targetTimestamp": "2026-11-13 16:36:43.383327+00",
+  "expectedRows": 2,
+  "restoredRows": 2,
+  "fixtureRtoSeconds": 2.205,
+  "totalSeconds": 6.829,
+  "limits": [
+    "Fixture timing only; production RPO/RTO requires real-host drill",
+    "Archive is same-host until Owner configures off-host WAL replication",
+    "Owner encryption identity is required to restore production bundles"
+  ]
+}

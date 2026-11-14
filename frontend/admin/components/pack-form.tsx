@@ -1,13 +1,13 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 
 import { Button, Field, Note, inputClass } from "@/components/ui";
-import { errorMessage } from "@/lib/admin";
+import { errorMessage, useAdmin } from "@/lib/admin";
 import { fromBangkokLocal, toBangkokLocal } from "@/lib/format";
-import type { Pack, PackInput } from "@/lib/types";
+import type { CertPackSettings, CertTemplate, Pack, PackInput } from "@/lib/types";
 
-type Draft = {
+type Draft = CertPackSettings & {
   slug: string;
   title: string;
   description: string;
@@ -38,6 +38,13 @@ function fromPack(p: Pack | null): Draft {
       published: false,
       showReview: false,
       paperUrl: "",
+      level: null,
+      subjectLabel: null,
+      certificateEnabled: false,
+      certOnAutoSubmit: true,
+      certOnHardCutoff: true,
+      certOnReopen: false,
+      certTemplateId: null,
     };
   }
   return {
@@ -53,15 +60,32 @@ function fromPack(p: Pack | null): Draft {
     published: p.published,
     showReview: p.showReview,
     paperUrl: p.paperUrl ?? "",
+    level: p.level,
+    subjectLabel: p.subjectLabel,
+    certificateEnabled: p.certificateEnabled,
+    certOnAutoSubmit: p.certOnAutoSubmit,
+    certOnHardCutoff: p.certOnHardCutoff,
+    certOnReopen: p.certOnReopen,
+    certTemplateId: p.certTemplateId,
   };
 }
 
 /** Exams are free; a pack is just its settings plus the questions picked in the editor. */
 export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null; onSubmit: (input: PackInput) => Promise<void>; onCancel: () => void }) {
+  const { api } = useAdmin();
+  const [templates, setTemplates] = useState<CertTemplate[] | null>(null);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   const [d, setD] = useState<Draft>(() => fromPack(initial));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const id = useId();
+  useEffect(() => {
+    let cancelled = false;
+    api<{ templates: CertTemplate[] }>("/admin/cert-templates")
+      .then((r) => !cancelled && setTemplates(r.templates))
+      .catch((e) => !cancelled && setTemplateError(errorMessage(e)));
+    return () => { cancelled = true; };
+  }, [api]);
   const patch = (p: Partial<Draft>) => {
     setD((prev) => ({ ...prev, ...p }));
     setError(null);
@@ -95,6 +119,13 @@ export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null
         published: d.published,
         showReview: d.showReview,
         paperUrl: paperUrl || null,
+        level: d.level,
+        subjectLabel: d.subjectLabel?.trim() || null,
+        certificateEnabled: d.certificateEnabled,
+        certOnAutoSubmit: d.certOnAutoSubmit,
+        certOnHardCutoff: d.certOnHardCutoff,
+        certOnReopen: d.certOnReopen,
+        certTemplateId: d.certTemplateId,
       });
     } catch (err) {
       setError(errorMessage(err));
@@ -169,6 +200,48 @@ export function PackForm({ initial, onSubmit, onCancel }: { initial: Pack | null
         <input type="checkbox" className="mt-0.5 size-5 accent-brand" checked={d.showReview} onChange={(e) => patch({ showReview: e.target.checked })} />
         <span>ให้นักเรียนดูผลรายข้อและเฉลยหลังส่ง (ปิดไว้ = เห็นเฉพาะคะแนนรวมเบื้องต้น)</span>
       </label>
+      <fieldset className="flex flex-col gap-3 border-t border-border pt-4">
+        <legend className="text-[16px] font-semibold">เกียรติบัตรของชุดข้อสอบ</legend>
+        <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-[14.5px]">
+          <input type="checkbox" className="size-5 accent-brand" checked={d.certificateEnabled} onChange={(e) => patch({ certificateEnabled: e.target.checked })} />
+          ออกเกียรติบัตรให้ผู้ที่ส่งข้อสอบ
+        </label>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field id={`${id}-level`} label="ระดับชั้นของข้อสอบ">
+            <select id={`${id}-level`} className={inputClass} value={d.level ?? ""} onChange={(e) => patch({ level: (e.target.value || null) as Draft["level"] })}>
+              <option value="">ไม่ระบุ</option>
+              <option value="m1">ม.1</option>
+              <option value="m4">ม.4</option>
+            </select>
+          </Field>
+          <Field id={`${id}-subject`} label="วิชา (พิมพ์บนเกียรติบัตร)">
+            <input id={`${id}-subject`} className={inputClass} maxLength={120} value={d.subjectLabel ?? ""} onChange={(e) => patch({ subjectLabel: e.target.value || null })} placeholder="คณิตศาสตร์" />
+          </Field>
+        </div>
+        {d.certificateEnabled ? (
+          <>
+            {([
+              ["certOnAutoSubmit", "หมดเวลาทำข้อสอบ ระบบส่งให้อัตโนมัติ"],
+              ["certOnHardCutoff", "ถูกตัดที่เวลาปิดรับของชุด (Hard cutoff)"],
+              ["certOnReopen", "การสอบที่ถูกรีเซ็ตสิทธิ์ให้สอบใหม่"],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-[14.5px]">
+                <input type="checkbox" className="size-5 shrink-0 accent-brand" checked={d[key]} onChange={(e) => patch({ [key]: e.target.checked })} />
+                {label}
+              </label>
+            ))}
+            <Field id={`${id}-template`} label="เทมเพลตเกียรติบัตร" hint="เปลี่ยนแล้วใช้กับใบที่ออกใหม่ จัดการใบเดิมได้ที่หน้าเกียรติบัตร">
+              <select id={`${id}-template`} className={inputClass} disabled={!templates} value={d.certTemplateId ?? ""} onChange={(e) => patch({ certTemplateId: e.target.value || null })}>
+                <option value="">แบบมาตรฐานของเว็บ</option>
+                {!templates && d.certTemplateId ? <option value={d.certTemplateId}>เทมเพลตปัจจุบัน</option> : null}
+                {templates?.map((t) => <option key={t.id} value={t.id} disabled={t.publishedVersion === 0}>{t.name} {t.publishedVersion ? `· v${t.publishedVersion}` : "(ยังไม่เผยแพร่)"}</option>)}
+              </select>
+            </Field>
+            {templateError ? <Note tone="warn">โหลดเทมเพลตไม่ได้: {templateError} · การบันทึกจะคงเทมเพลตที่เลือกไว้</Note> : null}
+          </>
+        ) : null}
+        <p className="text-[14px] leading-[1.7] text-ink2">การเปลี่ยนสิทธิ์จะออกใบให้การสอบที่เข้าเงื่อนไข และเพิกถอนใบที่ไม่เข้าเงื่อนไขอัตโนมัติ</p>
+      </fieldset>
       {error ? <Note tone="error">{error}</Note> : null}
       <div className="flex justify-end gap-2 border-t border-border pt-4">
         <Button kind="ghost" onClick={onCancel}>

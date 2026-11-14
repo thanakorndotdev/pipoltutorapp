@@ -59,6 +59,9 @@ services:
       ADMIN_API_KEY: ${ADMIN_API_KEY:-}
       # Question figures from POST /admin/uploads (src/routes/uploads.ts).
       UPLOAD_DIR: /app/uploads
+      # Persist certificate files and private signing keys across container rebuilds.
+      CERT_DIR: /app/certificates
+      CERT_KEY_DIR: /app/cert-keys
       # Google OAuth (src/routes/auth.ts). PUBLIC_URL is what the browser hits
       # (Caddy), so the callback is <PUBLIC_URL>/api/auth/google/callback.
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
@@ -73,6 +76,8 @@ services:
       CLOUDFLARE_AI_MODEL: ${CLOUDFLARE_AI_MODEL:-}
     volumes:
       - uploads_data:/app/uploads
+      - certificates_data:/app/certificates
+      - cert_keys_data:/app/cert-keys
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,3 +110,5 @@ volumes:
   caddy_data:
   caddy_config:
   uploads_data:
+  certificates_data:
+  cert_keys_data:

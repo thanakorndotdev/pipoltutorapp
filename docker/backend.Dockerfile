@@ -8,6 +8,8 @@ COPY backend/app/package.json backend/app/bun.lock* ./
 RUN bun install --frozen-lockfile
 
 COPY backend/app ./
+# Fail the build if host runtime data ever slips past .dockerignore.
+RUN test ! -d /app/cert-keys && test ! -d /app/certificates && test ! -d /app/uploads
 
 EXPOSE 3001
 CMD ["sh", "-c", "bun run db:migrate && bun run start"]

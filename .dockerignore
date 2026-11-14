@@ -7,3 +7,8 @@
 **/.env
 **/.env.*
 !**/.env.example
+# Runtime data belongs in volumes, never in an image or its build context.
+backend/app/cert-keys
+backend/app/certificates
+backend/app/uploads
+**/*.pem

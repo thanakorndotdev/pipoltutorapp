@@ -1,0 +1,2 @@
+user_id,attempt_id,included,reason,score,rank,mean,sd,z,percentile
+REPLACE_WITH_REAL_USER_UUID,,0,เหตุผลคัดออก,,,,,,

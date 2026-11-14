@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-14T13:49:05.293Z",
+  "passed": 8,
+  "checks": [
+    "Monotonic activity clock excludes hidden/suspended gaps and records observed offline work only",
+    "Offline evidence is idempotent, monotonic and never silently added to trusted ranking duration",
+    "Mounted activity APIs enforce ownership, schemas, ranking permissions and finished-attempt review",
+    "Late evidence and manual review are capped at server-recorded submission time",
+    "Stale preview rejected; concurrent review commits once, audits provenance and freezes reviewed evidence",
+    "STAT-05 reviewed cumulative offline time participates in actual ranking tie-break",
+    "Subsecond online checkpoints accumulate; extra streams and unobserved gaps require review immediately",
+    "Browser outbox survives reload, failed successor delivery and temporary logout; concurrent replays deduplicate"
+  ]
+}

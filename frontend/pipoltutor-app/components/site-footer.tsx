@@ -14,6 +14,7 @@ function cols(tutor: string, lineUrl: string): { title: string; links: { label: 
         { label: `รู้จัก${tutor}`, href: "/about" },
         { label: "คอร์สเรียน", href: "/courses" },
         { label: "คลังข้อสอบ", href: "/exam" },
+        { label: "บทความ", href: "/articles" },
         { label: "ดูดวง", href: "/fortune" },
       ],
     },

@@ -27,6 +27,13 @@ const NAME = /^[a-f0-9]{32}\.(png|jpg|webp|gif)$/;
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
+/** Disk path of an uploaded file given its public /api/uploads/<name> URL; null for anything else. */
+export function uploadedFilePath(url: string | null | undefined): string | null {
+  if (!url?.startsWith(`${PUBLIC_PREFIX}/`)) return null;
+  const name = url.slice(PUBLIC_PREFIX.length + 1);
+  return NAME.test(name) ? join(UPLOAD_DIR, name) : null;
+}
+
 /** The browser-declared type is only a claim; the file's first bytes must agree. */
 function sniffImage(head: Uint8Array): string | null {
   const at = (sig: number[], offset = 0) => sig.every((b, i) => head[offset + i] === b);

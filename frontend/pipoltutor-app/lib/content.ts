@@ -85,13 +85,15 @@ export const PLANS: Plan[] = [
   },
 ];
 
-export type NavId = "home" | "about" | "courses" | "exam" | "fortune";
+export type NavId = "home" | "about" | "courses" | "exam" | "articles" | "fortune" | "daily";
 
 /** `about` has no fixed label: the header renders `รู้จัก${tutorName}` from site copy. */
 export const NAV: { id: NavId; label: string; href: string }[] = [
+  { id: "daily", label: "ทำโจทย์ประจำวัน", href: "/daily" },
   { id: "home", label: "หน้าแรก", href: "/" },
   { id: "about", label: `รู้จัก${TUTOR_NAME}`, href: "/about" },
   { id: "courses", label: "คอร์สเรียน", href: "/courses" },
   { id: "exam", label: "คลังข้อสอบ", href: "/exam" },
+  { id: "articles", label: "บทความ", href: "/articles" },
   { id: "fortune", label: "ดูดวง", href: "/fortune" },
 ];
