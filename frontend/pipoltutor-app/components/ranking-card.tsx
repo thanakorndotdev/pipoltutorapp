@@ -37,9 +37,11 @@ export async function RankingCard({
     z: "Z-score",
     percentile: "เปอร์เซ็นไทล์",
   };
+  // The rank belongs to the attempt the pack's policy selected; other attempts show only their own score.
   if (compact)
-    return (
+    return rank.selectedAttemptId !== attemptId ? null : (
       <p className="text-[14px] text-ink2">
+        <span className="font-medium text-brand">ใช้จัดอันดับ</span> ·{" "}
         {rank.metrics.rank !== undefined
           ? `อันดับ ${rank.metrics.rank ?? "N/A"}/${rank.nRank} · `
           : ""}

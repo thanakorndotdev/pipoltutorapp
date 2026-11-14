@@ -288,6 +288,37 @@ try {
   assert.equal(rank.nRank, 1);
   await j(`/attempts/${a1.id}/ranking`, "GET", undefined, 404, other.headers);
   ok("AC-01/08/STAT-08 own ranking 1/1 and other-user 404");
+  // A lower second attempt is not the one ranked, but the student still sees its score.
+  const [lower] = await db
+    .insert(attempts)
+    .values({
+      userId: student.row.id,
+      packId,
+      status: "submitted",
+      score: 30,
+      maxScore: 100,
+      activeSeconds: 100,
+      activeVerified: true,
+      startedAt: new Date("2026-01-02T00:00Z"),
+      expiresAt: new Date(),
+      submittedAt: new Date(),
+    })
+    .returning();
+  await refreshRanking(packId);
+  const own = (
+    await j<{
+      attempts: { id: string; score: number | null; selectedForRanking: boolean }[];
+    }>("/attempts", "GET", undefined, 200, student.headers)
+  ).attempts;
+  const shown = (id: string) => {
+    const a = own.find((x) => x.id === id);
+    return a && { score: a.score, selected: a.selectedForRanking };
+  };
+  assert.deepEqual(shown(a1.id), { score: 40, selected: true });
+  assert.deepEqual(shown(lower!.id), { score: 30, selected: false });
+  await db.delete(attempts).where(eq(attempts.id, lower!.id));
+  await refreshRanking(packId);
+  ok("STAT-03 unselected attempt keeps its own score in the student's history");
   const prev = await j<{ previewId: string }>(
     `/admin/ranking/${packId}/preview`,
     "POST",

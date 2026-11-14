@@ -335,7 +335,10 @@ export async function readRanking(packId: string) {
   return refreshRanking(packId);
 }
 
-/** Student transport exposes only the selected published score, respecting module visibility. */
+/**
+ * Student transport, respecting module visibility: every graded attempt shows its own
+ * score, and the one the ranking policy selected shows its official (possibly adjusted) score.
+ */
 export async function studentAttemptResult<
   T extends {
     id: string;
@@ -352,7 +355,7 @@ export async function studentAttemptResult<
   const visible = snapshot.visibility.includes("score");
   return {
     ...attempt,
-    score: visible && row ? row.official.score : null,
+    score: visible ? (row ? row.official.score : attempt.score) : null,
     topicBreakdown: visible ? attempt.topicBreakdown : null,
     scoreStatus: snapshot.publishedFinal ? "final" : "preliminary",
     scoreVisible: visible,
