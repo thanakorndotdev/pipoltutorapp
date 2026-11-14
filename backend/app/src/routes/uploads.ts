@@ -12,8 +12,8 @@ import { adminGuard } from "./admin/guard";
  * the public path (/api/uploads/<name>) in questions.imageUrls, so the same
  * value works behind Caddy and through the Next.js dev rewrites.
  */
-const UPLOAD_DIR = resolve(process.env.UPLOAD_DIR ?? join(process.cwd(), "uploads"));
-const PUBLIC_PREFIX = "/api/uploads";
+export const UPLOAD_DIR = resolve(process.env.UPLOAD_DIR ?? join(process.cwd(), "uploads"));
+export const PUBLIC_PREFIX = "/api/uploads";
 
 const IMAGE_TYPES: Record<string, string> = {
   "image/png": "png",
@@ -35,7 +35,7 @@ export function uploadedFilePath(url: string | null | undefined): string | null 
 }
 
 /** The browser-declared type is only a claim; the file's first bytes must agree. */
-function sniffImage(head: Uint8Array): string | null {
+export function sniffImage(head: Uint8Array): string | null {
   const at = (sig: number[], offset = 0) => sig.every((b, i) => head[offset + i] === b);
   if (at([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "png";
   if (at([0xff, 0xd8, 0xff])) return "jpg";
@@ -44,7 +44,7 @@ function sniffImage(head: Uint8Array): string | null {
   return null;
 }
 
-function randomName(ext: string): string {
+export function randomName(ext: string): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return `${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}.${ext}`;
 }

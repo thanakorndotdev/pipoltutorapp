@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ProfilePhoto } from "@/components/profile-card";
 type Comment = {
   id: string;
   parentId: string | null;
   text: string;
   createdAt: string;
   name: string | null;
+  authorId: string;
+  photo: string | null;
 };
 export function ArticleDiscussion({
   slug,
@@ -80,10 +83,22 @@ export function ArticleDiscussion({
         id={`comment-${c.id}`}
         className="scroll-mt-8 border-t border-border py-4"
       >
-        <p className="text-[14px] font-medium">
-          {c.name ?? "ผู้ใช้"} ·{" "}
-          {new Date(c.createdAt).toLocaleDateString("th-TH")}
-        </p>
+        <div className="flex items-center gap-2.5">
+          {loggedIn ? (
+            <Link href={`/u/${c.authorId}`} className="flex items-center gap-2.5 font-medium hover:text-brand">
+              <ProfilePhoto src={c.photo} size={32} />
+              <span className="text-[14.5px]">{c.name ?? "ผู้ใช้"}</span>
+            </Link>
+          ) : (
+            <span className="flex items-center gap-2.5 font-medium">
+              <ProfilePhoto src={c.photo} size={32} />
+              <span className="text-[14.5px]">{c.name ?? "ผู้ใช้"}</span>
+            </span>
+          )}
+          <span className="text-[13.5px] text-ink3">
+            · {new Date(c.createdAt).toLocaleDateString("th-TH")}
+          </span>
+        </div>
         <p className="mt-2 whitespace-pre-wrap break-words text-[16px]">
           {c.text}
         </p>

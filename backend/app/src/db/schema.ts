@@ -124,6 +124,10 @@ export const users = pgTable(
     lastName: text("last_name"),
     nickname: text("nickname"),
     campus: pcshsCampus("campus"),
+    /** Student-written "about me" shown on their profile; plain text, moderated by staff. */
+    bio: text("bio"),
+    /** Uploaded profile photo (/api/uploads/...), re-encoded server-side; overrides the Google avatar. */
+    photoUrl: text("photo_url"),
     lineInviteSentAt: timestamp("line_invite_sent_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

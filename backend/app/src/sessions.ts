@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 
 import { db } from "./db";
 import { hostEnv } from "./db/env";
@@ -37,7 +37,8 @@ export const sessionUserColumns = {
   id: users.id,
   email: users.email,
   displayName: users.displayName,
-  avatarUrl: users.avatarUrl,
+  /** The uploaded profile photo when there is one, else the Google avatar. */
+  avatarUrl: sql<string | null>`coalesce(${users.photoUrl}, ${users.avatarUrl})`,
   role: users.role,
   staffRole: users.staffRole,
   modulePermissions: users.modulePermissions,

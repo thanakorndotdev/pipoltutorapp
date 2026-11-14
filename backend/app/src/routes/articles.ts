@@ -258,7 +258,10 @@ export const articlesRoutes = new Elysia({ prefix: "/articles" })
             parentId: comments.parentId,
             text: comments.text,
             createdAt: comments.createdAt,
-            name: users.displayName,
+            // Nickname first: commenters are students, so the Google full name is a fallback only.
+            name: sql<string | null>`coalesce(${users.nickname}, ${users.displayName})`,
+            authorId: users.id,
+            photo: sql<string | null>`coalesce(${users.photoUrl}, ${users.avatarUrl})`,
           })
           .from(comments)
           .innerJoin(users, eq(users.id, comments.userId))

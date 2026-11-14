@@ -12,14 +12,29 @@ type Comment = {
   flags: string[];
   createdAt: string;
 };
+type Profile = {
+  id: string;
+  nickname: string | null;
+  email: string;
+  bio: string | null;
+  photoUrl: string | null;
+  updatedAt: string;
+};
 export default function Page() {
   const { api } = useAdmin();
   const [items, setItems] = useState<Comment[]>([]),
+    [profiles, setProfiles] = useState<Profile[]>([]),
     [status, setStatus] = useState("flagged_pending"),
     [reason, setReason] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => {
+    if (status === "profiles") {
+      api<{ profiles: Profile[] }>("/admin/comments/profiles")
+        .then((r) => setProfiles(r.profiles))
+        .catch((e) => setError(errorMessage(e)));
+      return;
+    }
     api<{ comments: Comment[] }>(
       `/admin/comments${status ? `?status=${status}` : ""}`,
     )
@@ -34,6 +49,28 @@ export default function Page() {
         json: { action, reason },
       });
       setItems(items.filter((c) => c.id !== id));
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function clearProfile(p: Profile, what: { photo: boolean; bio: boolean }) {
+    setBusy(true);
+    try {
+      await api(`/admin/comments/profiles/${p.id}/clear`, {
+        method: "POST",
+        json: { ...what, reason },
+      });
+      setProfiles(
+        profiles
+          .map((x) =>
+            x.id === p.id
+              ? { ...x, photoUrl: what.photo ? null : x.photoUrl, bio: what.bio ? null : x.bio }
+              : x,
+          )
+          .filter((x) => x.photoUrl || x.bio),
+      );
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -60,6 +97,7 @@ export default function Page() {
           ["hidden", "ซ่อน"],
           ["deleted", "ลบแล้ว"],
           ["", "ทั้งหมด"],
+          ["profiles", "โปรไฟล์นักเรียน (รูปและแนะนำตัว)"],
         ].map(([v, l]) => (
           <option key={v} value={v}>
             {l}
@@ -73,7 +111,31 @@ export default function Page() {
         onChange={(e) => setReason(e.target.value)}
         placeholder="เหตุผล (อย่างน้อย 3 ตัวอักษร)"
       />
-      {items.map((c) => (
+      {status === "profiles"
+        ? profiles.map((p) => (
+            <Card key={p.id} className="flex flex-col gap-3">
+              <div className="flex items-start gap-4">
+                {p.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- uploaded profile photo under review
+                  <img src={p.photoUrl} alt="" className="size-20 shrink-0 rounded-full object-cover" />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="font-medium">{p.nickname ?? "ไม่มีชื่อเล่น"} · {p.email}</p>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-[16px]">{p.bio ?? "—"}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button kind="danger" disabled={busy || !p.photoUrl || reason.trim().length < 3} onClick={() => void clearProfile(p, { photo: true, bio: false })}>
+                  ล้างรูป
+                </Button>
+                <Button kind="danger" disabled={busy || !p.bio || reason.trim().length < 3} onClick={() => void clearProfile(p, { photo: false, bio: true })}>
+                  ล้างแนะนำตัว
+                </Button>
+              </div>
+            </Card>
+          ))
+        : null}
+      {status !== "profiles" && items.map((c) => (
         <Card key={c.id} className="flex flex-col gap-3">
           <p className="whitespace-pre-wrap text-[16px]">{c.text}</p>
           <p className="text-[14px] text-ink2">
@@ -107,7 +169,9 @@ export default function Page() {
           </div>
         </Card>
       ))}
-      {!items.length ? <p>ไม่มีความคิดเห็นในสถานะนี้</p> : null}
+      {status === "profiles"
+        ? !profiles.length ? <p>ยังไม่มีโปรไฟล์ที่มีรูปหรือแนะนำตัว</p> : null
+        : !items.length ? <p>ไม่มีความคิดเห็นในสถานะนี้</p> : null}
     </>
   );
 }

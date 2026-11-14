@@ -2,7 +2,8 @@ import { randomBytes } from "node:crypto";
 import { Elysia, t } from "elysia";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { articles } from "../../db/schema";
+import { articles, users } from "../../db/schema";
+import { removeProfilePhoto } from "../../profile-photo";
 import {
   articleRedirects,
   articleRevisions,
@@ -721,5 +722,58 @@ export const adminCommentsRoutes = new Elysia({ prefix: "/admin/comments" })
         ]),
         reason,
       }),
+    },
+  )
+  /** Student profiles with a photo or bio, newest change first, for moderation. */
+  .get("/profiles", async () => ({
+    profiles: await db
+      .select({
+        id: users.id,
+        nickname: users.nickname,
+        email: users.email,
+        bio: users.bio,
+        photoUrl: users.photoUrl,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(sql`${users.deletedAt} is null and (${users.bio} is not null or ${users.photoUrl} is not null)`)
+      .orderBy(desc(users.updatedAt))
+      .limit(200),
+  }))
+  .post(
+    "/profiles/:userId/clear",
+    async ({ params, body, headers }) => {
+      if (!body.photo && !body.bio) fail("เลือกอย่างน้อยหนึ่งอย่างที่จะล้าง", 422);
+      const before = await db.transaction(async (tx) => {
+        const [u] = await tx
+          .select({ bio: users.bio, photoUrl: users.photoUrl })
+          .from(users)
+          .where(eq(users.id, params.userId))
+          .for("update");
+        if (!u) fail("ไม่พบผู้ใช้", 404);
+        await tx
+          .update(users)
+          .set({
+            ...(body.photo ? { photoUrl: null } : {}),
+            ...(body.bio ? { bio: null } : {}),
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, params.userId));
+        await auditTx(tx, await actorOf(headers), {
+          module: "comment",
+          action: "profile.moderate",
+          targetId: params.userId,
+          before: { bio: body.bio ? u!.bio : undefined, photoUrl: body.photo ? u!.photoUrl : undefined },
+          after: { bio: body.bio ? null : undefined, photoUrl: body.photo ? null : undefined },
+          reason: body.reason,
+        });
+        return u!;
+      });
+      if (body.photo) await removeProfilePhoto(before.photoUrl);
+      return { ok: true };
+    },
+    {
+      params: t.Object({ userId: t.String({ format: "uuid" }) }),
+      body: t.Object({ photo: t.Boolean(), bio: t.Boolean(), reason }),
     },
   );

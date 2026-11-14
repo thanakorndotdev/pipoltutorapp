@@ -60,7 +60,7 @@ const USER_MENU = [
     label: "Dashboard ของฉัน",
     sub: "ความคืบหน้าและทางลัดทั้งหมด",
   },
-  { href: "/profile", icon: "person", label: "โปรไฟล์", sub: "แก้ไขข้อมูลของฉัน" },
+  { href: "/profile", icon: "person", label: "โปรไฟล์ของฉัน", sub: "รูป แนะนำตัว และข้อมูลนักเรียน" },
   {
     href: "/dashboard#history",
     icon: "history",

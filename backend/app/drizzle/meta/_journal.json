@@ -176,6 +176,13 @@
       "when": 1794661867496,
       "tag": "0024_daily_extensions",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794681757538,
+      "tag": "0025_profile_bio_photo",
+      "breakpoints": true
     }
   ]
 }

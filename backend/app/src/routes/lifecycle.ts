@@ -8,6 +8,7 @@ import { currentUser } from "../auth";
 import { auditTx, fail, lock } from "../features/common";
 import { staffRole } from "../permissions";
 import { ownRanking } from "../features/ranking";
+import { removeProfilePhoto } from "../profile-photo";
 export const lifecycleRoutes = new Elysia()
   .get(
     "/attempts/:id/ranking",
@@ -23,6 +24,8 @@ export const lifecycleRoutes = new Elysia()
     async ({ headers, body, set }) => {
       const u = await currentUser(headers);
       if (!u) fail("กรุณาเข้าสู่ระบบ", 401);
+      const [photoRow] = await db.select({ photoUrl: users.photoUrl }).from(users).where(eq(users.id, u!.id));
+      const photoToRemove = photoRow?.photoUrl ?? null;
       await db.transaction(async (tx) => {
         await lock(tx, `account:${u!.id}`);
         if (staffRole(u!) === "owner") {
@@ -79,6 +82,8 @@ export const lifecycleRoutes = new Elysia()
             nickname: null,
             campus: null,
             avatarUrl: null,
+            bio: null,
+            photoUrl: null,
             deletedAt: new Date(),
             staffRole: "none",
             modulePermissions: {},
@@ -99,6 +104,7 @@ export const lifecycleRoutes = new Elysia()
           },
         );
       });
+      await removeProfilePhoto(photoToRemove);
       set.headers["set-cookie"] =
         "pt_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
       return { deleted: true };
