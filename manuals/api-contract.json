@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T13:17:24.573Z",
+  "generatedAt": "2026-11-15T02:57:55.161Z",
   "format": "Elysia TypeBox schemas; see api-contract.md for response/privacy/permission notes",
   "routes": [
     {
@@ -840,6 +840,71 @@
                 "suphan_buri",
                 "sa_kaeo"
               ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "PUT",
+      "path": "/profile/about",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "bio"
+          ],
+          "properties": {
+            "bio": {
+              "maxLength": 600,
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/profile/photo",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "default": "File",
+              "maxSize": 5242880,
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/photo",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/:id",
+      "request": {
+        "params": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "format": "uuid",
+              "type": "string"
             }
           }
         }
@@ -2121,6 +2186,212 @@
     },
     {
       "method": "GET",
+      "path": "/admin/daily/bank",
+      "request": {
+        "query": {
+          "type": "object",
+          "properties": {
+            "q": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "subject": {
+              "anyOf": [
+                {
+                  "const": "math",
+                  "type": "string"
+                },
+                {
+                  "const": "science",
+                  "type": "string"
+                },
+                {
+                  "const": "general_aptitude",
+                  "type": "string"
+                },
+                {
+                  "const": "thai",
+                  "type": "string"
+                },
+                {
+                  "const": "english",
+                  "type": "string"
+                }
+              ]
+            },
+            "limit": {
+              "minimum": 1,
+              "maximum": 100,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "type": "integer"
+                }
+              ]
+            },
+            "offset": {
+              "minimum": 0,
+              "anyOf": [
+                {
+                  "format": "integer",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/daily/bank",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "subject",
+            "topic",
+            "prompt",
+            "type",
+            "points",
+            "choices",
+            "correctChoices"
+          ],
+          "properties": {
+            "subject": {
+              "default": "math",
+              "type": "string",
+              "enum": [
+                "math",
+                "science",
+                "general_aptitude",
+                "thai",
+                "english"
+              ]
+            },
+            "topic": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            },
+            "prompt": {
+              "minLength": 1,
+              "maxLength": 4000,
+              "type": "string"
+            },
+            "imageUrls": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "maxLength": 2000,
+                "type": "string"
+              }
+            },
+            "linkUrls": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "maxLength": 2000,
+                "type": "string"
+              }
+            },
+            "type": {
+              "default": "single",
+              "type": "string",
+              "enum": [
+                "single",
+                "multiple",
+                "short"
+              ]
+            },
+            "points": {
+              "minimum": 0,
+              "maximum": 1000,
+              "type": "number"
+            },
+            "scoring": {
+              "default": "exact",
+              "type": "string",
+              "enum": [
+                "exact",
+                "partial"
+              ]
+            },
+            "choices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "text"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "maxLength": 4,
+                    "type": "string"
+                  },
+                  "text": {
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "correctChoices": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 4,
+                "type": "string"
+              }
+            },
+            "acceptedAnswers": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "minLength": 1,
+                "maxLength": 500,
+                "type": "string"
+              }
+            },
+            "explanation": {
+              "nullable": true,
+              "anyOf": [
+                {
+                  "maxLength": 4000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "active": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
       "path": "/admin/daily/",
       "request": {},
       "response": null
@@ -2140,7 +2411,6 @@
           ],
           "properties": {
             "title": {
-              "minLength": 1,
               "maxLength": 200,
               "type": "string"
             },
@@ -2251,12 +2521,10 @@
                     ]
                   },
                   "topic": {
-                    "minLength": 1,
                     "maxLength": 150,
                     "type": "string"
                   },
                   "prompt": {
-                    "minLength": 1,
                     "maxLength": 10000,
                     "type": "string"
                   },
@@ -2320,6 +2588,26 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "imageUrls": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 2000,
+                      "type": "string"
+                    }
+                  },
+                  "linkUrls": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 2000,
+                      "type": "string"
+                    }
+                  },
+                  "sourceQuestionId": {
+                    "format": "uuid",
+                    "type": "string"
                   }
                 }
               }
@@ -2498,7 +2786,6 @@
           ],
           "properties": {
             "title": {
-              "minLength": 1,
               "maxLength": 200,
               "type": "string"
             },
@@ -2609,12 +2896,10 @@
                     ]
                   },
                   "topic": {
-                    "minLength": 1,
                     "maxLength": 150,
                     "type": "string"
                   },
                   "prompt": {
-                    "minLength": 1,
                     "maxLength": 10000,
                     "type": "string"
                   },
@@ -2678,6 +2963,26 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "imageUrls": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 2000,
+                      "type": "string"
+                    }
+                  },
+                  "linkUrls": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "maxLength": 2000,
+                      "type": "string"
+                    }
+                  },
+                  "sourceQuestionId": {
+                    "format": "uuid",
+                    "type": "string"
                   }
                 }
               }
@@ -3322,6 +3627,52 @@
           ],
           "properties": {
             "id": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/comments/profiles",
+      "request": {},
+      "response": null
+    },
+    {
+      "method": "POST",
+      "path": "/admin/comments/profiles/:userId/clear",
+      "request": {
+        "body": {
+          "type": "object",
+          "required": [
+            "photo",
+            "bio",
+            "reason"
+          ],
+          "properties": {
+            "photo": {
+              "type": "boolean"
+            },
+            "bio": {
+              "type": "boolean"
+            },
+            "reason": {
+              "minLength": 3,
+              "maxLength": 500,
+              "type": "string"
+            }
+          }
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "userId"
+          ],
+          "properties": {
+            "userId": {
               "format": "uuid",
               "type": "string"
             }
@@ -5265,6 +5616,12 @@
           }
         }
       },
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/certificates/progress",
+      "request": {},
       "response": null
     },
     {

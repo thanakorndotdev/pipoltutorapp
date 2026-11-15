@@ -78,6 +78,58 @@ export const adminCertificatesRoutes = new Elysia({ prefix: "/admin/certificates
       }),
     }
   )
+  /**
+   * Render queue progress for the admin bar, polled every few seconds. A "run" is the
+   * current busy stretch of the worker: it starts when a job joins an empty queue and
+   * counts every job queued since, so issuing 1,500 at once reads 0 → 1,500. When the
+   * queue is empty the last run is returned with remaining 0.
+   */
+  .get("/progress", async () => {
+    // A job's place in line is when it last became due (run_after; a retry in backoff
+    // counts from its failure). Its finish is updated_at once done/failed. The run starts
+    // at the latest point where everything queued earlier had already finished.
+    const [run] = await db.execute<{ done: number; failed: number; remaining: number; started_at: string | null; elapsed_s: number | null }>(sql`
+      with j as (
+        select status, least(run_after, updated_at) as enq,
+               case when status in ('done', 'failed') then updated_at else 'infinity'::timestamptz end as fin
+        from certificate_jobs
+        where status in ('pending', 'running') or updated_at > now() - interval '14 days'
+      ), w as (
+        select enq, max(fin) over (order by enq rows between unbounded preceding and 1 preceding) as prev_fin from j
+      ), s as (
+        select max(enq) as start from w where prev_fin is null or prev_fin < enq
+      )
+      select
+        (count(*) filter (where status = 'done'))::int as done,
+        (count(*) filter (where status = 'failed'))::int as failed,
+        (count(*) filter (where status in ('pending', 'running')))::int as remaining,
+        to_char(s.start at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as started_at,
+        extract(epoch from max(fin) filter (where fin < 'infinity') - s.start)::float8 as elapsed_s
+      from j, s where j.enq >= s.start group by s.start`);
+    const [counts] = await db
+      .select({
+        queued: sql<number>`count(*) filter (where ${certificates.status} = 'queued')`,
+        failed: sql<number>`count(*) filter (where ${certificates.status} = 'render_failed')`,
+        valid: sql<number>`count(*) filter (where ${certificates.status} = 'valid')`,
+      })
+      .from(certificates);
+    const finished = run ? run.done + run.failed : 0;
+    // Throughput of this run so far; a few samples first so the estimate does not jump around.
+    const secondsPerCert = run && finished >= 3 && run.elapsed_s ? run.elapsed_s / finished : null;
+    return {
+      run: run
+        ? {
+            done: run.done,
+            failed: run.failed,
+            remaining: run.remaining,
+            total: finished + run.remaining,
+            startedAt: run.started_at,
+            etaSeconds: run.remaining > 0 && secondsPerCert ? Math.round(run.remaining * secondsPerCert) : null,
+          }
+        : null,
+      counts: { queued: Number(counts?.queued ?? 0), failed: Number(counts?.failed ?? 0), valid: Number(counts?.valid ?? 0) },
+    };
+  })
   /** One certificate with its signed manifest and a live signature check (verify lookup). */
   .get(
     "/:id",

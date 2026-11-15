@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useState } from "react";
 
 import { Button, Card, Empty, Field, Icon, Note, PageHeader, Spinner, Tag, inputClass } from "@/components/ui";
 import { errorMessage, useAdmin } from "@/lib/admin";
@@ -10,6 +10,11 @@ import { CERT_STATUS, type AdminCertificate, type CertPack, type CertPackSetting
 
 type TemplateOption = { id: string; name: string; publishedVersion: number };
 type Counts = { queued: number; failed: number; valid: number };
+/** GET /admin/certificates/progress: the worker's current (or last) run plus status counts. */
+type RenderRun = { done: number; failed: number; remaining: number; total: number; startedAt: string | null; etaSeconds: number | null };
+type Progress = { run: RenderRun | null; counts: Counts };
+
+const n = (v: number) => v.toLocaleString("th-TH");
 
 const check = "flex min-h-[40px] cursor-pointer items-center gap-2.5 text-[14.5px]";
 
@@ -218,16 +223,111 @@ function PackCard({ pack, templates, onChanged }: { pack: CertPack; templates: T
   );
 }
 
+/**
+ * Polls the render queue: every 2 s while files are being made, every 10 s when idle so a
+ * new batch shows up on its own, and not at all while the tab is hidden. `onRunFinished`
+ * fires when a run this page watched empties the queue.
+ */
+function useRenderProgress(refresh: number, onRunFinished: () => void) {
+  const { api } = useAdmin();
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [watched, setWatched] = useState(false);
+  const finished = useEffectEvent(onRunFinished);
+
+  useEffect(() => {
+    let stopped = false;
+    let busy = false;
+    let wasActive = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    async function poll() {
+      clearTimeout(timer);
+      if (stopped || busy || document.hidden) return;
+      busy = true;
+      let active = wasActive;
+      try {
+        const r = await api<Progress>("/admin/certificates/progress");
+        if (stopped) return;
+        active = (r.run?.remaining ?? 0) > 0;
+        setProgress(r);
+        if (active) setWatched(true);
+        if (wasActive && !active) finished();
+        wasActive = active;
+      } catch {
+        // Keep the last numbers on screen; the next tick tries again.
+      } finally {
+        busy = false;
+      }
+      if (!stopped) timer = setTimeout(() => void poll(), active ? 2_000 : 10_000);
+    }
+    const onVisible = () => void poll();
+    document.addEventListener("visibilitychange", onVisible);
+    void poll();
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [api, refresh]);
+
+  return { progress, watched };
+}
+
+function eta(seconds: number) {
+  const m = Math.ceil(seconds / 60);
+  if (m <= 1) return "อีกไม่ถึง 1 นาที";
+  if (m < 60) return `อีกประมาณ ${m} นาที`;
+  return `อีกประมาณ ${Math.floor(m / 60)} ชม. ${m % 60} นาที`;
+}
+
+/** The bar shown while the worker makes files, and once more at 100% when the run ends. */
+function RenderProgress({ run }: { run: RenderRun }) {
+  const processed = run.done + run.failed;
+  const pct = run.total ? Math.floor((processed / run.total) * 100) : 100;
+  const done = run.remaining === 0;
+  return (
+    <Card className="flex flex-col gap-2.5 py-4">
+      <div className="flex items-baseline gap-3">
+        <Icon name={done ? "check_circle" : "progress_activity"} size={19} fill={done} className={done ? "self-center text-green" : "animate-spin self-center text-brand"} />
+        <span id="render-progress-label" className="text-[15px] font-medium">
+          {done ? "สร้างไฟล์เกียรติบัตรรอบนี้เสร็จแล้ว" : "กำลังสร้างไฟล์เกียรติบัตร"}
+        </span>
+        <span className="tabular display ml-auto text-[20px] font-semibold text-ink">{pct}%</span>
+      </div>
+      <div
+        role="progressbar"
+        aria-labelledby="render-progress-label"
+        aria-valuemin={0}
+        aria-valuemax={run.total}
+        aria-valuenow={processed}
+        aria-valuetext={`${n(processed)} จาก ${n(run.total)} ใบ`}
+        className="h-3 overflow-hidden rounded-full bg-brand-50"
+      >
+        <div className={`h-full rounded-full transition-[width] duration-700 ease-out ${done ? "bg-green" : "bg-brand"}`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="tabular text-[13.5px] text-ink3">
+        สร้างแล้ว <b className="font-medium text-ink">{n(run.done)}</b> จาก {n(run.total)} ใบ
+        {run.remaining > 0 ? ` · เหลือ ${n(run.remaining)} ใบ` : ""}
+        {run.etaSeconds !== null ? ` · ${eta(run.etaSeconds)}` : ""}
+        {run.failed > 0 ? <span className="text-red"> · สร้างไม่สำเร็จ {n(run.failed)} ใบ</span> : null}
+      </p>
+    </Card>
+  );
+}
+
 function CertTable({ packs, refresh }: { packs: CertPack[]; refresh: number }) {
   const { api } = useAdmin();
   const [rows, setRows] = useState<AdminCertificate[] | null>(null);
-  const [counts, setCounts] = useState<Counts | null>(null);
+  const [listCounts, setCounts] = useState<Counts | null>(null);
   const [packId, setPackId] = useState("");
   const [status, setStatus] = useState<CertStatus | "">("");
   const [q, setQ] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [acting, setActing] = useState<{ id: string; kind: "revoke" | "reissue"; reason: string } | null>(null);
   const [tick, setTick] = useState(0);
+  // A finished run turns its rows from "queued" to "valid": reload the list once.
+  const { progress, watched } = useRenderProgress(refresh + tick, () => setTick((t) => t + 1));
+  const counts = progress?.counts ?? listCounts;
+  const run = progress?.run;
 
   useEffect(() => {
     let cancelled = false;
@@ -267,10 +367,11 @@ function CertTable({ packs, refresh }: { packs: CertPack[]; refresh: number }) {
         <h2 className="text-[19px] font-semibold">เกียรติบัตรที่ออกแล้ว</h2>
         {counts ? (
           <p className="text-[13.5px] text-ink3">
-            ใช้ได้ {counts.valid} · รอสร้างไฟล์ {counts.queued} · สร้างไม่สำเร็จ {counts.failed}
+            ใช้ได้ {n(counts.valid)} · รอสร้างไฟล์ {n(counts.queued)} · สร้างไม่สำเร็จ {n(counts.failed)}
           </p>
         ) : null}
       </div>
+      {run && (run.remaining > 0 || watched) ? <RenderProgress run={run} /> : null}
       <Card className="flex flex-col gap-3 sm:flex-row">
         <select aria-label="ชุดข้อสอบ" className={inputClass} value={packId} onChange={(e) => setPackId(e.target.value)}>
           <option value="">ทุกชุดข้อสอบ</option>
