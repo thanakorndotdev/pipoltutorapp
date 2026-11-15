@@ -31,6 +31,7 @@ import {
 import { correctAnswer, settleFire } from "../../features/daily";
 import { csv, readSheet } from "../../features/spreadsheet";
 import { adminGuard } from "./guard";
+import { authorize } from "../../permissions";
 const reason = t.String({ minLength: 3, maxLength: 500 });
 const question = t.Object({
   id: t.String({ minLength: 1, maxLength: 80 }),
@@ -115,11 +116,14 @@ export const adminDailyRoutes = new Elysia({ prefix: "/admin/daily" })
   .use(adminGuard)
   /**
    * The exam question bank, for building a daily set from questions written
-   * there first. Daily-module staff need not hold exam permissions to pick.
+   * there first. Requires exam read rights on top of daily, because it
+   * returns answer keys.
    */
   .get(
     "/bank",
-    async ({ query }) => {
+    async ({ query, headers }) => {
+      // The bank holds mock-exam answer keys: daily rights alone are not enough to read it.
+      await authorize(headers, "exam", "read");
       const conds = [eq(questions.active, true)];
       if (query.subject) conds.push(eq(questions.subject, query.subject));
       if (query.q) {
@@ -177,6 +181,8 @@ export const adminDailyRoutes = new Elysia({ prefix: "/admin/daily" })
   .post(
     "/bank",
     async ({ body, headers, set }) => {
+      // Writing into the shared exam bank needs exam rights, same as คลังข้อสอบ.
+      await authorize(headers, "exam", "write");
       const checked = normalise(body);
       if ("error" in checked) {
         set.status = 422;
