@@ -29,8 +29,8 @@ When a token changes, change it in `figma-plugin/code.js` **and** the preview CS
 --red:#EF4444; --amber-50:#FEF3DC; --amber-ink:#7C4A03; --amber-icon:#B45309;
 --ink:#111C3E; --ink2:#46557A; --ink3:#8493B4;
 --border:#E3E9F4; --border-strong:#CBD6EA;
---sh-s:0 2px 6px rgba(17,28,62,.06);
---sh-m:0 14px 30px -8px rgba(17,28,62,.10);
+--sh-s:0 2px 6px #111c3e0f;
+--sh-m:0 14px 30px -8px #111c3e1a;
 ```
 
 Night mode (`60% #111827 / 30% #C5D4FF / 10% #FFE3A3`) is a translation of the same tokens, not a

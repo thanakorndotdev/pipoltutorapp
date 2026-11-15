@@ -76,7 +76,7 @@ export function Countdown({
             <div
               key={label}
               className={`flex flex-col items-center gap-[7px] rounded-[20px] border border-countdown-dark bg-countdown px-2.5 py-[18px] sm:w-[150px] sm:justify-self-center ${
-                urgent ? "shadow-[0_0_0_4px_rgba(255,107,53,0.35)]" : ""
+                urgent ? "shadow-[0_0_0_4px_#ff6b3559]" : ""
               }`}
             >
               <span className="tabular font-display text-[38px] font-semibold leading-[1.05] text-white">{v}</span>

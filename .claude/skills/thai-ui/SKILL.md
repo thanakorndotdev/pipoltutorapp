@@ -43,8 +43,8 @@ Tokens are shared between `preview/09-exam.html` and `figma-plugin/code.js` — 
 --red:#EF4444; --amber-50:#FEF3DC; --amber-ink:#7C4A03; --amber-icon:#B45309;
 --ink:#111C3E; --ink2:#46557A; --ink3:#8493B4;
 --border:#E3E9F4; --border-strong:#CBD6EA;
---sh-s:0 2px 6px rgba(17,28,62,.06);
---sh-m:0 14px 30px -8px rgba(17,28,62,.10);
+--sh-s:0 2px 6px #111c3e0f;
+--sh-m:0 14px 30px -8px #111c3e1a;
 ```
 
 Green means answered/saved, red means flagged or error, amber means warning, purple is reserved for the fortune-telling module. Define the light palette on bare `:root`, then redefine only what changes under `@media (prefers-color-scheme: dark)` guarded by `:root:not([data-theme="light"])`, and again under `:root[data-theme="dark"]` so an explicit toggle wins — the same three-block pattern the preview uses.
