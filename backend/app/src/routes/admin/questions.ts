@@ -12,7 +12,7 @@ const choice = t.Object({
   text: t.String({ minLength: 1, maxLength: 2000 }),
 });
 
-const questionBody = t.Object({
+export const questionBody = t.Object({
   subject: t.UnionEnum(SUBJECTS),
   topic: t.String({ minLength: 1, maxLength: 120 }),
   prompt: t.String({ minLength: 1, maxLength: 4000 }),
@@ -50,7 +50,7 @@ const listQuery = t.Object({
 });
 
 /** Admin projection — includes the key. Never reuse on a student route. */
-const adminColumns = {
+export const adminColumns = {
   id: questions.id,
   subject: questions.subject,
   topic: questions.topic,
@@ -81,7 +81,7 @@ const HTTPS_URL = /^https:\/\/\S+$/i;
  * choices, one or more keys. short: no choices, one or more accepted answers
  * (kept exactly as typed — no trimming, since matching is exact).
  */
-function normalise(body: QuestionBody) {
+export function normalise(body: QuestionBody) {
   const points = Math.round(body.points * 100) / 100;
   const imageUrls = (body.imageUrls ?? []).map((u) => u.trim()).filter(Boolean);
   if (imageUrls.some((u) => !UPLOADED_IMAGE.test(u) && !HTTPS_URL.test(u)))

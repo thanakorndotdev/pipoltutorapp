@@ -435,6 +435,8 @@ export async function dailyView(
           subject: q.subject,
           topic: q.topic,
           prompt: q.prompt,
+          imageUrls: q.imageUrls ?? [],
+          linkUrls: q.linkUrls ?? [],
           choices: q.choices,
           tries: own.length,
           correct: own.some((r) => r.correct),
@@ -525,6 +527,8 @@ export async function archiveDaily(now = new Date()) {
             correctChoices: q.correctChoices,
             acceptedAnswers: q.acceptedAnswers,
             explanation: q.explanation,
+            imageUrls: q.imageUrls ?? [],
+            linkUrls: q.linkUrls ?? [],
             points: 1,
             scoring: "exact",
           })

@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FireCard } from "@/components/fire-card";
 import { Icon } from "@/components/ui";
+/** Figures may only be our uploads or https links; anything else is dropped. */
+const isHttpsUrl = (u: string) => /^https:\/\/\S+$/i.test(u);
+const isFigureUrl = (u: string) => /^\/api\/uploads\/[a-f0-9]{32}\.(png|jpg|webp|gif)$/.test(u) || isHttpsUrl(u);
 type Answer = { selectedChoices: string[]; textAnswer: string | null };
 type Question = {
   id: string;
@@ -11,6 +14,8 @@ type Question = {
   subject: string;
   topic: string;
   prompt: string;
+  imageUrls?: string[];
+  linkUrls?: string[];
   choices: { key: string; text: string }[];
   tries: number;
   correct: boolean;
@@ -210,6 +215,18 @@ export function DailyClient({
                 >
                   ข้อ {i + 1}: {q.prompt}
                 </h3>
+                {(q.imageUrls ?? []).filter(isFigureUrl).map((url, k) => (
+                  <a key={`${k}-${url}`} href={url} target="_blank" rel="noopener noreferrer" className="flex justify-center rounded-[16px] border border-border bg-page p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- admin-provided question figure */}
+                    <img src={url} alt={`รูปประกอบโจทย์ข้อ ${i + 1}`} className="max-h-[320px] max-w-full object-contain" />
+                  </a>
+                ))}
+                {(q.linkUrls ?? []).filter(isHttpsUrl).map((url, k) => (
+                  <a key={`${k}-${url}`} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[15px] text-brand underline">
+                    <Icon name="open_in_new" size={18} />
+                    เปิดเอกสารประกอบ{(q.linkUrls ?? []).length > 1 ? ` ${k + 1}` : ""}
+                  </a>
+                ))}
                 <p className="text-[14px] text-ink2">
                   {q.topic}
                   {!data.archive ? ` · ใช้โอกาส ${q.tries}/2` : ""}

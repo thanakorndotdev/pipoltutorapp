@@ -9,6 +9,7 @@ import {
   inputClass,
 } from "@/components/ui";
 import { useAdmin, errorMessage } from "@/lib/admin";
+import { QuestionForm } from "@/components/question-form";
 import { SUBJECTS } from "@/lib/types";
 type Q = {
   id: string;
@@ -23,7 +24,50 @@ type Q = {
   showHint: boolean;
   explanation: string;
   reveal: "finished" | "next_day";
+  imageUrls?: string[];
+  linkUrls?: string[];
+  /** Set when the item was picked from the exam bank; the bank stays the place to edit its text. */
+  sourceQuestionId?: string;
 };
+type BankQuestion = {
+  id: string;
+  subject: string;
+  topic: string;
+  prompt: string;
+  imageUrls: string[];
+  linkUrls: string[];
+  type: Q["type"];
+  choices: { key: string; text: string }[];
+  correctChoices: string[];
+  acceptedAnswers: string[];
+  explanation: string | null;
+  inPublishedPacks: number;
+  usedInDaily: number;
+};
+const fromBank = (b: BankQuestion): Q => ({
+  id: crypto.randomUUID(),
+  sourceQuestionId: b.id,
+  type: b.type,
+  subject: b.subject,
+  topic: b.topic,
+  prompt: b.prompt,
+  choices: b.choices,
+  correctChoices: b.correctChoices,
+  acceptedAnswers: b.acceptedAnswers,
+  imageUrls: b.imageUrls,
+  linkUrls: b.linkUrls,
+  hint: "",
+  showHint: true,
+  explanation: b.explanation ?? "",
+  reveal: "next_day",
+});
+const draftBody = (c: Challenge) => ({
+  title: c.title,
+  date: c.date,
+  status: c.status,
+  queueOrder: c.queueOrder,
+  questions: c.questions,
+});
 type Challenge = {
   id: string;
   title: string;
@@ -46,28 +90,14 @@ const bangkokInstant = (local: string) =>
   local ? new Date(`${local}:00+07:00`).toISOString() : "";
 const bangkokToday = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
-const emptyQ = (): Q => ({
-  id: crypto.randomUUID(),
-  type: "single",
-  subject: "math",
-  topic: "",
-  prompt: "",
-  choices: [
-    { key: "A", text: "" },
-    { key: "B", text: "" },
-  ],
-  correctChoices: [],
-  acceptedAnswers: [],
-  hint: "",
-  showHint: true,
-  explanation: "",
-  reveal: "next_day",
-});
 export default function Page() {
   const { api, download } = useAdmin();
   const [items, setItems] = useState<Challenge[]>([]),
     [draft, setDraft] = useState<Challenge | null>(null),
     [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [writing, setWriting] = useState(false),
+    [topics, setTopics] = useState<string[]>([]),
     [busy, setBusy] = useState(false),
     [reason, setReason] = useState(""),
     [keepFire, setKeepFire] = useState(true),
@@ -156,7 +186,12 @@ export default function Page() {
         title="โจทย์ประจำวันและ Fire"
         sub="ตั้งวันแน่นอนหรือคิวสำรอง ทุกระดับชั้นใช้โจทย์เดียวกัน วันใหม่เริ่ม 00:00 น. เวลาไทย"
       />
+      <Note>
+        วิธีที่แนะนำ: เขียนโจทย์เก็บไว้ใน <a className="text-brand underline" href="/admin/questions/">คลังข้อสอบ</a> ก่อน (ใส่รูปได้) แล้วกด
+        &quot;สร้างชุดโจทย์ประจำวัน&quot; → เลือกโจทย์จากคลัง → ตั้งวันที่ หรือเว้นว่างไว้เป็นคิวสำรองสำหรับวันที่ไม่มีโจทย์
+      </Note>
       {error ? <Note tone="error">{error}</Note> : null}
+      {notice ? <Note tone="ok">{notice}</Note> : null}
       <div className="flex flex-wrap gap-2">
         <Button
           onClick={() => {
@@ -164,14 +199,14 @@ export default function Page() {
               id: "",
               title: "",
               date: null,
-              status: "draft",
+              status: "scheduled",
               queueOrder: 0,
-              questions: [emptyQ()],
+              questions: [],
             });
             setPlan(null);
           }}
         >
-          สร้างโจทย์
+          สร้างชุดโจทย์ประจำวัน
         </Button>
         <Button
           kind="ghost"
@@ -197,7 +232,8 @@ export default function Page() {
               <div className="mr-auto">
                 <b>{c.title}</b>
                 <p className="text-[14px] text-ink2">
-                  {c.date ?? `คิวสำรองลำดับ ${c.queueOrder}`} · {c.status} ·{" "}
+                  {c.date ?? `คิวสำรองลำดับ ${c.queueOrder}`} ·{" "}
+                  {c.status === "draft" ? "ฉบับร่าง (ยังไม่ถูกใช้)" : c.status === "scheduled" ? "พร้อมใช้" : c.status} ·{" "}
                   {c.questions.length} ข้อ
                 </p>
               </div>
@@ -236,7 +272,7 @@ export default function Page() {
       {draft ? (
         <Card className="flex flex-col gap-4">
           <h2 className="text-[20px] font-semibold">
-            {draft.id ? "แก้ไขโจทย์ / ตรวจคำตอบใหม่" : "สร้างโจทย์"}
+            {draft.id ? "แก้ไขชุดโจทย์" : "สร้างชุดโจทย์ประจำวัน"}
           </h2>
           <Field id="title" label="ชื่อชุดโจทย์">
             <input
@@ -263,8 +299,8 @@ export default function Page() {
                 value={draft.status}
                 onChange={(e) => patch({ status: e.target.value })}
               >
-                <option value="draft">ฉบับร่าง</option>
-                <option value="scheduled">พร้อมใช้ตามกำหนด</option>
+                <option value="scheduled">พร้อมใช้ (ระบบดึงไปใช้ตามวัน/คิว)</option>
+                <option value="draft">ฉบับร่าง (ยังไม่ถูกใช้)</option>
               </select>
             </Field>
             <Field id="order" label="ลำดับคิวสำรอง">
@@ -278,12 +314,69 @@ export default function Page() {
               />
             </Field>
           </div>
-          {draft.questions.map((q, i) => (
+          <BankPicker
+            onTopics={setTopics}
+            picked={new Set(draft.questions.map((q) => q.sourceQuestionId).filter((x): x is string => !!x))}
+            onPick={(b) => patch({ questions: [...draft.questions, fromBank(b)] })}
+          />
+          {!draft.questions.length ? (
+            <Note tone="warn">ยังไม่มีโจทย์ในชุดนี้ เลือกจากคลังด้านบน หรือกด &quot;เขียนโจทย์ใหม่&quot;</Note>
+          ) : null}
+          {draft.questions.map((q, i) => q.sourceQuestionId ? (
+            <fieldset key={q.id} className="flex flex-col gap-3 rounded-[14px] border border-border p-4">
+              <legend className="px-2 font-medium">ข้อ {i + 1} · จากคลังข้อสอบ</legend>
+              <p className="text-[14px] text-ink2">{q.topic} · {q.type === "short" ? "เติมคำตอบ" : q.type === "multiple" ? "เลือกหลายข้อ" : "เลือกข้อเดียว"}</p>
+              <p className="whitespace-pre-wrap text-[16px]">{q.prompt}</p>
+              {(q.imageUrls ?? []).length ? (
+                <div className="flex flex-wrap gap-2">
+                  {(q.imageUrls ?? []).map((u) => (
+                    // eslint-disable-next-line @next/next/no-img-element -- question figure preview
+                    <img key={u} src={u} alt="" className="max-h-[120px] rounded-[10px] border border-border object-contain" />
+                  ))}
+                </div>
+              ) : null}
+              {q.type === "short" ? (
+                <p className="text-[14.5px]">คำตอบที่รับ: <b>{q.acceptedAnswers.join(" | ")}</b></p>
+              ) : (
+                <ul className="text-[14.5px]">
+                  {q.choices.map((c) => (
+                    <li key={c.key} className={q.correctChoices.includes(c.key) ? "font-semibold text-green" : ""}>
+                      {c.key}. {c.text} {q.correctChoices.includes(c.key) ? "✓" : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-[13.5px] text-ink3">ชุดนี้เก็บสำเนาโจทย์ไว้ การแก้ในคลังภายหลังไม่เปลี่ยนชุดนี้ ถ้าต้องการแก้ข้อความ ให้แก้ในคลังแล้วลบข้อนี้และเลือกใหม่</p>
+              <input
+                aria-label={`คำใบ้ข้อ ${i + 1}`}
+                className={inputClass}
+                value={q.hint}
+                onChange={(e) => patchQ(i, { hint: e.target.value })}
+                placeholder="คำใบ้หลังผิดครั้งแรก (ไม่บังคับ)"
+              />
+              <label className="flex min-h-[44px] items-center gap-2">
+                <input type="checkbox" checked={q.showHint} onChange={(e) => patchQ(i, { showHint: e.target.checked })} />
+                เปิดคำใบ้หลังผิดครั้งแรก
+              </label>
+              <select
+                aria-label={`เวลาเผยเฉลยข้อ ${i + 1}`}
+                className={inputClass}
+                value={q.reveal}
+                onChange={(e) => patchQ(i, { reveal: e.target.value as Q["reveal"] })}
+              >
+                <option value="next_day">เผยเฉลยวันถัดไป</option>
+                <option value="finished">เผยเมื่อหมดโอกาสหรือทำถูกแล้ว</option>
+              </select>
+              <Button kind="danger" onClick={() => patch({ questions: draft.questions.filter((_, j) => i !== j) })}>
+                เอาข้อนี้ออกจากชุด
+              </Button>
+            </fieldset>
+          ) : (
             <fieldset
               key={q.id}
               className="flex flex-col gap-3 rounded-[14px] border border-border p-4"
             >
-              <legend className="px-2 font-medium">ข้อ {i + 1}</legend>
+              <legend className="px-2 font-medium">ข้อ {i + 1} · เขียนในชุดนี้</legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 <select
                   aria-label={`ประเภทข้อ ${i + 1}`}
@@ -418,7 +511,6 @@ export default function Page() {
               </select>
               <Button
                 kind="danger"
-                disabled={draft.questions.length === 1}
                 onClick={() =>
                   patch({
                     questions: draft.questions.filter((_, j) => i !== j),
@@ -429,82 +521,116 @@ export default function Page() {
               </Button>
             </fieldset>
           ))}
-          <Button
-            kind="ghost"
-            onClick={() => patch({ questions: [...draft.questions, emptyQ()] })}
-          >
-            เพิ่มข้อ
-          </Button>
-          {draft.id ? (
-            <>
+          {writing ? (
+            <section className="flex flex-col gap-3 rounded-[14px] border border-brand p-4">
+              <h3 className="font-medium">เขียนโจทย์ใหม่ (บันทึกเข้าคลังข้อสอบ แล้วเพิ่มเข้าชุดนี้)</h3>
+              <QuestionForm
+                initial={null}
+                topics={topics}
+                onSubmit={async (input) => {
+                  const { question } = await api<{ question: BankQuestion }>("/admin/daily/bank", { method: "POST", json: input });
+                  patch({ questions: [...draft.questions, fromBank(question)] });
+                  setWriting(false);
+                }}
+                onCancel={() => setWriting(false)}
+              />
+            </section>
+          ) : (
+            <Button kind="ghost" onClick={() => setWriting(true)}>
+              เขียนโจทย์ใหม่
+            </Button>
+          )}
+          {plan?.kind === "edit" ? (
+            <section className="flex flex-col gap-3 rounded-[14px] border border-amber-icon p-4">
+              <h3 className="font-medium">มีนักเรียนตอบชุดนี้แล้ว</h3>
+              <p className="text-[14.5px]">
+                ผู้ใช้ {plan.affectedUsers} คน · คำตอบ {plan.affectedResponses} รายการ ระบบจะตรวจคำตอบใหม่ตามเฉลยที่แก้
+              </p>
               <label className="flex min-h-[44px] items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={keepFire}
-                  onChange={(e) => setKeepFire(e.target.checked)}
-                />
+                <input type="checkbox" checked={keepFire} onChange={(e) => setKeepFire(e.target.checked)} />
                 คง Current Fire เดิมเมื่อเปลี่ยนเฉลย
               </label>
               <label className="flex min-h-[44px] items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={resetTries}
-                  onChange={(e) => setResetTries(e.target.checked)}
-                />
+                <input type="checkbox" checked={resetTries} onChange={(e) => setResetTries(e.target.checked)} />
                 คืนโอกาสโดยสร้างรหัสโจทย์ฉบับใหม่ (เก็บคำตอบเก่าไว้)
               </label>
-            </>
+              <Field id="reason" label="เหตุผลที่แก้ (บันทึกในประวัติ)">
+                <input id="reason" className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} />
+              </Field>
+              <div className="flex gap-3">
+                <Button
+                  disabled={busy || reason.trim().length < 3}
+                  onClick={() =>
+                    void run(async () => {
+                      const confirmed = await api<Plan>(`/admin/daily/${draft.id}/preview`, {
+                        method: "POST",
+                        json: { ...draftBody(draft), reason, keepFire, resetTries },
+                      });
+                      await api(`/admin/daily/${draft.id}/commit`, { method: "POST", json: { previewId: confirmed.previewId } });
+                      setNotice(`บันทึกการแก้ไข "${draft.title}" และตรวจคำตอบใหม่แล้ว`);
+                      setDraft(null);
+                      await reload();
+                    })
+                  }
+                >
+                  ยืนยันบันทึกและตรวจใหม่
+                </Button>
+                <Button kind="ghost" onClick={() => setPlan(null)}>
+                  กลับไปแก้ต่อ
+                </Button>
+              </div>
+            </section>
           ) : null}
-          <Field id="reason" label="เหตุผลสำหรับตรวจใหม่ / นำเข้า / ชดเชย">
-            <input
-              id="reason"
-              className={inputClass}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
-          </Field>
           <div className="flex gap-3">
             <Button
-              disabled={busy || (!!draft.id && reason.trim().length < 3)}
+              disabled={busy || !draft.questions.length || plan?.kind === "edit"}
               onClick={() =>
                 void run(async () => {
-                  const body = {
-                    title: draft.title,
-                    date: draft.date,
-                    status: draft.status,
-                    queueOrder: draft.queueOrder,
-                    questions: draft.questions,
-                  };
-                  if (draft.id)
-                    setPlan({
-                      ...(await api<Plan>(`/admin/daily/${draft.id}/preview`, {
-                        method: "POST",
-                        json: { ...body, reason, keepFire, resetTries },
-                      })),
-                      kind: "edit",
+                  const body = draftBody(draft);
+                  if (draft.id) {
+                    // Nobody has answered yet: save straight away. Otherwise ask for a reason first (FIRE-13).
+                    const p = await api<Plan>(`/admin/daily/${draft.id}/preview`, {
+                      method: "POST",
+                      json: { ...body, reason: "แก้ไขชุดโจทย์ก่อนมีผู้ตอบ", keepFire, resetTries },
                     });
-                  else {
+                    if (!p.affectedResponses) {
+                      await api(`/admin/daily/${draft.id}/commit`, { method: "POST", json: { previewId: p.previewId } });
+                      setNotice(`บันทึกการแก้ไข "${draft.title}" แล้ว`);
+                      setDraft(null);
+                      await reload();
+                    } else setPlan({ ...p, kind: "edit" });
+                  } else {
                     await api("/admin/daily", { method: "POST", json: body });
+                    setNotice(
+                      draft.status === "draft"
+                        ? `บันทึก "${draft.title}" เป็นฉบับร่างแล้ว ยังไม่ถูกใช้จนกว่าจะเปลี่ยนเป็นพร้อมใช้`
+                        : `บันทึก "${draft.title}" แล้ว ${draft.date ? `ใช้วันที่ ${draft.date}` : "อยู่ในคิวสำรอง"}`,
+                    );
                     setDraft(null);
                     await reload();
                   }
                 })
               }
             >
-              {draft.id ? "แสดงผลกระทบก่อนบันทึก" : "สร้างโจทย์"}
+              {draft.id ? "บันทึกการแก้ไข" : "บันทึกชุดโจทย์"}
             </Button>
             <Button
               kind="ghost"
               onClick={() => {
                 setDraft(null);
                 setPlan(null);
+                setWriting(false);
               }}
             >
               ปิด
             </Button>
           </div>
+          {error ? <Note tone="error">{error}</Note> : null}
         </Card>
       ) : null}
+      <details className="rounded-[18px] border border-border bg-card p-4">
+        <summary className="cursor-pointer font-medium">เครื่องมือเพิ่มเติม: นำเข้าไฟล์ CSV/XLSX และรักษาไฟเมื่อระบบขัดข้อง</summary>
+        <div className="mt-4 flex flex-col gap-4">
       <Card className="flex flex-col gap-3">
         <h2 className="text-[19px] font-semibold">นำเข้าโจทย์</h2>
         <p className="text-[14px] text-ink2">
@@ -635,13 +761,13 @@ export default function Page() {
           แสดงจำนวนผู้ใช้ที่ได้รับผลกระทบ
         </Button>
       </Card>
-      {plan ? (
+        </div>
+      </details>
+      {plan && plan.kind !== "edit" ? (
         <Card className="flex flex-col gap-3">
           <h2 className="text-[19px] font-semibold">ตรวจผลกระทบก่อนยืนยัน</h2>
           <p>
-            {plan.kind === "edit"
-              ? `ผู้ใช้ ${plan.affectedUsers} คน · คำตอบ ${plan.affectedResponses} รายการ`
-              : plan.kind === "import"
+            {plan.kind === "import"
                 ? `นำเข้า ${plan.count} ชุดโจทย์`
                 : plan.until
                   ? `ขยายเวลาให้${plan.everyone ? "ผู้เรียนทุกคน" : ` ${plan.affected} คน`} ถึง ${new Date(plan.until).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })}`
@@ -652,11 +778,9 @@ export default function Page() {
             onClick={() =>
               void run(async () => {
                 const path =
-                  plan.kind === "edit"
-                    ? `/admin/daily/${draft!.id}/commit`
-                    : plan.kind === "import"
-                      ? "/admin/daily/import/commit"
-                      : "/admin/daily/outage/commit";
+                  plan.kind === "import"
+                    ? "/admin/daily/import/commit"
+                    : "/admin/daily/outage/commit";
                 await api(path, {
                   method: "POST",
                   json: { previewId: plan.previewId },
@@ -844,5 +968,70 @@ export default function Page() {
         </Card>
       ) : null}
     </>
+  );
+}
+
+/** Search the exam bank and add a copy of a question to the daily set being edited. */
+function BankPicker({ picked, onPick, onTopics }: { picked: Set<string>; onPick: (q: BankQuestion) => void; onTopics: (t: string[]) => void }) {
+  const { api } = useAdmin();
+  const [q, setQ] = useState(""),
+    [subject, setSubject] = useState(""),
+    [rows, setRows] = useState<BankQuestion[]>([]),
+    [total, setTotal] = useState(0),
+    [error, setError] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const params = new URLSearchParams({ limit: "30" });
+      if (q.trim()) params.set("q", q.trim());
+      if (subject) params.set("subject", subject);
+      api<{ questions: BankQuestion[]; total: number; topics: string[] }>(`/admin/daily/bank?${params}`)
+        .then((r) => {
+          setRows(r.questions);
+          setTotal(r.total);
+          onTopics(r.topics);
+          setError("");
+        })
+        .catch((e) => setError(errorMessage(e)));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [api, q, subject, onTopics]);
+  return (
+    <section className="flex flex-col gap-3 rounded-[14px] border border-border bg-page p-4">
+      <h3 className="font-medium">เลือกจากคลังข้อสอบ</h3>
+      <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
+        <input aria-label="ค้นหาโจทย์ในคลัง" className={inputClass} value={q} onChange={(e) => setQ(e.target.value)} placeholder="ค้นหาจากข้อความโจทย์หรือหัวข้อ" />
+        <select aria-label="วิชา" className={inputClass} value={subject} onChange={(e) => setSubject(e.target.value)}>
+          <option value="">ทุกวิชา</option>
+          {SUBJECTS.map((x) => (
+            <option key={x.id} value={x.id}>{x.label}</option>
+          ))}
+        </select>
+      </div>
+      {error ? <Note tone="error">{error}</Note> : null}
+      <p className="text-[13.5px] text-ink3">พบ {total} ข้อ{total > rows.length ? ` · แสดง ${rows.length} ข้อล่าสุด พิมพ์ค้นหาเพื่อหาข้ออื่น` : ""}</p>
+      <ul className="flex max-h-[420px] flex-col divide-y divide-border overflow-y-auto">
+        {rows.map((b) => {
+          const added = picked.has(b.id);
+          return (
+            <li key={b.id} className="flex flex-wrap items-start gap-3 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] text-ink3">
+                  {SUBJECTS.find((x) => x.id === b.subject)?.label ?? b.subject} · {b.topic}
+                  {b.imageUrls.length ? ` · มีรูป ${b.imageUrls.length}` : ""}
+                </p>
+                <p className="line-clamp-2 text-[15px]">{b.prompt}</p>
+                {b.inPublishedPacks ? (
+                  <p className="text-[13px] text-amber-ink">อยู่ในชุดข้อสอบที่เผยแพร่ {b.inPublishedPacks} ชุด — เฉลยจะเปิดให้ทุกคนเห็นหลังวันโจทย์</p>
+                ) : null}
+                {b.usedInDaily ? <p className="text-[13px] text-ink3">เคยใช้ในโจทย์ประจำวัน {b.usedInDaily} ครั้ง</p> : null}
+              </div>
+              <Button kind={added ? "ghost" : "primary"} disabled={added} onClick={() => onPick(b)}>
+                {added ? "เพิ่มแล้ว" : "เพิ่มเข้าชุดนี้"}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

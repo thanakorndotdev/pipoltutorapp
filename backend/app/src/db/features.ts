@@ -265,6 +265,11 @@ export type DailyQuestion = {
   showHint: boolean;
   explanation: string;
   reveal: "finished" | "next_day";
+  /** Figures and reference links, same rules as the exam question bank. */
+  imageUrls?: string[];
+  linkUrls?: string[];
+  /** Exam-bank question this item was copied from; the daily keeps its own snapshot. */
+  sourceQuestionId?: string;
 };
 export const dailyChallenges = pgTable(
   "daily_challenges",

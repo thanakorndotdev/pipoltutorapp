@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { Elysia, t } from "elysia";
-import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "../../db";
+import { questions } from "../../db/schema";
 import {
   dailyAssignments,
   dailyChallenges,
@@ -13,7 +14,8 @@ import {
   fireSummary,
   type DailyQuestion,
 } from "../../db/features";
-import { actorOf } from "../../audit";
+import { actorOf, audit } from "../../audit";
+import { adminColumns, normalise, questionBody } from "./questions";
 import {
   addDays,
   auditTx,
@@ -44,8 +46,8 @@ const question = t.Object({
     t.Literal("thai"),
     t.Literal("english"),
   ]),
-  topic: t.String({ minLength: 1, maxLength: 150 }),
-  prompt: t.String({ minLength: 1, maxLength: 10000 }),
+  topic: t.String({ maxLength: 150 }),
+  prompt: t.String({ maxLength: 10000 }),
   choices: t.Array(
     t.Object({
       key: t.String({ minLength: 1, maxLength: 8 }),
@@ -59,35 +61,134 @@ const question = t.Object({
   showHint: t.Boolean(),
   explanation: t.String({ maxLength: 10000 }),
   reveal: t.Union([t.Literal("finished"), t.Literal("next_day")]),
+  imageUrls: t.Optional(t.Array(t.String({ maxLength: 2000 }), { maxItems: 10 })),
+  linkUrls: t.Optional(t.Array(t.String({ maxLength: 2000 }), { maxItems: 10 })),
+  sourceQuestionId: t.Optional(t.String({ format: "uuid" })),
 });
+/** Same figure rules as the exam bank: our own uploads or https only. */
+const UPLOADED_IMAGE = /^\/api\/uploads\/[a-f0-9]{32}\.(png|jpg|webp|gif)$/;
+const HTTPS_URL = /^https:\/\/\S+$/i;
 const editable = {
-  title: t.String({ minLength: 1, maxLength: 200 }),
+  title: t.String({ maxLength: 200 }),
   date: t.Nullable(t.String({ maxLength: 10 })),
   status: t.Union([t.Literal("draft"), t.Literal("scheduled")]),
   queueOrder: t.Integer({ minimum: 0, maximum: 100000 }),
   questions: t.Array(question, { minItems: 1, maxItems: 30 }),
 };
 const params = t.Object({ id: t.String({ format: "uuid" }) });
-function validate(body: { date: string | null; questions: DailyQuestion[] }) {
+/**
+ * Tidy what the editor sends (blank choice lines, lower-case keys, blank
+ * topic) and reject anything a student could not answer, naming the item.
+ */
+function validate(body: { title: string; date: string | null; questions: DailyQuestion[] }) {
+  if (!body.title.trim()) fail("ตั้งชื่อชุดโจทย์ก่อนบันทึก");
   if (body.date && !validDay(body.date)) fail("วันที่ไม่ถูกต้อง");
   if (new Set(body.questions.map((q) => q.id)).size !== body.questions.length)
-    fail("รหัสโจทย์ซ้ำ");
-  for (const q of body.questions) {
+    fail("มีโจทย์ซ้ำกันในชุดนี้");
+  body.questions.forEach((q, i) => {
+    const n = `ข้อ ${i + 1}`;
+    q.topic = q.topic.trim() || "ทั่วไป";
+    q.prompt = q.prompt.trim();
+    if (!q.prompt) fail(`${n}: ยังไม่มีข้อความโจทย์`);
+    q.choices = q.type === "short" ? [] : q.choices.filter((c) => c.text.trim());
+    q.correctChoices = q.correctChoices.map((k) => k.trim().toUpperCase()).filter(Boolean);
+    q.acceptedAnswers = q.acceptedAnswers.map((a) => a.trim()).filter(Boolean);
+    q.imageUrls = (q.imageUrls ?? []).map((u) => u.trim()).filter(Boolean);
+    q.linkUrls = (q.linkUrls ?? []).map((u) => u.trim()).filter(Boolean);
+    if (q.imageUrls.some((u) => !UPLOADED_IMAGE.test(u) && !HTTPS_URL.test(u)))
+      fail(`${n}: รูปต้องเป็นไฟล์ที่อัปโหลดในระบบหรือลิงก์ https`);
+    if (q.linkUrls.some((u) => !HTTPS_URL.test(u))) fail(`${n}: ลิงก์ต้องขึ้นต้นด้วย https://`);
     const keys = q.choices.map((c) => c.key);
-    if (new Set(keys).size !== keys.length) fail("ตัวเลือกซ้ำ");
-    if (
-      q.type === "short"
-        ? !q.acceptedAnswers.some((s) => s.trim())
-        : q.choices.length < 2 ||
-          !q.correctChoices.length ||
-          q.correctChoices.some((k) => !keys.includes(k)) ||
-          (q.type === "single" && q.correctChoices.length !== 1)
-    )
-      fail("เฉลยหรือตัวเลือกไม่ครบ");
-  }
+    if (new Set(keys).size !== keys.length) fail(`${n}: ตัวเลือกซ้ำ`);
+    if (q.type === "short") {
+      if (!q.acceptedAnswers.length) fail(`${n}: ใส่คำตอบที่รับอย่างน้อย 1 คำตอบ`);
+      return;
+    }
+    if (q.choices.length < 2) fail(`${n}: ต้องมีตัวเลือกอย่างน้อย 2 ตัว`);
+    if (!q.correctChoices.length) fail(`${n}: ยังไม่ได้ใส่เฉลย`);
+    const missing = q.correctChoices.find((k) => !keys.includes(k));
+    if (missing) fail(`${n}: เฉลย ${missing} ไม่มีในตัวเลือก (มี ${keys.join(", ")})`);
+    if (q.type === "single" && q.correctChoices.length !== 1) fail(`${n}: ข้อเลือกข้อเดียวต้องมีเฉลย 1 ตัว`);
+  });
 }
 export const adminDailyRoutes = new Elysia({ prefix: "/admin/daily" })
   .use(adminGuard)
+  /**
+   * The exam question bank, for building a daily set from questions written
+   * there first. Daily-module staff need not hold exam permissions to pick.
+   */
+  .get(
+    "/bank",
+    async ({ query }) => {
+      const conds = [eq(questions.active, true)];
+      if (query.subject) conds.push(eq(questions.subject, query.subject));
+      if (query.q) {
+        const needle = `%${query.q}%`;
+        conds.push(or(ilike(questions.prompt, needle), ilike(questions.topic, needle))!);
+      }
+      const where = and(...conds);
+      const limit = query.limit ?? 30;
+      const offset = query.offset ?? 0;
+      const [rows, [totals]] = await Promise.all([
+        db
+          .select({
+            id: questions.id,
+            subject: questions.subject,
+            topic: questions.topic,
+            prompt: questions.prompt,
+            imageUrls: questions.imageUrls,
+            linkUrls: questions.linkUrls,
+            type: questions.type,
+            choices: questions.choices,
+            correctChoices: questions.correctChoices,
+            acceptedAnswers: questions.acceptedAnswers,
+            explanation: questions.explanation,
+            // Published mock exams holding this question: using it daily would reveal its key.
+            inPublishedPacks: sql<number>`(select count(*) from pack_questions pq join exam_packs ep on ep.id = pq.pack_id where pq.question_id = questions.id and ep.published)`,
+            usedInDaily: sql<number>`(select count(*) from daily_challenges d, jsonb_array_elements(d.questions) e where e->>'sourceQuestionId' = questions.id::text)`,
+          })
+          .from(questions)
+          .where(where)
+          .orderBy(desc(questions.updatedAt))
+          .limit(limit)
+          .offset(offset),
+        db.select({ total: count() }).from(questions).where(where),
+      ]);
+      return {
+        questions: rows.map((r) => ({ ...r, inPublishedPacks: Number(r.inPublishedPacks), usedInDaily: Number(r.usedInDaily) })),
+        total: Number(totals?.total ?? 0),
+        topics: (await db.selectDistinct({ topic: questions.topic }).from(questions).orderBy(questions.topic).limit(500)).map((r) => r.topic),
+      };
+    },
+    {
+      query: t.Object({
+        q: t.Optional(t.String({ maxLength: 200 })),
+        subject: t.Optional(t.Union(["math", "science", "general_aptitude", "thai", "english"].map((v) => t.Literal(v)) as [ReturnType<typeof t.Literal<"math">>])),
+        limit: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
+        offset: t.Optional(t.Integer({ minimum: 0 })),
+      }),
+    },
+  )
+  /**
+   * Write a new question from the daily editor. It is saved into the shared
+   * exam bank (same form and rules as คลังข้อสอบ) and the editor then adds a
+   * copy to the daily set, so every daily question also lives in the bank.
+   */
+  .post(
+    "/bank",
+    async ({ body, headers, set }) => {
+      const checked = normalise(body);
+      if ("error" in checked) {
+        set.status = 422;
+        return { error: checked.error };
+      }
+      const [question] = await db.insert(questions).values(checked.values).returning(adminColumns);
+      await audit(await actorOf(headers), { action: "question.create_from_daily", module: "daily", targetId: question!.id, after: question });
+      set.status = 201;
+      return { question: { ...question!, inPublishedPacks: 0, usedInDaily: 0 } };
+    },
+    { body: questionBody },
+  )
   .get("/", async () => ({
     challenges: await db
       .select()

@@ -38,7 +38,11 @@ export const app = new Elysia()
     }
     if (code === "VALIDATION") {
       set.status = 422;
-      return { error: "ข้อมูลไม่ตรงรูปแบบที่กำหนด" };
+      // Name the offending field (e.g. questions/0/prompt) so admin forms can say what to fix.
+      const path = (error as { valueError?: { path?: string } }).valueError?.path?.replace(/^\//, "");
+      return path
+        ? { error: `ข้อมูลไม่ตรงรูปแบบที่กำหนด (${path})`, field: path }
+        : { error: "ข้อมูลไม่ตรงรูปแบบที่กำหนด" };
     }
     if (code === "NOT_FOUND") {
       set.status = 404;
