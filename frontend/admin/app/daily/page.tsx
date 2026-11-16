@@ -10,7 +10,7 @@ import {
 } from "@/components/ui";
 import { useAdmin, errorMessage } from "@/lib/admin";
 import { QuestionForm } from "@/components/question-form";
-import { SUBJECTS } from "@/lib/types";
+import { SUBJECTS, type Question } from "@/lib/types";
 type Q = {
   id: string;
   type: "single" | "multiple" | "short";
@@ -61,6 +61,20 @@ const fromBank = (b: BankQuestion): Q => ({
   explanation: b.explanation ?? "",
   reveal: "next_day",
 });
+/** Refresh a set's copy from the edited bank question; daily-only settings stay as they were. */
+const refreshFromBank = (q: Q, b: Question): Q => ({
+  ...q,
+  type: b.type,
+  subject: b.subject,
+  topic: b.topic,
+  prompt: b.prompt,
+  choices: b.choices,
+  correctChoices: b.correctChoices,
+  acceptedAnswers: b.acceptedAnswers,
+  imageUrls: b.imageUrls,
+  linkUrls: b.linkUrls,
+  explanation: b.explanation ?? "",
+});
 const draftBody = (c: Challenge) => ({
   title: c.title,
   date: c.date,
@@ -97,6 +111,8 @@ export default function Page() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [writing, setWriting] = useState(false),
+    /** The bank question open for editing inside the set, keyed by the set item's id. */
+    [editing, setEditing] = useState<{ qid: string; question: Question; inPublishedPacks: number } | null>(null),
     [topics, setTopics] = useState<string[]>([]),
     [busy, setBusy] = useState(false),
     [reason, setReason] = useState(""),
@@ -204,6 +220,7 @@ export default function Page() {
               questions: [],
             });
             setPlan(null);
+            setEditing(null);
           }}
         >
           สร้างชุดโจทย์ประจำวัน
@@ -242,13 +259,15 @@ export default function Page() {
                 onClick={() => {
                   setDraft(structuredClone(c));
                   setPlan(null);
+                  setEditing(null);
                 }}
               >
                 แก้ไข / ตรวจใหม่
               </Button>
               <Button
                 kind="ghost"
-                onClick={() =>
+                onClick={() => {
+                  setEditing(null);
                   setDraft({
                     ...structuredClone(c),
                     id: "",
@@ -259,8 +278,8 @@ export default function Page() {
                       ...q,
                       id: crypto.randomUUID(),
                     })),
-                  })
-                }
+                  });
+                }}
               >
                 คัดลอก
               </Button>
@@ -346,7 +365,43 @@ export default function Page() {
                   ))}
                 </ul>
               )}
-              <p className="text-[13.5px] text-ink3">ชุดนี้เก็บสำเนาโจทย์ไว้ การแก้ในคลังภายหลังไม่เปลี่ยนชุดนี้ ถ้าต้องการแก้ข้อความ ให้แก้ในคลังแล้วลบข้อนี้และเลือกใหม่</p>
+              {editing?.qid === q.id ? (
+                <section className="flex flex-col gap-3 rounded-[14px] border border-brand p-4">
+                  <h3 className="font-medium">แก้ไขโจทย์ข้อนี้ในคลังข้อสอบ</h3>
+                  {editing.inPublishedPacks ? (
+                    <Note tone="warn">
+                      ข้อนี้อยู่ในชุดข้อสอบที่เผยแพร่แล้ว {editing.inPublishedPacks} ชุด การแก้ที่นี่จะเปลี่ยนโจทย์และเฉลยในชุดข้อสอบนั้นด้วย
+                    </Note>
+                  ) : null}
+                  <QuestionForm
+                    key={editing.question.id}
+                    initial={editing.question}
+                    topics={topics}
+                    onSubmit={async (input) => {
+                      const { question } = await api<{ question: Question }>(`/admin/daily/bank/${editing.question.id}`, { method: "PUT", json: input });
+                      // Functional update: the set may have changed while the request was out.
+                      setDraft((d) => d && { ...d, questions: d.questions.map((x) => (x.id === q.id ? refreshFromBank(x, question) : x)) });
+                      setEditing(null);
+                      setNotice(`แก้โจทย์ข้อ ${i + 1} ในคลังแล้ว กด "${draft.id ? "บันทึกการแก้ไข" : "บันทึกชุดโจทย์"}" ด้านล่างเพื่อใช้ในชุดนี้`);
+                    }}
+                    onCancel={() => setEditing(null)}
+                  />
+                </section>
+              ) : (
+                <Button
+                  kind="ghost"
+                  disabled={busy || editing !== null}
+                  onClick={() =>
+                    void run(async () => {
+                      const r = await api<{ question: Question; inPublishedPacks: number }>(`/admin/daily/bank/${q.sourceQuestionId}`);
+                      setEditing({ qid: q.id, ...r });
+                    })
+                  }
+                >
+                  แก้ไขโจทย์ / เฉลยข้อนี้
+                </Button>
+              )}
+              <p className="text-[13.5px] text-ink3">แก้ที่นี่จะบันทึกเข้าคลังข้อสอบและอัปเดตข้อนี้ในชุด ต้องกดบันทึกชุดโจทย์อีกครั้ง ถ้ามีนักเรียนตอบแล้ว ระบบจะให้ยืนยันก่อนตรวจใหม่</p>
               <input
                 aria-label={`คำใบ้ข้อ ${i + 1}`}
                 className={inputClass}
@@ -367,7 +422,13 @@ export default function Page() {
                 <option value="next_day">เผยเฉลยวันถัดไป</option>
                 <option value="finished">เผยเมื่อหมดโอกาสหรือทำถูกแล้ว</option>
               </select>
-              <Button kind="danger" onClick={() => patch({ questions: draft.questions.filter((_, j) => i !== j) })}>
+              <Button
+                kind="danger"
+                onClick={() => {
+                  if (editing?.qid === q.id) setEditing(null);
+                  patch({ questions: draft.questions.filter((_, j) => i !== j) });
+                }}
+              >
                 เอาข้อนี้ออกจากชุด
               </Button>
             </fieldset>
@@ -620,6 +681,7 @@ export default function Page() {
                 setDraft(null);
                 setPlan(null);
                 setWriting(false);
+                setEditing(null);
               }}
             >
               ปิด

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Elysia, t } from "elysia";
 import { and, count, desc, eq, gt, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { questions } from "../../db/schema";
+import { attemptAnswers, questions } from "../../db/schema";
 import {
   dailyAssignments,
   dailyChallenges,
@@ -112,6 +112,13 @@ function validate(body: { title: string; date: string | null; questions: DailyQu
     if (q.type === "single" && q.correctChoices.length !== 1) fail(`${n}: ข้อเลือกข้อเดียวต้องมีเฉลย 1 ตัว`);
   });
 }
+/** Published mock exams holding a bank question; editing it changes their key too. */
+async function publishedPacksOf(questionId: string): Promise<number> {
+  const [row] = await db.execute<{ n: string }>(
+    sql`select count(*) as n from pack_questions pq join exam_packs ep on ep.id = pq.pack_id where pq.question_id = ${questionId} and ep.published`,
+  );
+  return Number(row?.n ?? 0);
+}
 export const adminDailyRoutes = new Elysia({ prefix: "/admin/daily" })
   .use(adminGuard)
   /**
@@ -194,6 +201,58 @@ export const adminDailyRoutes = new Elysia({ prefix: "/admin/daily" })
       return { question: { ...question!, inPublishedPacks: 0, usedInDaily: 0 } };
     },
     { body: questionBody },
+  )
+  /** One bank question in full, to open it in the bank form from the daily editor. */
+  .get(
+    "/bank/:id",
+    async ({ params, headers, set }) => {
+      await authorize(headers, "exam", "read");
+      const [question] = await db.select(adminColumns).from(questions).where(eq(questions.id, params.id)).limit(1);
+      if (!question) {
+        set.status = 404;
+        return { error: "ไม่พบข้อสอบในคลัง" };
+      }
+      return { question, inPublishedPacks: await publishedPacksOf(params.id) };
+    },
+    { params: t.Object({ id: t.String({ format: "uuid" }) }) },
+  )
+  /**
+   * Edit a bank question without leaving the daily editor (same rules as
+   * PUT /admin/questions/:id). The editor then refreshes its copy in the set;
+   * saving the set still goes through preview/commit, so answered days are
+   * regraded the usual way.
+   */
+  .put(
+    "/bank/:id",
+    async ({ params, body, headers, set }) => {
+      await authorize(headers, "exam", "write");
+      const checked = normalise(body);
+      if ("error" in checked) {
+        set.status = 422;
+        return { error: checked.error };
+      }
+      const [before] = await db.select(adminColumns).from(questions).where(eq(questions.id, params.id)).limit(1);
+      if (!before) {
+        set.status = 404;
+        return { error: "ไม่พบข้อสอบในคลัง" };
+      }
+      // Same guard as the bank page: a mock-exam answer under the old type would lose its meaning.
+      if (before.type !== checked.values.type) {
+        const [answered] = await db.select({ n: count() }).from(attemptAnswers).where(eq(attemptAnswers.questionId, params.id));
+        if (Number(answered?.n ?? 0) > 0) {
+          set.status = 409;
+          return { error: "มีนักเรียนตอบข้อนี้ในชุดข้อสอบแล้ว เปลี่ยนประเภทคำถามไม่ได้ สร้างข้อใหม่แทน" };
+        }
+      }
+      const [question] = await db
+        .update(questions)
+        .set({ ...checked.values, updatedAt: new Date() })
+        .where(eq(questions.id, params.id))
+        .returning(adminColumns);
+      await audit(await actorOf(headers), { action: "question.update_from_daily", module: "daily", targetId: params.id, before, after: question });
+      return { question };
+    },
+    { params: t.Object({ id: t.String({ format: "uuid" }) }), body: questionBody },
   )
   .get("/", async () => ({
     challenges: await db
