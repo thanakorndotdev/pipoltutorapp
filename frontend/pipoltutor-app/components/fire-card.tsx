@@ -79,8 +79,10 @@ export function FireCard() {
         ไฟของน้อง
       </h2>
       <div className="flex flex-wrap gap-x-8 gap-y-3">
-        <p className="text-[18px]">
-          Current <b className="text-[30px] text-accent">{fire.current}</b>
+        <p className="flex items-center gap-1 text-accent">
+          <Icon name="local_fire_department" size={32} fill />
+          <span className="sr-only">ไฟปัจจุบัน</span>
+          <b className="font-display text-[30px] leading-[1.3]">{fire.current}</b>
         </p>
         <p>สูงสุด {fire.highest}</p>
         <p>
