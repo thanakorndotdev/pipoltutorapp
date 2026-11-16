@@ -150,8 +150,20 @@ export const certificatesRoutes = new Elysia({ prefix: "/certificates" })
   .get(
     "/:id/file",
     async ({ params, query, headers, set }) => {
+      const format = query.format === "pdf" ? "pdf" : "png";
+      // A download link opened as a page (often an IG/LINE in-app browser
+      // handing the URL to Chrome, whose cookie jar is separate) gets a page
+      // back instead of raw JSON. fetch()/<img> callers keep the JSON they handle.
+      const browser = headers["sec-fetch-mode"] === "navigate" || Boolean(query.download);
+      // The page shows the status code the JSON caller would have received.
+      const toError = (reason: "unauthorized" | "not_found" | "pending" | "revoked", status: number) => {
+        set.status = 302;
+        set.headers.location = `/download-error?reason=${reason}&status=${status}&id=${params.id}&format=${format}`;
+      };
+
       const user = await currentUser(headers);
       if (!user) {
+        if (browser) return toError("unauthorized", 401);
         set.status = 401;
         return { error: "กรุณาเข้าสู่ระบบ" };
       }
@@ -166,10 +178,12 @@ export const certificatesRoutes = new Elysia({ prefix: "/certificates" })
         .where(eq(certificates.id, params.id))
         .limit(1);
       if (!cert || (cert.userId !== user.id && !permitted(user,"certificate","read"))) {
+        if (browser) return toError("not_found", 404);
         set.status = 404;
         return { error: "ไม่พบเกียรติบัตร" };
       }
       if (cert.status === "queued" || cert.status === "render_failed") {
+        if (browser) return toError("pending", 409);
         set.status = 409;
         return {
           error: "กำลังสร้างเกียรติบัตร ลองใหม่อีกครั้งในอีกสักครู่",
@@ -177,6 +191,7 @@ export const certificatesRoutes = new Elysia({ prefix: "/certificates" })
         };
       }
       if (cert.status === "revoked" || cert.status === "superseded") {
+        if (browser) return toError("revoked", 410);
         set.status = 410;
         return {
           error:
@@ -184,7 +199,6 @@ export const certificatesRoutes = new Elysia({ prefix: "/certificates" })
           code: "revoked",
         };
       }
-      const format = query.format === "pdf" ? "pdf" : "png";
       const file = Bun.file(certFile(cert.id, format));
       if (!(await file.exists())) {
         // The file store lost it; the row is intact, so draw it again under the same id.
@@ -196,6 +210,7 @@ export const certificatesRoutes = new Elysia({ prefix: "/certificates" })
           await requeue(cert.id);
           void kickCertificateWorker();
         }
+        if (browser) return toError("pending", 409);
         set.status = 409;
         return {
           error: "กำลังสร้างเกียรติบัตร ลองใหม่อีกครั้งในอีกสักครู่",
