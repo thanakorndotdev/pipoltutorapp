@@ -1,0 +1,520 @@
+<!-- ========================= COVER ========================= -->
+<section class="cover">
+  <div>
+    <div class="logo">จภ</div>
+    <h1>PIPOL TUTOR<br>คู่มือนำระบบขึ้นเซิร์ฟเวอร์จริง (Deploy)</h1>
+    <p class="sub">ทีละขั้น ตั้งแต่เช่าเซิร์ฟเวอร์จนเปิดเว็บด้วยโดเมนจริง<br>การตั้ง Owner อัปเดตเวอร์ชัน สำรองและกู้คืนข้อมูล</p>
+  </div>
+  <div class="meta">
+    เวอร์ชันระบบ 1.0.1 · ปรับปรุงล่าสุด 21 พฤศจิกายน 2569 · ใช้แทนฉบับลงวันที่ 25 ตุลาคม 2569<br>
+    สำหรับผู้ที่ใช้คำสั่งใน Terminal ได้พื้นฐาน · ตัวอย่างใช้โดเมน <code>pipoltutor.org</code> และ IP <code>203.0.113.10</code> ให้เปลี่ยนเป็นของจริง
+  </div>
+</section>
+
+<!-- ========================= TOC ========================= -->
+<section class="chapter">
+  <h1>สารบัญ</h1>
+  <div class="toc" style="columns:1">
+    <div class="item"><span class="n">1</span><span>ภาพรวม: ระบบประกอบด้วยอะไร และข้อมูลเก็บที่ไหน</span></div>
+    <div class="item"><span class="n">2</span><span>สิ่งที่ต้องเตรียม</span></div>
+    <div class="item"><span class="n">3</span><span>เตรียมเซิร์ฟเวอร์ และติดตั้ง Docker</span></div>
+    <div class="item"><span class="n">4</span><span>ชี้โดเมนมาที่เซิร์ฟเวอร์</span></div>
+    <div class="item"><span class="n">5</span><span>ดึงโค้ด และตั้งค่า docker/.env</span></div>
+    <div class="item"><span class="n">6</span><span>เปิดระบบ และตรวจว่าใช้ได้</span></div>
+    <div class="item"><span class="n">7</span><span>ตั้ง Owner และค่าเริ่มต้นในแผงผู้ดูแล</span></div>
+    <div class="item"><span class="n">8</span><span>ตั้งค่าบริการภายนอก: Google, Omise, Cloudflare</span></div>
+    <div class="item"><span class="n">9</span><span>อัปเดตเวอร์ชันใหม่ โดยข้อมูลไม่หาย และการย้อนกลับ</span></div>
+    <div class="item"><span class="n">10</span><span>สำรองข้อมูล</span></div>
+    <div class="item"><span class="n">11</span><span>กู้คืนข้อมูล</span></div>
+    <div class="item"><span class="n">12</span><span>สำรองแบบเข้ารหัสและกู้ย้อนเวลา (ทางเลือกขั้นสูง)</span></div>
+    <div class="item"><span class="n">13</span><span>งานดูแลประจำ และกรณีฉุกเฉิน</span></div>
+    <div class="item"><span class="n">14</span><span>แก้ปัญหาที่พบบ่อย และเช็กลิสต์ก่อนเปิดจริง</span></div>
+  </div>
+  <div class="note" style="margin-top:8mm"><h4>สิ่งที่เปลี่ยนจากฉบับ 25 ต.ค. 2569</h4>
+    <ul>
+      <li>มี volume ใหม่ 2 ตัว: <code>certificates_data</code> (ไฟล์เกียรติบัตร) และ <code>cert_keys_data</code> (<b>กุญแจลงนาม</b> ห้ามหาย)</li>
+      <li>ต้องตั้ง <code>OWNER_EMAILS</code> อย่างน้อย 2 อีเมล ไม่อย่างนั้นไม่มีใครจัดการสิทธิ์ทีมงานได้ (บทที่ 5, 7)</li>
+      <li><code>PUBLIC_URL_DOCKER</code> ต้องเป็นโดเมนจริง<b>ก่อนออกเกียรติบัตรใบแรก</b> เพราะลิงก์ใน QR ถูกลงนามไว้ในใบ</li>
+      <li>สคริปต์ใหม่ <code>docker/nightly-backup.sh</code> สำรองฐานข้อมูล รูป ไฟล์เกียรติบัตร และกุญแจในคำสั่งเดียว (บทที่ 10)</li>
+      <li>เปลี่ยนวิธีกู้คืนเป็น<b>กู้ลงฐานข้อมูลใหม่แล้วสลับ</b> ไม่เขียนทับฐานที่ใช้งานอยู่ และเก็บฐานเดิมไว้ย้อนได้ (บทที่ 11)</li>
+      <li>เพิ่มชุดสำรองแบบเข้ารหัส + กู้ย้อนเวลา (PITR) เป็นทางเลือก (บทที่ 12)</li>
+    </ul></div>
+</section>
+
+<!-- ========================= 1 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 1</div>
+  <h1>ภาพรวม: ระบบประกอบด้วยอะไร</h1>
+  <p class="lead">ทั้งระบบรันด้วย Docker Compose บนเซิร์ฟเวอร์เครื่องเดียว คำสั่งเดียวเปิดได้ทั้งหมด</p>
+  <table>
+    <tr><th>บริการ</th><th>หน้าที่</th></tr>
+    <tr><td>caddy</td><td class="wrap">ประตูหน้าบ้าน รับทุก request ที่พอร์ต 80/443 ออกใบรับรอง HTTPS ให้อัตโนมัติ (Let's Encrypt) และเสิร์ฟแผงผู้ดูแลที่ <code>/admin/</code> (แผงผู้ดูแลถูก build ฝังอยู่ใน image ของ caddy)</td></tr>
+    <tr><td>frontend</td><td class="wrap">หน้าเว็บนักเรียน (Next.js)</td></tr>
+    <tr><td>backend</td><td class="wrap">API ที่ <code>/api/*</code> (Bun + Elysia) ตรวจข้อสอบ จับเวลา รับชำระเงิน สร้างและลงนามเกียรติบัตร เผยแพร่บทความตามเวลา ปิดรับโจทย์ประจำวัน ทุกครั้งที่เปิดจะอัปเดตโครงสร้างฐานข้อมูลให้เอง</td></tr>
+    <tr><td>postgres</td><td class="wrap">ฐานข้อมูล PostgreSQL 16 เปิดเฉพาะ <code>127.0.0.1</code> ไม่เปิดออกอินเทอร์เน็ต</td></tr>
+  </table>
+<pre>ผู้ใช้ ──https──▶ caddy ─┬─ /api/*   ──▶ backend ──▶ postgres
+                         ├─ /admin/* ──▶ (ไฟล์แผงผู้ดูแลใน caddy)
+                         └─ อื่น ๆ    ──▶ frontend</pre>
+
+  <h2>ข้อมูลเก็บที่ไหน</h2>
+  <p>ข้อมูลทั้งหมดอยู่ใน Docker volume ไม่ได้อยู่ในโค้ด การอัปเดตหรือรีสตาร์ตไม่ทำให้หาย ชื่อจริงบนเครื่องจะขึ้นต้นด้วย <code>docker_</code> เช่น <code>docker_postgres_data</code></p>
+  <table>
+    <tr><th>Volume</th><th>เก็บอะไร</th><th>ถ้าหาย</th></tr>
+    <tr><td>postgres_data</td><td class="wrap">ฐานข้อมูลทั้งหมด: ผู้ใช้ คะแนน ข้อสอบ คำสั่งซื้อ บทความ ไฟ</td><td class="wrap">ข้อมูลหายทั้งระบบ</td></tr>
+    <tr><td>uploads_data</td><td class="wrap">รูปที่อัปโหลด (รูปโจทย์ รูปโปรไฟล์ รูปบทความ เอกสารแนบ)</td><td class="wrap">รูปในเว็บเสีย</td></tr>
+    <tr><td>certificates_data</td><td class="wrap">ไฟล์ PNG/PDF ของเกียรติบัตรที่ออกแล้ว</td><td class="wrap">สร้างใหม่ได้จากหน้าแอดมิน แต่ใช้เวลา</td></tr>
+    <tr><td>cert_keys_data</td><td class="wrap"><b>กุญแจส่วนตัวที่ใช้ลงนามเกียรติบัตร</b> (สร้างตอนออกใบแรก)</td><td class="wrap"><b>ออกใบใหม่ด้วยกุญแจเดิมไม่ได้</b> ต้องสร้างกุญแจใหม่ ใบเดิมยังตรวจได้เพราะ public key อยู่ในฐานข้อมูล</td></tr>
+    <tr><td>caddy_data</td><td class="wrap">ใบรับรอง HTTPS</td><td class="wrap">Caddy ขอใหม่เอง</td></tr>
+  </table>
+  <div class="note danger"><h4>ห้ามใช้ <code>docker compose down -v</code></h4><p>ตัว <code>-v</code> ลบ volume ทั้งหมดข้างบน ถ้าต้องการหยุดระบบให้ใช้ <code>down</code> เฉย ๆ</p></div>
+</section>
+
+<!-- ========================= 2 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 2</div>
+  <h1>สิ่งที่ต้องเตรียม</h1>
+  <table>
+    <tr><th>รายการ</th><th>รายละเอียด</th></tr>
+    <tr><td>เซิร์ฟเวอร์ (VPS)</td><td class="wrap">Ubuntu 24.04 LTS อย่างน้อย <b>2 vCPU / 4 GB RAM / 60 GB</b> (ตอน build หน้าเว็บใช้แรมเยอะ และไฟล์เกียรติบัตร + ไฟล์สำรองกินพื้นที่เพิ่มตามจำนวนนักเรียน) เลือก region สิงคโปร์จะเร็วสำหรับผู้ใช้ในไทย เช่น DigitalOcean, Vultr, Linode, AWS Lightsail</td></tr>
+    <tr><td>โดเมน</td><td class="wrap">เช่น pipoltutor.org ต้องเข้าไปแก้ DNS ได้</td></tr>
+    <tr><td>สิทธิ์เข้าโค้ด</td><td class="wrap">repository บน GitHub (ตอนนี้เป็น public clone ได้เลย)</td></tr>
+    <tr><td>บัญชี Google ของ Owner 2 บัญชี</td><td class="wrap">ผู้รับผิดชอบระบบหลักและสำรอง ใช้เข้าแผงผู้ดูแลและจัดการสิทธิ์</td></tr>
+    <tr><td>Google OAuth</td><td class="wrap">Client ID / Secret จาก Google Cloud Console ในบัญชีของ Owner (บทที่ 8)</td></tr>
+    <tr><td>Omise</td><td class="wrap">Live keys (<code>pkey_…</code> / <code>skey_…</code> ที่ไม่มีคำว่า test) หลังบัญชีผ่านการยืนยันตัวตน</td></tr>
+    <tr><td>Cloudflare (ไม่บังคับ)</td><td class="wrap">Account ID + API token สำหรับคำทำนายดูดวงด้วย AI ไม่ใส่ก็ได้ ระบบใช้คำทำนายแบบกฎตายตัวแทน</td></tr>
+    <tr><td>ที่เก็บไฟล์สำรองนอกเซิร์ฟเวอร์</td><td class="wrap">คอมพิวเตอร์ของ Owner, Google Drive หรือ object storage ของผู้ให้บริการอื่น (บทที่ 10)</td></tr>
+    <tr><td>Password manager</td><td class="wrap">เก็บ <code>docker/.env</code>, รหัสฐานข้อมูล และ <code>ADMIN_API_KEY</code></td></tr>
+  </table>
+  <div class="note"><h4>คลิปที่ช่วยได้</h4><p>ค้นใน YouTube ด้วยคำว่า "Docker Compose deploy VPS", "Caddy automatic HTTPS", "ตั้งค่า DNS A record" และ "crontab ตั้งเวลา" จะได้ขั้นตอนเดียวกับคู่มือนี้</p></div>
+</section>
+
+<!-- ========================= 3 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 3</div>
+  <h1>เตรียมเซิร์ฟเวอร์ และติดตั้ง Docker</h1>
+  <div class="note danger"><h4>อย่าปิดตัวเองออกจากเครื่อง</h4><p>ต้องมีบรรทัด <code>ufw allow OpenSSH</code> ก่อน <code>ufw enable</code> เสมอ ไม่อย่างนั้น SSH จะเข้าไม่ได้อีก</p></div>
+  <ol class="steps">
+    <li>สร้าง VPS แบบ Ubuntu 24.04 แล้วจด IP ไว้ (เช่น <code>203.0.113.10</code>)</li>
+    <li>เข้าเครื่องจากคอมของเรา:
+<pre>ssh root@203.0.113.10</pre></li>
+    <li>อัปเดตเครื่อง ตั้งเวลาไทย และติดตั้ง Docker (สคริปต์ทางการของ Docker):
+<pre>apt update && apt upgrade -y
+timedatectl set-timezone Asia/Bangkok
+curl -fsSL https://get.docker.com | sh
+docker --version && docker compose version   # ต้องเห็นเลขเวอร์ชันทั้งสองบรรทัด</pre>
+    ระบบคำนวณวันของโจทย์ประจำวันเป็นเวลาไทยเองอยู่แล้ว การตั้งเวลาเครื่องเป็นเวลาไทยทำให้อ่าน log และตั้ง cron ง่ายขึ้น</li>
+    <li>เปิดไฟร์วอลล์ให้เข้าได้เฉพาะ SSH และเว็บ:
+<pre>ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow 443/udp
+ufw enable</pre></li>
+    <li>ถ้า VPS มีแรม 4 GB หรือน้อยกว่า เพิ่ม swap 2 GB กัน build ค้าง:
+<pre>fallocate -l 2G /swapfile && chmod 600 /swapfile
+mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab</pre></li>
+  </ol>
+
+  <div class="eyebrow" style="margin-top:8mm">บทที่ 4</div>
+  <h1>ชี้โดเมนมาที่เซิร์ฟเวอร์</h1>
+  <p>เข้าเว็บที่ซื้อโดเมน (หรือ Cloudflare ถ้าใช้) → จัดการ DNS → เพิ่ม record:</p>
+  <table style="width:auto">
+    <tr><th>Type</th><th>Name</th><th>Value</th></tr>
+    <tr><td>A</td><td>@</td><td>IP ของ VPS</td></tr>
+    <tr><td>A</td><td>www</td><td>IP ของ VPS</td></tr>
+  </table>
+  <p>รอ 5 นาทีถึงไม่กี่ชั่วโมง แล้วเช็กจากคอมของเรา:</p>
+<pre>ping pipoltutor.org        # ต้องตอบกลับจาก IP ของ VPS</pre>
+  <div class="note"><h4>ถ้าใช้ Cloudflare</h4><p>ช่วงแรกให้ตั้ง record เป็น DNS only (เมฆสีเทา) ก่อน เพื่อให้ Caddy ขอใบรับรอง HTTPS ได้ ใช้งานได้แล้วค่อยเปิด proxy (เมฆสีส้ม) โดยตั้ง SSL/TLS เป็น Full (strict)</p></div>
+</section>
+
+<!-- ========================= 5 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 5</div>
+  <h1>ดึงโค้ด และตั้งค่า docker/.env</h1>
+  <div class="note danger"><h4>ไฟล์ <code>docker/.env</code> คือกุญแจทั้งหมดของระบบ</h4><p>ห้าม commit ขึ้น GitHub (repository เป็น public) ห้ามส่งในแชต ห้ามถ่ายรูปติด เก็บสำเนาไว้ใน password manager ถ้าหายต้องสร้างรหัสใหม่ทั้งหมด</p></div>
+  <ol class="steps">
+    <li>ดึงโค้ดลงเครื่อง:
+<pre>cd /opt
+git clone https://github.com/thanakorndotdev/pipoltutorapp.git
+cd pipoltutorapp</pre></li>
+    <li>สร้างไฟล์ตั้งค่าจากตัวอย่าง จำกัดสิทธิ์ให้ root อ่านได้คนเดียว แล้วสร้างรหัสสุ่ม:
+<pre>cp docker/.env.example docker/.env
+chmod 600 docker/.env
+openssl rand -hex 24    # ใช้เป็น POSTGRES_PASSWORD
+openssl rand -hex 32    # ใช้เป็น ADMIN_API_KEY
+nano docker/.env</pre></li>
+    <li>แก้ค่าตามตารางหน้าถัดไป แล้วบันทึก (nano: <code>Ctrl+O</code>, Enter, <code>Ctrl+X</code>)</li>
+  </ol>
+  <h2>ตัวอย่างส่วนที่ต้องแก้</h2>
+<pre>POSTGRES_PASSWORD=&lt;รหัสสุ่ม&gt;
+ALLOW_DEV_AUTH=0
+ADMIN_EMAILS=owner.a@gmail.com
+OWNER_EMAILS=owner.a@gmail.com,owner.b@gmail.com
+ADMIN_API_KEY=&lt;รหัสสุ่ม&gt;
+SITE_ADDRESS="pipoltutor.org, www.pipoltutor.org"
+PUBLIC_URL_DOCKER=https://pipoltutor.org
+GOOGLE_CLIENT_ID=&lt;...&gt;.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=&lt;...&gt;
+OMISE_PUBLIC_KEY=pkey_&lt;...&gt;
+OMISE_SECRET_KEY=skey_&lt;...&gt;</pre>
+  <p>บรรทัด <code>SITE_ADDRESS</code> และ <code>PUBLIC_URL_DOCKER</code> ในไฟล์ตัวอย่างขึ้นต้นด้วย <code>#</code> (ปิดไว้) ต้องลบ <code>#</code> ออกด้วย</p>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">ค่าใน docker/.env สำหรับเว็บจริง</h2>
+  <table>
+    <tr><th>ตัวแปร</th><th>ค่าที่ใส่</th></tr>
+    <tr><td>POSTGRES_PASSWORD</td><td class="wrap">รหัสสุ่มจาก <code>openssl rand -hex 24</code> (ห้ามใช้ <code>change-me</code>) <b>ตั้งครั้งเดียว</b> เปลี่ยนหลังติดตั้งแล้วจะต่อฐานข้อมูลไม่ได้</td></tr>
+    <tr><td>POSTGRES_USER / POSTGRES_DB<br>POSTGRES_PORT / BACKEND_PORT</td><td class="wrap">ใช้ค่าเดิมจากตัวอย่างได้ ห้ามเปลี่ยนหลังติดตั้ง</td></tr>
+    <tr><td>ALLOW_DEV_AUTH</td><td class="wrap"><b>0 เท่านั้น</b> ถ้าเป็น 1 ใครก็สวมรอยเป็นใครก็ได้</td></tr>
+    <tr><td>OWNER_EMAILS</td><td class="wrap">อีเมล Google ของ Owner <b>อย่างน้อย 2 อีเมล</b> คั่นด้วยจุลภาค ได้สิทธิ์ Owner (จัดการสิทธิ์ทีมงาน กุญแจลงนาม ระยะเก็บข้อมูล) ถ้าว่าง ไม่มีใครเปิดเมนู "ผู้ใช้และสิทธิ์" ได้</td></tr>
+    <tr><td>ADMIN_EMAILS</td><td class="wrap">อีเมลที่ได้บทบาทผู้ดูแลระบบตอนเข้าสู่ระบบครั้งแรก ใส่อีเมล Owner ก็พอ ทีมงานคนอื่นให้ Owner มอบสิทธิ์ผ่านหน้าเว็บ</td></tr>
+    <tr><td>ADMIN_API_KEY</td><td class="wrap">รหัสสุ่มจาก <code>openssl rand -hex 32</code> ใช้เป็นทางเข้าฉุกเฉินของแผงผู้ดูแล (สิทธิ์เต็ม) เก็บไว้กับผู้ดูแลเซิร์ฟเวอร์เท่านั้น</td></tr>
+    <tr><td>SITE_ADDRESS</td><td class="wrap"><code>"pipoltutor.org, www.pipoltutor.org"</code> Caddy ขอ HTTPS ให้ทั้งสองชื่อ</td></tr>
+    <tr><td>PUBLIC_URL_DOCKER</td><td class="wrap"><code>https://pipoltutor.org</code> ใช้ทั้งลิงก์ล็อกอิน Google และ<b>ลิงก์ QR บนเกียรติบัตร</b> ต้องตั้งให้ถูกก่อนออกใบแรก</td></tr>
+    <tr><td>GOOGLE_CLIENT_ID<br>GOOGLE_CLIENT_SECRET</td><td class="wrap">จาก Google Cloud Console (บทที่ 8)</td></tr>
+    <tr><td>OMISE_PUBLIC_KEY<br>OMISE_SECRET_KEY</td><td class="wrap">Live keys จาก dashboard.omise.co → Keys</td></tr>
+    <tr><td>CLOUDFLARE_ACCOUNT_ID<br>CLOUDFLARE_API_TOKEN</td><td class="wrap">ไม่บังคับ (ดูดวงด้วย AI) <code>CLOUDFLARE_AI_MODEL</code> ใช้ค่าเดิม</td></tr>
+    <tr><td>BACKUP_AGE_RECIPIENT<br>BACKUP_INTERVAL_SECONDS</td><td class="wrap">ใช้เฉพาะชุดสำรองแบบเข้ารหัส (บทที่ 12) ยังไม่ใช้เว้นว่างได้</td></tr>
+  </table>
+  <div class="note warn"><h4>แก้ .env แล้วต้องสั่ง <code>up -d</code> ใหม่</h4><p>ค่าใน .env ถูกอ่านตอนสร้าง container เท่านั้น แก้แล้วรัน <code>docker compose -f docker/docker-compose.yml up -d</code> อีกครั้ง</p></div>
+</section>
+
+<!-- ========================= 6 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 6</div>
+  <h1>เปิดระบบ และตรวจว่าใช้ได้</h1>
+  <div class="note"><h4>ตั้งชื่อย่อให้คำสั่ง</h4><p>พิมพ์ครั้งเดียวต่อการเข้าเครื่อง แล้วใช้ <code>dc ps</code>, <code>dc logs -f backend</code> แทนคำสั่งยาวได้ (ใส่ไว้ใน <code>~/.bashrc</code> เพื่อให้มีทุกครั้ง)</p>
+<pre>alias dc='docker compose -f /opt/pipoltutorapp/docker/docker-compose.yml'</pre></div>
+  <ol class="steps">
+    <li>ตรวจไฟล์ตั้งค่า แล้ว build และเปิดทั้งหมด (ครั้งแรกประมาณ 5–10 นาที):
+<pre>cd /opt/pipoltutorapp
+# ไม่มีข้อความ = ถูกต้อง
+docker compose -f docker/docker-compose.yml config --quiet
+docker compose -f docker/docker-compose.yml up -d --build</pre>
+    ถ้าขึ้น <code>set POSTGRES_USER in docker/.env</code> แปลว่ายังไม่ได้สร้าง <code>docker/.env</code></li>
+    <li>ดูสถานะ ทุกบริการต้องขึ้น <b>Up</b> และ postgres ขึ้น <b>healthy</b>:
+<pre>dc ps</pre></li>
+    <li>เช็ก API, HTTPS และการ redirect:
+<pre># ต้องได้ {"status":"ok","db":"up",...}
+curl https://pipoltutor.org/api/health
+curl -sI http://pipoltutor.org | head -3          # ต้อง redirect ไป https
+curl -sI https://pipoltutor.org | grep -i strict-transport   # ต้องมี HSTS</pre></li>
+    <li>ตรวจว่า backend ได้ค่า Owner แล้ว (ต้องเห็นอีเมลที่ใส่):
+<pre>dc exec -T backend printenv OWNER_EMAILS</pre></li>
+    <li>เปิด <code>https://pipoltutor.org</code> ในเบราว์เซอร์ ต้องเห็นรูปกุญแจ (HTTPS) และหน้าแรก</li>
+    <li>(ครั้งแรกเท่านั้น) ใส่ข้อมูลเริ่มต้น: สินค้าและราคา วันสอบ และชุดข้อสอบตัวอย่าง <code>mock-100</code>
+<pre>dc exec backend bun run db:seed</pre>
+    สคริปต์ไม่เขียนทับข้อมูลที่มีอยู่ รันซ้ำได้ ชุดตัวอย่างซ่อนหรือลบได้ในแผงผู้ดูแล</li>
+    <li>เปิด <code>https://pipoltutor.org/admin/</code> แล้วเข้าสู่ระบบด้วย Google ของ Owner ต้องเข้าแผงผู้ดูแลได้ จากนั้นทำบทที่ 7</li>
+  </ol>
+  <div class="note"><p>backend รันงานเบื้องหลังเองทุก 30 วินาที: สร้างไฟล์เกียรติบัตรในคิว เผยแพร่บทความที่ตั้งเวลา ปิดรับโจทย์ประจำวันตอนเที่ยงคืน และลบ log ตามระยะเก็บข้อมูลที่อนุมัติ ไม่ต้องตั้ง cron เพิ่มสำหรับงานเหล่านี้</p></div>
+</section>
+
+<!-- ========================= 7 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 7</div>
+  <h1>ตั้ง Owner และค่าเริ่มต้นในแผงผู้ดูแล</h1>
+  <p class="lead">ทำครั้งเดียวหลังเปิดระบบครั้งแรก รายละเอียดหน้าจออยู่ในคู่มือการใช้งาน</p>
+  <ol class="steps">
+    <li><b>Owner A</b> เข้า <code>/admin/</code> → <span class="ui">ผู้ใช้และสิทธิ์</span></li>
+    <li>ให้ <b>Owner B</b> เข้าสู่ระบบที่หน้าเว็บหนึ่งครั้งก่อน (บัญชีจะได้ขึ้นในรายการ)</li>
+    <li>กด <span class="ui">สิทธิ์โมดูล</span> ของ Owner A และ Owner B → เลือกแม่แบบ <b>Owner</b> → ใส่เหตุผล → บันทึก เมื่อบันทึกแล้ว ค่าในฐานข้อมูลจะใช้แทน <code>OWNER_EMAILS</code> ระบบไม่ยอมให้ถอด Owner จนเหลือ 0 คน</li>
+    <li>มอบสิทธิ์ทีมงานคนอื่นตามหน้าที่ (Admin, Author, Moderator, Results Viewer)</li>
+    <li>เมนู <span class="ui">ประวัติและระยะเก็บข้อมูล</span> → <span class="ui">ระยะเก็บข้อมูล</span> ทบทวนค่าที่เสนอ (log 30 วัน หมวดอื่น 365 วัน) แล้วกด <span class="ui">อนุมัติ</span></li>
+    <li>เมนู <span class="ui">วันสอบ</span> ตั้งวันสอบ จภ. และวันปิดรับสมัคร</li>
+    <li>เมนู <span class="ui">สินค้าและราคา</span> ตรวจราคา ปิดขายสินค้าที่ไม่ใช้</li>
+    <li>ออกเกียรติบัตรทดสอบหนึ่งใบด้วยบัญชีผู้ทดสอบ แล้วสแกน QR ด้วยมือถือ ต้องเปิดหน้าตรวจสอบบนโดเมนจริงและขึ้น "ใช้ได้" จากนั้น<b>สำรองกุญแจทันที</b> (บทที่ 10)</li>
+  </ol>
+<pre># หลังออกใบแรกต้องมีไฟล์ .pem สิทธิ์ -rw-------
+dc exec -T backend ls -la /app/cert-keys</pre>
+</section>
+
+<!-- ========================= 8 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 8</div>
+  <h1>ตั้งค่าบริการภายนอก</h1>
+  <h2>Google (ล็อกอิน)</h2>
+  <ol class="steps">
+    <li>เข้า <code>console.cloud.google.com</code> → APIs &amp; Services → OAuth consent screen ตั้งชื่อแอป อีเมลติดต่อ แล้วกด <b>Publish app</b> ให้เป็น <b>In production</b> (ถ้าค้างที่ Testing จะล็อกอินได้เฉพาะบัญชีที่เพิ่มไว้)</li>
+    <li>Credentials → Create credentials → OAuth client ID → ประเภท <b>Web application</b></li>
+    <li>ช่อง Authorized redirect URIs ใส่:
+<pre>https://pipoltutor.org/api/auth/google/callback</pre></li>
+    <li>นำ Client ID และ Client Secret ไปใส่ใน <code>docker/.env</code> แล้วรีสตาร์ต backend:
+<pre>dc up -d backend</pre></li>
+  </ol>
+  <div class="note warn"><h4>ถ้าล็อกอินแล้วขึ้น redirect_uri_mismatch</h4><p>ลิงก์ใน Google ไม่ตรงกับ <code>PUBLIC_URL_DOCKER</code> ต้องตรงทุกตัวอักษร รวมถึง https และ www</p></div>
+
+  <h2>Omise (รับชำระเงิน)</h2>
+  <ol class="steps">
+    <li><code>dashboard.omise.co</code> → สลับเป็นโหมด <b>Live</b> → Keys → คัดลอก Public key และ Secret key ใส่ใน <code>docker/.env</code></li>
+    <li>เมนู Webhooks → เพิ่ม endpoint:
+<pre>https://pipoltutor.org/api/webhooks/omise</pre></li>
+    <li>รีสตาร์ต backend (คำสั่งเดียวกับด้านบน) แล้วทดลองซื้อจริง 1 รายการด้วยยอดต่ำสุด ทั้ง PromptPay และบัตร ตรวจว่าระบบเปิดสิทธิ์ให้หลังจ่าย</li>
+  </ol>
+
+  <h2>Cloudflare Workers AI (ไม่บังคับ)</h2>
+  <p>Cloudflare dashboard → Workers &amp; Pages → คัดลอก Account ID, My Profile → API Tokens → Create Token → แม่แบบ "Workers AI" ใส่ทั้งสองค่าใน <code>.env</code> แล้ว <code>dc up -d backend</code> ถ้าเว้นว่าง หน้าดูดวงใช้คำทำนายแบบกฎตายตัว</p>
+</section>
+
+<!-- ========================= 9 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 9</div>
+  <h1>อัปเดตเวอร์ชันใหม่ โดยข้อมูลไม่หาย</h1>
+  <p>ข้อมูลอยู่ใน Docker volume (บทที่ 1) การอัปเดตเปลี่ยนแค่โปรแกรม ข้อมูลจึงอยู่ครบ ถ้าทำตามบทนี้และไม่ใช้คำสั่งในกรอบแดงหน้าถัดไป</p>
+  <h2>วิธีที่แนะนำ: ใช้สคริปต์ deploy.sh (คำสั่งเดียว)</h2>
+<pre>cd /opt/pipoltutorapp
+sh docker/deploy.sh</pre>
+  <p>สคริปต์ทำ 6 ขั้นตามลำดับ และหยุดทันทีถ้าขั้นไหนไม่ผ่าน:</p>
+  <ol class="steps">
+    <li><b>เช็กว่ามีนักเรียนกำลังสอบอยู่ไหม</b> ถ้ามี จะหยุดและบอกจำนวนคน ให้รอจนเขาส่ง</li>
+    <li><b>สำรอง</b> ฐานข้อมูล รูปที่อัปโหลด ไฟล์เกียรติบัตร และกุญแจลงนาม ไว้ที่ <code>/opt/backups</code> พร้อมจดเลขเวอร์ชันเดิม ถ้าไฟล์สำรองฐานข้อมูลว่างจะไม่อัปเดตต่อ</li>
+    <li><b>ดึงโค้ดใหม่</b> จาก GitHub (<code>git pull --ff-only</code> ถ้าบนเซิร์ฟเวอร์มีไฟล์ที่ถูกแก้เอง จะหยุดแทนการเขียนทับ)</li>
+    <li><b>build เวอร์ชันใหม่</b> ระหว่างนี้เว็บเดิมยังเปิดให้ใช้ตามปกติ</li>
+    <li><b>สลับไปเวอร์ชันใหม่</b> เว็บสะดุดประมาณ 10–30 วินาที backend อัปเดตโครงสร้างฐานข้อมูลให้เอง</li>
+    <li><b>รอจน backend ตอบว่าปกติ</b> แล้วพิมพ์ว่าอัปเดตจากเวอร์ชันไหนไปเวอร์ชันไหน และไฟล์สำรองอยู่ที่ไหน</li>
+  </ol>
+  <table>
+    <tr><th>ตัวเลือก</th><th>ใช้เมื่อ</th></tr>
+    <tr><td><code>FORCE=1 sh docker/deploy.sh</code></td><td class="wrap">ต้องอัปเดตด่วนทั้งที่มีคนกำลังสอบ คำตอบที่เซฟแล้วไม่หาย หน้าเว็บของนักเรียนลองเซฟซ้ำให้เอง แต่เวลาสอบยังเดินต่อระหว่างที่เว็บสะดุด</td></tr>
+    <tr><td><code>BACKUP_DIR=/ที่อื่น sh docker/deploy.sh</code></td><td class="wrap">อยากเก็บไฟล์สำรองไว้โฟลเดอร์อื่น</td></tr>
+  </table>
+  <p>ตัวอย่างผลลัพธ์เมื่อสำเร็จ:</p>
+<pre>==> 1/6 Checking for exams in progress
+students mid-exam: 0
+==> 2/6 Backing up database and uploads to /opt/backups
+...
+Done: 0e42332 -> 6bf0f12. Backup: /opt/backups/db-20261121-030000.dump</pre>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">ถ้าจะทำเองทีละคำสั่ง (ไม่ใช้สคริปต์)</h2>
+<pre>cd /opt/pipoltutorapp
+# 1) สำรองก่อนเสมอ (ฐานข้อมูล รูป เกียรติบัตร กุญแจ)
+sh docker/nightly-backup.sh
+git rev-parse --short HEAD         # จดเลขเวอร์ชันเดิมไว้
+# 2) ดึงโค้ด แล้ว build ก่อนสลับ
+git pull --ff-only
+dc build
+dc up -d
+# 3) ตรวจ
+curl https://pipoltutor.org/api/health</pre>
+  <div class="note danger"><h4>ห้ามใช้คำสั่งเหล่านี้ ข้อมูลจะหาย</h4>
+    <ul>
+      <li><code>docker compose down -v</code> — ตัว <code>-v</code> ลบฐานข้อมูล รูป เกียรติบัตร และกุญแจทั้งหมด</li>
+      <li><code>docker volume rm …</code> / <code>docker volume prune</code> / <code>docker system prune --volumes</code></li>
+      <li><code>bun run db:push</code> บนเซิร์ฟเวอร์จริง (โครงสร้างฐานข้อมูลอัปเดตเองตอน backend เริ่ม)</li>
+      <li>ลบโฟลเดอร์ <code>/opt/pipoltutorapp</code> แล้ว clone ใหม่โดยไม่ได้เก็บ <code>docker/.env</code> ไว้</li>
+      <li>เปลี่ยน <code>POSTGRES_USER</code> / <code>POSTGRES_PASSWORD</code> / <code>POSTGRES_DB</code> ใน .env หลังติดตั้งแล้ว</li>
+      <li>แก้โค้ดบนเซิร์ฟเวอร์โดยตรง (ครั้งหน้า <code>git pull</code> จะชนกัน) ให้แก้บนเครื่องพัฒนาแล้ว push ขึ้น GitHub</li>
+    </ul></div>
+  <h2>ช่วงเวลาที่ควรอัปเดต</h2>
+  <ul>
+    <li>ช่วงที่ไม่มีรอบสอบ เช่น ดึก หรือวันที่ไม่ได้นัดสอบ ไม่อัปเดตก่อนรอบสอบใหญ่ไม่กี่ชั่วโมง</li>
+    <li>หลีกเลี่ยงช่วง 23:50–00:10 ซึ่งเป็นช่วงปิดรับและเปิดโจทย์ประจำวัน</li>
+    <li>หลังอัปเดต ลองล็อกอิน ทำข้อสอบชุดทดสอบ ทำโจทย์ประจำวัน และเปิด <code>/admin/</code> ทุกครั้ง</li>
+  </ul>
+  <h2>ถ้าเวอร์ชันใหม่มีปัญหา: ย้อนกลับ</h2>
+  <p><b>กรณีที่ 1: โค้ดมีปัญหา แต่ข้อมูลปกติ</b> (เจอบ่อยที่สุด) ย้อนแค่โค้ด ข้อมูลไม่เปลี่ยน การอัปเดตโครงสร้างฐานข้อมูลของระบบนี้เป็นแบบ<b>เพิ่มอย่างเดียว</b> (ไม่ลบตารางหรือคอลัมน์) โค้ดเวอร์ชันก่อนจึงยังใช้ฐานข้อมูลใหม่ได้</p>
+<pre>cat /opt/backups/version-before-*.txt | tail -1    # เลขเวอร์ชันก่อนอัปเดต
+git checkout &lt;เลขเวอร์ชันนั้น&gt;
+dc up -d --build</pre>
+  <p>แก้เสร็จแล้วกลับมาใช้เวอร์ชันล่าสุดด้วย <code>git checkout main</code> แล้วรัน <code>sh docker/deploy.sh</code> อีกครั้ง</p>
+  <p><b>กรณีที่ 2: ข้อมูลเสียหายจากเวอร์ชันใหม่</b> กู้ฐานข้อมูลจากไฟล์ที่สคริปต์สำรองไว้ก่อนอัปเดตตามบทที่ 11 แล้วค่อยย้อนโค้ดตามกรณีที่ 1 แจ้งทีมพัฒนาก่อนทุกครั้ง</p>
+</section>
+
+<!-- ========================= 10 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 10</div>
+  <h1>สำรองข้อมูล</h1>
+  <p class="lead">ต้องสำรอง 4 อย่าง: ฐานข้อมูล, รูปที่อัปโหลด, ไฟล์เกียรติบัตร และ<b>กุญแจลงนาม</b> สคริปต์ <code>docker/nightly-backup.sh</code> ทำทั้งหมดในคำสั่งเดียว</p>
+  <h2>10.1 สำรองด้วยมือ</h2>
+<pre>cd /opt/pipoltutorapp
+sh docker/nightly-backup.sh</pre>
+  <p>ได้ไฟล์ใน <code>/opt/backups</code> (สิทธิ์ root อ่านได้คนเดียว) เช่น</p>
+<pre>db-20261121-030000.dump           # ฐานข้อมูล
+uploads-20261121-030000.tgz       # รูปที่อัปโหลด
+certificates-20261121-030000.tgz  # ไฟล์เกียรติบัตร PNG/PDF
+cert-keys-20261121-030000.tgz     # กุญแจลงนาม (มีหลังออกใบแรก)</pre>
+  <p>ตัวเลือก: <code>BACKUP_DIR=/ที่อื่น</code> เปลี่ยนโฟลเดอร์ และ <code>KEEP_DAYS=30</code> เปลี่ยนจำนวนวันที่เก็บ (ค่าเริ่มต้น 14 วัน สคริปต์ลบเฉพาะไฟล์สำรองของตัวเองที่เก่ากว่านั้น)</p>
+  <h2>10.2 สำรองอัตโนมัติทุกคืน (ตี 3)</h2>
+  <p>รัน 10.1 ด้วยมือก่อนหนึ่งครั้ง (สร้างโฟลเดอร์ <code>/opt/backups</code>) แล้วพิมพ์ <code>crontab -e</code> และเพิ่มบรรทัดนี้ (บรรทัดเดียว):</p>
+<pre class="one">0 3 * * * sh /opt/pipoltutorapp/docker/nightly-backup.sh >> /opt/backups/nightly.log 2>&1</pre>
+  <p>เช็กผลวันถัดไปด้วย <code>tail /opt/backups/nightly.log</code> ต้องเห็นบรรทัด <code>backup ok</code></p>
+  <h2>10.3 เก็บไฟล์สำรองไว้นอกเซิร์ฟเวอร์</h2>
+  <div class="note danger"><h4>ไฟล์ใน /opt/backups อยู่บนเครื่องเดียวกับระบบ</h4><p>ถ้าเครื่องเสียหรือผู้ให้บริการปิดบัญชี ไฟล์สำรองหายไปด้วย ต้องคัดลอกออกไปเก็บที่อื่นเป็นประจำ อย่างน้อยสัปดาห์ละครั้ง และทุกครั้งหลังรอบสอบใหญ่</p></div>
+  <p>จากคอมของ Owner (macOS/Linux):</p>
+<pre>mkdir -p ~/pipoltutor-backups
+rsync -av root@203.0.113.10:/opt/backups/ ~/pipoltutor-backups/   # คัดลอกเฉพาะไฟล์ใหม่</pre>
+  <ul>
+    <li>ไฟล์สำรองมีข้อมูลนักเรียนและกุญแจลงนาม เก็บในที่ที่จำกัดสิทธิ์ ไม่แชร์ลิงก์สาธารณะ</li>
+    <li>ถ้าใช้ object storage ตั้ง sync อัตโนมัติด้วย <code>rclone</code> โดยใช้ credential ของ Owner</li>
+    <li>ไฟล์ <code>cert-keys-*.tgz</code> สำคัญที่สุดและเล็กมาก เก็บสำเนาไว้มากกว่าหนึ่งที่</li>
+  </ul>
+</section>
+
+<!-- ========================= 11 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 11</div>
+  <h1>กู้คืนข้อมูล</h1>
+  <div class="note danger"><h4>อ่านก่อนกู้</h4>
+    <ul>
+      <li>ข้อมูลที่เกิดหลังเวลาของไฟล์สำรองจะหาย (เช่น คนสมัครหรือสอบหลังเวลานั้น) แจ้งทีมพัฒนาก่อนทุกครั้ง</li>
+      <li>วิธีในบทนี้<b>ไม่เขียนทับฐานข้อมูลเดิม</b> แต่กู้ลงฐานใหม่ ตรวจ แล้วสลับชื่อ ฐานเดิมถูกเก็บไว้ในชื่อ <code>before_restore</code> ย้อนกลับได้</li>
+      <li>ทำตอนไม่มีคนสอบ เว็บจะปิดระหว่างกู้ (หลายนาทีตามขนาดข้อมูล)</li>
+    </ul></div>
+  <h2>11.1 กู้ฐานข้อมูล</h2>
+  <ol class="steps">
+    <li>หยุดเว็บและ API (postgres ยังทำงานอยู่):
+<pre>cd /opt/pipoltutorapp
+dc stop backend frontend</pre></li>
+    <li>สร้างฐานใหม่ชื่อ <code>restore_check</code> แล้วกู้ไฟล์สำรองลงไป (เปลี่ยนชื่อไฟล์เป็นไฟล์ที่ต้องการ):
+<pre>dc exec -T postgres sh -c 'createdb -U "$POSTGRES_USER" restore_check'
+dc exec -T postgres sh -c \
+  'pg_restore -U "$POSTGRES_USER" -d restore_check --no-owner --exit-on-error' \
+  &lt; /opt/backups/db-20261121-030000.dump</pre></li>
+    <li>ตรวจว่าข้อมูลครบ (จำนวนผู้ใช้และการสอบต้องสมเหตุสมผล):
+<pre>dc exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d restore_check \
+  -c "select count(*) from users" -c "select count(*) from attempts"'</pre></li>
+    <li>สลับชื่อ: ฐานปัจจุบันเปลี่ยนเป็น <code>before_restore</code> และฐานที่กู้เปลี่ยนเป็นชื่อหลัก:
+<pre>dc exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d postgres \
+  -c "ALTER DATABASE \"$POSTGRES_DB\" RENAME TO before_restore" \
+  -c "ALTER DATABASE restore_check RENAME TO \"$POSTGRES_DB\""'</pre></li>
+    <li>เปิดระบบและตรวจ:
+<pre>dc start backend frontend
+curl https://pipoltutor.org/api/health</pre></li>
+    <li>ใช้งานไปสักระยะจนแน่ใจแล้ว ค่อยลบฐานเดิม (ถ้ายังมี <code>before_restore</code> จากครั้งก่อน ต้องลบก่อนกู้ครั้งใหม่):
+<pre>dc exec -T postgres sh -c \
+  'psql -U "$POSTGRES_USER" -d postgres -c "DROP DATABASE before_restore"'</pre></li>
+  </ol>
+  <p><b>ถ้ากู้แล้วมีปัญหา</b> ย้อนกลับไปใช้ฐานเดิมด้วยการหยุด backend/frontend แล้วสลับชื่อกลับ (ขั้นที่ 4 กลับด้าน: ชื่อหลัก → <code>restore_check</code> และ <code>before_restore</code> → ชื่อหลัก)</p>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">11.2 กู้รูป ไฟล์เกียรติบัตร และกุญแจลงนาม</h2>
+  <p>ใช้เมื่อ volume ของไฟล์หาย เช่น ย้ายเครื่องใหม่ คำสั่งแตกไฟล์สำรองกลับเข้า volume ผ่าน container backend (ต้องเปิด backend อยู่):</p>
+<pre>cd /opt/pipoltutorapp
+B=/opt/backups; S=20261121-030000    # S = เวลาในชื่อไฟล์สำรองที่จะกู้
+dc exec -T backend sh -c 'tar xzf - -C /app/uploads' &lt; $B/uploads-$S.tgz
+dc exec -T backend sh -c 'tar xzf - -C /app/certificates' &lt; $B/certificates-$S.tgz
+dc exec -T backend sh -c 'tar xzf - -C /app/cert-keys' &lt; $B/cert-keys-$S.tgz
+# ไฟล์ .pem ต้องเป็น -rw-------
+dc exec -T backend ls -la /app/cert-keys</pre>
+  <p>ตรวจผล: เปิดหน้าตรวจสอบเกียรติบัตรใบเก่าจาก QR ต้องขึ้น "ใช้ได้" และลายเซ็นถูกต้อง ดาวน์โหลด PNG/PDF ได้ และรูปโจทย์แสดงครบ</p>
+
+  <h2>11.3 ย้ายไปเซิร์ฟเวอร์เครื่องใหม่</h2>
+  <ol class="steps">
+    <li>บนเครื่องเก่า: <code>sh docker/nightly-backup.sh</code> แล้วคัดลอกไฟล์ชุดล่าสุดทั้ง 4 ไฟล์ และ <code>docker/.env</code> ออกมา</li>
+    <li>บนเครื่องใหม่: ทำบทที่ 3–5 โดย<b>ใช้ <code>docker/.env</code> เดิม</b> (รหัสฐานข้อมูลเดิม)</li>
+    <li><code>dc up -d --build</code> แล้วทำ 11.1 (กู้ฐานข้อมูล) และ 11.2 (กู้ไฟล์)</li>
+    <li>ย้าย DNS มาที่ IP ใหม่ (บทที่ 4) รอ Caddy ออก HTTPS แล้วตรวจตามบทที่ 6</li>
+    <li>ปิดเครื่องเก่าหลังตรวจครบ อย่าเปิดทั้งสองเครื่องรับผู้ใช้พร้อมกัน</li>
+  </ol>
+  <div class="note"><h4>ซ้อมกู้คืนเดือนละครั้ง</h4><p>ไฟล์สำรองที่ไม่เคยลองกู้ อาจใช้ไม่ได้ตอนจำเป็น ลองกู้ตาม 11.1 ขั้นที่ 2–3 ลงฐาน <code>restore_check</code> (ไม่ต้องสลับ) แล้วลบทิ้งด้วย <code>DROP DATABASE restore_check</code> ใช้เวลาไม่กี่นาทีและไม่กระทบเว็บ</p></div>
+</section>
+
+<!-- ========================= 12 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 12</div>
+  <h1>สำรองแบบเข้ารหัสและกู้ย้อนเวลา (ทางเลือกขั้นสูง)</h1>
+  <p class="lead">ชุดเสริม <code>docker/docker-compose.backup.yml</code> สร้างไฟล์สำรองที่<b>เข้ารหัส</b>ทุกวัน และเก็บ WAL ของฐานข้อมูลต่อเนื่อง ทำให้กู้ฐานข้อมูลย้อนไปเวลาใดก็ได้ (PITR) เหมาะเมื่อมีผู้ดูแลระบบที่คุ้นกับ PostgreSQL ถ้ายังไม่พร้อม บทที่ 10–11 เพียงพอสำหรับเริ่มต้น</p>
+  <h2>เปิดใช้</h2>
+  <ol class="steps">
+    <li>บน<b>คอมของ Owner</b> (ไม่ใช่เซิร์ฟเวอร์) ติดตั้ง <code>age</code> แล้วสร้างคู่กุญแจ:
+<pre># เก็บไฟล์นี้ไว้กับ Owner เท่านั้น ใช้ถอดรหัสตอนกู้
+age-keygen -o pipol-backup.key</pre>
+    คัดลอกเฉพาะบรรทัด <code>public key: age1…</code></li>
+    <li>ใส่ใน <code>docker/.env</code> บนเซิร์ฟเวอร์:
+<pre>BACKUP_AGE_RECIPIENT=age1...
+BACKUP_INTERVAL_SECONDS=86400</pre></li>
+    <li>ตอนไม่มีคนสอบ (ฐานข้อมูลจะรีสตาร์ตไม่กี่วินาที) เปิดระบบพร้อมชุดเสริม:
+<pre class="one">cd /opt/pipoltutorapp
+alias dcb='docker compose -f docker/docker-compose.yml -f docker/docker-compose.backup.yml'
+dcb config --quiet
+dcb up -d --build</pre></li>
+    <li>เช็กว่าสำรองสำเร็จ: <code>dcb logs backups</code> ต้องเห็น <code>Encrypted DB/base/WAL/assets backup completed</code></li>
+  </ol>
+  <div class="note warn"><h4>เมื่อเปิดชุดเสริมแล้ว</h4>
+    <ul>
+      <li>ทุกคำสั่ง <code>up</code> หลังจากนี้ต้องใช้ <code>dcb</code> (ใส่ <code>-f</code> ทั้งสองไฟล์) ไม่อย่างนั้นการเก็บ WAL จะถูกปิด</li>
+      <li>ไฟล์ <code>.tar.gz.age</code> อยู่ใน volume <code>backups_data</code> และ WAL ใน <code>wal_archive</code> ระบบยังไม่ลบไฟล์เก่าเอง ต้องเฝ้าพื้นที่ดิสก์ (<code>df -h</code>) และคัดลอกออกนอกเครื่องเป็นประจำ</li>
+      <li>ถ้าทำกุญแจ <code>pipol-backup.key</code> หาย ไฟล์สำรองชุดนี้ถอดรหัสไม่ได้อีกเลย</li>
+    </ul></div>
+  <p>ขั้นตอนกู้ย้อนเวลา (ถอดรหัส, วาง base backup, ตั้ง <code>recovery_target_time</code>) อยู่ใน <code>manuals/operations-guide.md</code> หัวข้อ "กู้คืนจริง" ให้ทีมพัฒนาหรือผู้ดูแล PostgreSQL ทำ และกู้ลงเครื่องหรือฐานใหม่เสมอ ห้ามทับของจริง</p>
+</section>
+
+<!-- ========================= 13 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 13</div>
+  <h1>งานดูแลประจำ และกรณีฉุกเฉิน</h1>
+  <h2>ตรวจประจำ</h2>
+  <table>
+    <tr><th>ความถี่</th><th>ตรวจอะไร</th></tr>
+    <tr><td>ทุกวัน (สัปดาห์แรก)</td><td class="wrap"><code>tail /opt/backups/nightly.log</code> มี <code>backup ok</code> · <code>dc ps</code> ทุกบริการ Up · หน้าภาพรวมในแผงผู้ดูแล: คิวเกียรติบัตร ข้อผิดพลาดใหม่ · โจทย์ประจำวันพรุ่งนี้พร้อม</td></tr>
+    <tr><td>ทุกสัปดาห์</td><td class="wrap">คัดลอกไฟล์สำรองออกนอกเครื่อง · <code>df -h</code> พื้นที่ดิสก์เหลือมากกว่า 20% · <code>dc logs --tail 200 backend</code> ไม่มี error ซ้ำ ๆ</td></tr>
+    <tr><td>ทุกเดือน</td><td class="wrap">ซ้อมกู้คืน (11.3) · อัปเดตระบบปฏิบัติการ <code>apt update &amp;&amp; apt upgrade -y</code> แล้ว reboot ตอนไม่มีคนสอบ · ทบทวนรายชื่อทีมงานในผู้ใช้และสิทธิ์</td></tr>
+  </table>
+  <p>ดิสก์ใกล้เต็มจาก image เก่า: <code>docker image prune -f</code> (ไม่ลบ volume ข้อมูล)</p>
+
+  <h2>Owner ทุกคนเข้าระบบไม่ได้</h2>
+  <ol class="steps">
+    <li>ผู้ดูแลเซิร์ฟเวอร์ที่ Owner แต่งตั้ง เปิด <code>/admin/</code> แล้ววาง <code>ADMIN_API_KEY</code> ในช่อง API key</li>
+    <li>ไปที่ ผู้ใช้และสิทธิ์ คืนสิทธิ์ Owner ให้บัญชี Google ที่ตรวจสอบตัวตนแล้ว</li>
+    <li>ทบทวนเมนู ประวัติและระยะเก็บข้อมูล ว่ามีการเปลี่ยนแปลงที่ผิดปกติไหม</li>
+  </ol>
+  <h2>สงสัยว่ารหัสรั่ว</h2>
+  <ul>
+    <li><b>ADMIN_API_KEY</b>: สร้างใหม่ด้วย <code>openssl rand -hex 32</code> ใส่ใน .env แล้ว <code>dc up -d backend</code></li>
+    <li><b>GOOGLE_CLIENT_SECRET / OMISE_SECRET_KEY</b>: สร้างใหม่ในหน้า Google Cloud / Omise แล้วใส่ใน .env และ <code>dc up -d backend</code></li>
+    <li><b>กุญแจลงนามเกียรติบัตร</b>: Owner กด "เปลี่ยนกุญแจ (Key rotation)" ในเมนูเกียรติบัตร ใบเดิมยังตรวจได้ แล้วสำรองกุญแจใหม่ทันที</li>
+    <li><b>POSTGRES_PASSWORD</b>: ฐานข้อมูลไม่เปิดออกอินเทอร์เน็ต ถ้าต้องเปลี่ยนจริง ให้ทีมพัฒนาทำ เพราะต้องเปลี่ยนในฐานข้อมูลก่อนแก้ .env</li>
+  </ul>
+</section>
+
+<!-- ========================= 14 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 14</div>
+  <h1>แก้ปัญหาที่พบบ่อย</h1>
+  <table>
+    <tr><th>อาการ</th><th>สาเหตุและวิธีแก้</th></tr>
+    <tr><td>เปิดเว็บไม่ขึ้น / ไม่มี HTTPS</td><td class="wrap">DNS ยังไม่ชี้มา หรือไฟร์วอลล์ปิดพอร์ต 80/443 ดู <code>dc logs caddy</code> หาคำว่า certificate</td></tr>
+    <tr><td><code>/api/...</code> ขึ้น 502</td><td class="wrap">backend ล่มหรือยังเปิดไม่เสร็จ ดู <code>dc logs backend</code> ถ้ารีสตาร์ตวนซ้ำ มักเป็นปัญหาตอนอัปเดตฐานข้อมูล ข้อความ NOTICE "already exists, skipping" เป็นเรื่องปกติ</td></tr>
+    <tr><td><code>/api/health</code> ขึ้น "db":"down"</td><td class="wrap">postgres ไม่ทำงาน หรือรหัสใน .env ไม่ตรงกับตอนสร้างฐานข้อมูลครั้งแรก</td></tr>
+    <tr><td>ล็อกอิน Google ไม่ได้</td><td class="wrap">ดูบทที่ 8 ตรวจ redirect URI และ consent screen ต้องเป็น In production</td></tr>
+    <tr><td>Owner เข้าเมนูผู้ใช้และสิทธิ์ไม่ได้ (403)</td><td class="wrap"><code>OWNER_EMAILS</code> ว่างหรือสะกดผิด ตรวจด้วย <code>dc exec -T backend printenv OWNER_EMAILS</code> แก้ .env แล้ว <code>dc up -d backend</code></td></tr>
+    <tr><td>เข้า /admin/ แล้วขึ้น "บัญชี … ยังไม่มีสิทธิ์"</td><td class="wrap">บัญชีนั้นยังไม่ได้รับสิทธิ์ทีมงาน ให้ Owner มอบสิทธิ์</td></tr>
+    <tr><td>จ่ายเงินแล้วสิทธิ์ไม่เปิด</td><td class="wrap">ตรวจ webhook ใน Omise ว่าส่งถึง <code>/api/webhooks/omise</code> และใช้คีย์ Live ทั้งสองตัว</td></tr>
+    <tr><td>QR บนเกียรติบัตรพาไป localhost</td><td class="wrap">ออกใบก่อนตั้ง <code>PUBLIC_URL_DOCKER</code> แก้ .env → <code>dc up -d backend</code> แล้วในเมนูเกียรติบัตรกด "ออกใบใหม่ตามเทมเพลต" ของชุดที่กระทบ</td></tr>
+    <tr><td>เกียรติบัตรค้าง "รอสร้างไฟล์" หรือ "สร้างไม่สำเร็จ"</td><td class="wrap">ดู <code>dc logs backend</code> และพื้นที่ดิสก์ แก้แล้วกด "สร้างไฟล์ใหม่" ในเมนูเกียรติบัตร</td></tr>
+    <tr><td>แก้ .env แล้วไม่มีผล</td><td class="wrap">ต้องสั่ง <code>dc up -d</code> ใหม่ทุกครั้งหลังแก้</td></tr>
+    <tr><td>build ค้างหรือ "Killed"</td><td class="wrap">แรมไม่พอ เพิ่ม swap (บทที่ 3) หรืออัปเกรด VPS</td></tr>
+    <tr><td>ดิสก์เต็ม</td><td class="wrap"><code>docker image prune -f</code> ลบ image เก่า ลด <code>KEEP_DAYS</code> ของไฟล์สำรอง หรือย้ายไฟล์สำรองเก่าออก</td></tr>
+  </table>
+  <p>คำสั่งดู log:</p>
+<pre>dc logs -f backend          # ดูต่อเนื่อง กด Ctrl+C เพื่อออก
+dc logs --tail 200 caddy</pre>
+</section>
+
+<section class="chapter">
+  <h1>เช็กลิสต์ก่อนเปิดใช้งานจริง</h1>
+  <table class="check">
+    <tr><th style="width:10mm">✓</th><th>รายการ</th></tr>
+    <tr><td>☐</td><td class="wrap"><code>ALLOW_DEV_AUTH=0</code></td></tr>
+    <tr><td>☐</td><td class="wrap"><code>POSTGRES_PASSWORD</code> และ <code>ADMIN_API_KEY</code> เป็นรหัสสุ่ม ไม่ใช่ค่าตัวอย่าง และ <code>docker/.env</code> สิทธิ์ 600</td></tr>
+    <tr><td>☐</td><td class="wrap"><code>OWNER_EMAILS</code> มี 2 อีเมล และบันทึกบทบาท Owner ให้ทั้งสองบัญชีในผู้ใช้และสิทธิ์แล้ว</td></tr>
+    <tr><td>☐</td><td class="wrap"><code>PUBLIC_URL_DOCKER</code> เป็นโดเมนจริง ก่อนออกเกียรติบัตรใบแรก</td></tr>
+    <tr><td>☐</td><td class="wrap">เปิด https://โดเมน แล้วมีกุญแจ HTTPS ทั้งแบบมีและไม่มี www และ http redirect ไป https</td></tr>
+    <tr><td>☐</td><td class="wrap"><code>/api/health</code> ตอบ <code>"status":"ok"</code></td></tr>
+    <tr><td>☐</td><td class="wrap">ล็อกอิน Google ได้ด้วยบัญชีที่ไม่ใช่ทีมงาน และบัญชีนั้นเข้า /admin/ ไม่ได้</td></tr>
+    <tr><td>☐</td><td class="wrap">Omise ใช้ Live keys ตั้ง webhook แล้ว และทดลองจ่ายจริงสำเร็จทั้ง PromptPay และบัตร</td></tr>
+    <tr><td>☐</td><td class="wrap">ทำข้อสอบจนส่งได้ 1 รอบด้วยบัญชีผู้ทดสอบ ทั้งบนมือถือและคอม และได้เกียรติบัตรที่สแกน QR แล้วขึ้น "ใช้ได้" บนโดเมนจริง</td></tr>
+    <tr><td>☐</td><td class="wrap">ทำโจทย์ประจำวันได้ และมีโจทย์หรือคิวสำรองสำหรับวันถัดไป</td></tr>
+    <tr><td>☐</td><td class="wrap">อนุมัติระยะเก็บข้อมูลในแผงผู้ดูแลแล้ว</td></tr>
+    <tr><td>☐</td><td class="wrap">ตั้ง cron สำรองทุกคืนแล้ว เห็น <code>backup ok</code> ใน nightly.log และมีไฟล์ <code>cert-keys-*.tgz</code></td></tr>
+    <tr><td>☐</td><td class="wrap">คัดลอกไฟล์สำรองชุดแรกออกนอกเซิร์ฟเวอร์ และซ้อมกู้ลงฐาน <code>restore_check</code> แล้ว 1 ครั้ง</td></tr>
+    <tr><td>☐</td><td class="wrap">เก็บสำเนา <code>docker/.env</code> และ <code>ADMIN_API_KEY</code> ไว้ใน password manager</td></tr>
+  </table>
+  <div class="note"><h4>ติดต่อทีมพัฒนา</h4><p>แจ้งปัญหาพร้อมเวลาที่เกิด ผลของ <code>dc ps</code> และ <code>dc logs --tail 100 backend</code> (ตรวจก่อนส่งว่าไม่มีรหัสหรือข้อมูลนักเรียนติดไป) ช่องทางและระยะรับประกันเป็นไปตามสัญญา</p></div>
+</section>
