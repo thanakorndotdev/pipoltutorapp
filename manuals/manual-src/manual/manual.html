@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>คู่มือการใช้งาน PIPOL TUTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600&family=Mitr:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+  :root { --brand:#2f4fd6; --brand50:#eef1fd; --ink:#141b34; --ink2:#46506b; --ink3:#7a839c; --line:#e3e6ef; --amber:#fff5df; --amberInk:#8a5300; --red:#c0362c; --green:#e5f6ec; --greenInk:#18794e; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin:0; font-family: Anuphan, sans-serif; font-size: 10.6pt; line-height: 1.75; color: var(--ink); background:#fff; }
+  h1,h2,h3,h4 { font-family: Mitr, sans-serif; font-weight: 500; line-height: 1.45; margin: 0; }
+  h1 { font-size: 21pt; margin-bottom: 2mm; }
+  h2 { font-size: 14pt; margin: 7mm 0 2mm; color: var(--ink); }
+  h3 { font-size: 11.8pt; margin: 5mm 0 1.5mm; }
+  p { margin: 0 0 2.4mm; }
+  ul, ol { margin: 0 0 2.6mm; padding-left: 6mm; }
+  li { margin-bottom: 1mm; }
+  b, strong { font-weight: 600; }
+  .ui { font-weight: 600; color: var(--brand); }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 9pt; background: #f2f4f9; padding: 0 1.2mm; border-radius: 1mm; }
+  .chapter { break-before: page; }
+  .eyebrow { font-family: Mitr; color: var(--brand); font-size: 10pt; letter-spacing: .02em; }
+  .lead { color: var(--ink2); font-size: 11pt; margin-bottom: 4mm; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.8pt; }
+  th, td { text-align: left; vertical-align: top; padding: 1.8mm 2.2mm; border-bottom: 1px solid var(--line); }
+  th { font-family: Mitr; font-weight: 500; background: #f5f6fa; }
+  td:first-child { white-space: nowrap; }
+  td.wrap { white-space: normal; }
+  figure { margin: 3mm 0 5mm; break-inside: avoid; }
+  .frame { border: 1px solid var(--line); border-radius: 3mm; overflow: hidden; background: #f5f6fa; }
+  .frame img { display: block; width: 100%; }
+  .frame.crop { position: relative; }
+  .frame.crop::after { content:""; position:absolute; left:0; right:0; bottom:0; height: 12mm; background: linear-gradient(transparent, rgba(245,246,250,.95)); }
+  figcaption { font-size: 9pt; color: var(--ink3); margin-top: 1.5mm; text-align: center; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; align-items: start; }
+  .phone { max-width: 62mm; margin-left: auto; margin-right: auto; }
+  .note { border-radius: 2.5mm; padding: 3mm 4mm; margin: 3mm 0 4mm; break-inside: avoid; background: var(--brand50); }
+  .note.warn { background: var(--amber); color: #3d2a00; }
+  .note.danger { background: #fdecea; color: #5a1610; }
+  .note.ok { background: var(--green); color: #0c3d26; }
+  .note h4 { font-size: 10.6pt; margin-bottom: 1mm; }
+  .note p:last-child, .note ul:last-child { margin-bottom: 0; }
+  ol.steps { list-style: none; padding: 0; counter-reset: s; }
+  ol.steps > li { counter-increment: s; position: relative; padding-left: 9mm; margin-bottom: 2mm; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: .5mm; width: 6mm; height: 6mm; border-radius: 50%; background: var(--brand); color: #fff; font-family: Mitr; font-size: 9pt; display: grid; place-items: center; line-height: 1; }
+  .tag { display: inline-block; font-size: 8.6pt; padding: 0 2mm; border-radius: 10mm; background: var(--brand50); color: var(--brand); font-family: Mitr; vertical-align: 1px; }
+  .tag.new { background: #ffe9dc; color: #b5440f; }
+  /* cover */
+  .cover { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; padding: 8mm 2mm 0; }
+  .logo { width: 18mm; height: 18mm; border-radius: 5mm; background: linear-gradient(135deg,#1d2b7a,#3b5be0); color: #fff; font-family: Mitr; font-size: 15pt; display: grid; place-items: center; }
+  .cover h1 { font-size: 30pt; line-height: 1.3; margin-top: 18mm; }
+  .cover .sub { font-size: 13pt; color: var(--ink2); margin-top: 3mm; }
+  .cover .meta { font-size: 10pt; color: var(--ink3); border-top: 1px solid var(--line); padding-top: 4mm; }
+  .toc { columns: 2; column-gap: 8mm; font-size: 10.2pt; }
+  .toc .part { font-family: Mitr; color: var(--brand); margin: 3mm 0 1mm; break-after: avoid; }
+  .toc div.item { display: flex; gap: 2.5mm; break-inside: avoid; margin-bottom: 1.2mm; }
+  .toc .n { font-family: Mitr; color: var(--ink3); min-width: 6mm; }
+  .part-title { break-before: page; height: 240mm; display: flex; flex-direction: column; justify-content: center; }
+  .part-title .k { font-family: Mitr; color: var(--brand); font-size: 13pt; }
+  .part-title h1 { font-size: 30pt; }
+  .part-title p { color: var(--ink2); font-size: 12pt; max-width: 140mm; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 6mm; }
+  .card { border: 1px solid var(--line); border-radius: 2.5mm; padding: 3mm 4mm; break-inside: avoid; }
+  .card h4 { font-size: 10.6pt; margin-bottom: 1mm; }
+  .card p { margin: 0; font-size: 9.8pt; color: var(--ink2); }
+  .avoid { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ========================= COVER ========================= -->
+<section class="cover">
+  <div>
+    <div class="logo">จภ</div>
+    <h1>คู่มือการใช้งาน<br>PIPOL TUTOR</h1>
+    <p class="sub">สำหรับนักเรียน ผู้ปกครอง และทีมงานผู้ดูแลระบบ (แอดมิน)<br>ฉบับเต็ม · ครอบคลุมทุกเมนูของแผงผู้ดูแล</p>
+  </div>
+  <div class="meta">
+    เวอร์ชันระบบ 1.0.1 · ปรับปรุงล่าสุด 21 พฤศจิกายน 2569 · ใช้แทนคู่มือฉบับย่อลงวันที่ 25 ตุลาคม 2569<br>
+    ภาพหน้าจอในคู่มือถ่ายจากระบบทดสอบ ชื่อ อีเมล คะแนน และยอดเงินในภาพเป็นข้อมูลสมมติทั้งหมด
+  </div>
+</section>
+
+<!-- ========================= TOC ========================= -->
+<section class="chapter">
+  <h1>สารบัญ</h1>
+  <div class="toc">
+    <div class="item"><span class="n">1</span><span>ภาพรวมระบบ และสิ่งที่เพิ่มจากฉบับเดิม</span></div>
+    <div class="part">ส่วนที่ 1 · นักเรียนและผู้ปกครอง</div>
+    <div class="item"><span class="n">2</span><span>เข้าสู่ระบบ ข้อมูลนักเรียน และโปรไฟล์</span></div>
+    <div class="item"><span class="n">3</span><span>ทำข้อสอบเสมือนจริง</span></div>
+    <div class="item"><span class="n">4</span><span>ผลสอบ อันดับ และเมนูหลัก</span></div>
+    <div class="item"><span class="n">5</span><span>เกียรติบัตร และการตรวจสอบด้วย QR</span></div>
+    <div class="item"><span class="n">6</span><span>โจทย์ประจำวัน และไฟ (Fire)</span></div>
+    <div class="item"><span class="n">7</span><span>บทความ ข่าว และความคิดเห็น</span></div>
+    <div class="item"><span class="n">8</span><span>คอร์สเรียน การชำระเงิน และดูดวง</span></div>
+    <div class="part">ส่วนที่ 2 · ทีมงานผู้ดูแลระบบ</div>
+    <div class="item"><span class="n">9</span><span>เข้าแผงผู้ดูแล และบทบาททีมงาน</span></div>
+    <div class="item"><span class="n">10</span><span>ภาพรวมการใช้งาน</span></div>
+    <div class="item"><span class="n">11</span><span>คลังข้อสอบ</span></div>
+    <div class="item"><span class="n">12</span><span>ชุดข้อสอบ</span></div>
+    <div class="item"><span class="n">13</span><span>ผลสอบ ส่งออก CSV ตรวจใหม่ รีเซ็ตสิทธิ์</span></div>
+    <div class="item"><span class="n">14</span><span>อันดับและสถิติ</span></div>
+    <div class="item"><span class="n">15</span><span>เกียรติบัตร และเทมเพลต</span></div>
+    <div class="item"><span class="n">16</span><span>โจทย์ประจำวัน / Fire</span></div>
+    <div class="item"><span class="n">17</span><span>บทความ</span></div>
+    <div class="item"><span class="n">18</span><span>หมวด ค้นหา และหน้าแรก</span></div>
+    <div class="item"><span class="n">19</span><span>ตรวจความคิดเห็น และโปรไฟล์นักเรียน</span></div>
+    <div class="item"><span class="n">20</span><span>ประวัติ ข้อผิดพลาด และระยะเก็บข้อมูล</span></div>
+    <div class="item"><span class="n">21</span><span>สินค้าและราคา วันสอบ รูปภาพ ข้อความเว็บไซต์</span></div>
+    <div class="item"><span class="n">22</span><span>ผู้ใช้และสิทธิ์</span></div>
+    <div class="item"><span class="n">23</span><span>งานประจำวัน/สัปดาห์ คำถามที่พบบ่อย และการติดต่อ</span></div>
+  </div>
+</section>
+
+<!-- ========================= 1 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 1</div>
+  <h1>ภาพรวมระบบ</h1>
+  <p class="lead">เว็บไซต์มี 2 ส่วนบนโดเมนเดียวกัน</p>
+  <table>
+    <tr><th>ส่วน</th><th>ที่อยู่</th><th>ใครใช้</th></tr>
+    <tr><td>หน้าเว็บหลัก</td><td><code>https://&lt;โดเมน&gt;/</code></td><td class="wrap">นักเรียนและผู้ปกครอง: ทำข้อสอบ ดูผลและอันดับ เกียรติบัตร โจทย์ประจำวัน บทความ คอร์ส ดูดวง</td></tr>
+    <tr><td>แผงผู้ดูแล</td><td><code>https://&lt;โดเมน&gt;/admin/</code></td><td class="wrap">ทีมงาน: จัดข้อสอบ ดูผล อันดับ เกียรติบัตร โจทย์ประจำวัน บทความ ความคิดเห็น ราคา รูป ข้อความ และสิทธิ์</td></tr>
+  </table>
+
+  <h2>หลักการสำคัญที่ทีมงานควรรู้</h2>
+  <ul>
+    <li><b>ข้อสอบทุกชุดทำฟรี</b> นักเรียนต้องเข้าสู่ระบบด้วย Google และกรอกข้อมูลนักเรียนก่อนเริ่มทำ</li>
+    <li><b>เฉลยไม่ถูกส่งไปที่เครื่องนักเรียน</b> ระบบตรวจคำตอบบนเซิร์ฟเวอร์ทั้งหมด</li>
+    <li><b>เซิร์ฟเวอร์เป็นคนจับเวลา</b> ปิดหน้าเว็บหรือเปลี่ยนเครื่อง เวลาก็ยังเดินต่อ หมดเวลาระบบส่งคำตอบให้เอง</li>
+    <li><b>การเปลี่ยนข้อมูลสำคัญต้องใส่เหตุผล</b> เช่น แก้อันดับ เพิกถอนเกียรติบัตร ชดเชยไฟ ตรวจความคิดเห็น ระบบเก็บว่าใครทำ ทำเมื่อไร และเพราะอะไรไว้ในเมนู <span class="ui">ประวัติและระยะเก็บข้อมูล</span></li>
+    <li><b>งานที่กระทบคนหลายคนจะแสดงตัวอย่างก่อนยืนยันเสมอ</b> (ปุ่ม "แสดงตัวอย่าง" / "ตรวจผลกระทบก่อนยืนยัน") อ่านตัวเลขผลกระทบก่อนกดยืนยันทุกครั้ง</li>
+  </ul>
+
+  <h2>สิ่งที่เพิ่มจากคู่มือฉบับย่อ (25 ต.ค. 2569)</h2>
+  <div class="grid2">
+    <div class="card"><h4>อันดับและสถิติ <span class="tag new">ใหม่</span></h4><p>อันดับ คะแนนเฉลี่ย SD Z-score เปอร์เซ็นไทล์ ผลเบื้องต้น/ผลรับรอง ตรวจรับเวลาสอบ และย้อนเวอร์ชัน</p></div>
+    <div class="card"><h4>เกียรติบัตรดิจิทัล <span class="tag new">ใหม่</span></h4><p>ออกใบอัตโนมัติหลังส่งข้อสอบ ลงลายเซ็นดิจิทัล มี QR ตรวจสอบ ออกแบบเทมเพลตเองได้</p></div>
+    <div class="card"><h4>โจทย์ประจำวันและไฟ <span class="tag new">ใหม่</span></h4><p>โจทย์วันละชุด สะสมไฟต่อเนื่อง กู้ไฟ นำเข้า CSV/XLSX และชดเชยเมื่อระบบขัดข้อง</p></div>
+    <div class="card"><h4>บทความ ข่าว ความคิดเห็น <span class="tag new">ใหม่</span></h4><p>เขียนแบบบล็อก ส่งตรวจ อนุมัติ ตั้งเวลาเผยแพร่ หมวดหลายระดับ ค้นหาคำพ้อง ตรวจความคิดเห็น</p></div>
+    <div class="card"><h4>โปรไฟล์นักเรียน <span class="tag new">ใหม่</span></h4><p>รูปและแนะนำตัว หน้าโปรไฟล์ที่สมาชิกเห็นกัน ลบบัญชีได้เอง</p></div>
+    <div class="card"><h4>สิทธิ์ทีมงานรายโมดูล <span class="tag new">ใหม่</span></h4><p>Owner / Admin / Author / Moderator / Results Viewer และกำหนดเองรายโมดูล</p></div>
+    <div class="card"><h4>ประวัติการเปลี่ยนแปลง <span class="tag new">ใหม่</span></h4><p>Audit log ทุกการกระทำ บันทึกข้อผิดพลาด และนโยบายระยะเก็บข้อมูล</p></div>
+    <div class="card"><h4>รูปและลิงก์หลายรายการต่อข้อ</h4><p>โจทย์หนึ่งข้อใส่รูปหรือลิงก์ประกอบได้หลายรายการ เรียงลำดับได้</p></div>
+  </div>
+
+  <h2>เมนูในแผงผู้ดูแล</h2>
+  <table>
+    <tr><th>เมนู</th><th>ใช้ทำอะไร</th><th>บท</th></tr>
+    <tr><td>ภาพรวม</td><td class="wrap">ตัวเลขรวม งานค้าง กราฟรายวัน คำสั่งซื้อล่าสุด</td><td>10</td></tr>
+    <tr><td>คลังข้อสอบ</td><td class="wrap">เพิ่ม แก้ ปิดใช้งาน ลบข้อสอบทีละข้อ</td><td>11</td></tr>
+    <tr><td>ชุดข้อสอบ</td><td class="wrap">สร้างชุด ตั้งเวลา จำนวนครั้ง ลิงก์ PDF เกียรติบัตร และเลือกข้อเข้าชุด</td><td>12</td></tr>
+    <tr><td>อันดับและสถิติ</td><td class="wrap">อันดับ สถิติ ธงตรวจสอบ ผลรับรอง ตรวจรับเวลา</td><td>14</td></tr>
+    <tr><td>โจทย์ประจำวัน / Fire</td><td class="wrap">ตั้งโจทย์รายวัน คิวสำรอง นำเข้าไฟล์ ชดเชยไฟ สรุปผล</td><td>16</td></tr>
+    <tr><td>หมวด ค้นหา และหน้าแรก</td><td class="wrap">หมวดบทความ คำค้นพ้อง คำต้องตรวจ ลำดับส่วนหน้าแรก ยอดอ่าน</td><td>18</td></tr>
+    <tr><td>ตรวจความคิดเห็น</td><td class="wrap">อนุมัติ/ปฏิเสธ/ซ่อน/ลบความคิดเห็น ล้างรูปหรือแนะนำตัวที่ไม่เหมาะสม</td><td>19</td></tr>
+    <tr><td>ประวัติและระยะเก็บข้อมูล</td><td class="wrap">Audit log ข้อผิดพลาด และอนุมัติระยะเก็บข้อมูล</td><td>20</td></tr>
+    <tr><td>ผลสอบ</td><td class="wrap">คะแนนรายคน คำตอบรายข้อ CSV ตรวจใหม่ รีเซ็ตสิทธิ์</td><td>13</td></tr>
+    <tr><td>เกียรติบัตร</td><td class="wrap">ตั้งค่าออกใบรายชุด รายการใบ เพิกถอน ออกใหม่ เทมเพลต กุญแจลงนาม</td><td>15</td></tr>
+    <tr><td>สินค้าและราคา</td><td class="wrap">ราคาคอร์ส แพ็ก หัวข้อดูดวง การ์ดราคา เปิด/ปิดขาย</td><td>21</td></tr>
+    <tr><td>บทความ</td><td class="wrap">เขียนบทเรียนและข่าว ส่งตรวจ อนุมัติ เผยแพร่ ตั้งเวลา</td><td>17</td></tr>
+    <tr><td>วันสอบ</td><td class="wrap">วันสอบ จภ. สำหรับนับถอยหลัง และวันปิดรับสมัคร</td><td>21</td></tr>
+    <tr><td>รูปภาพ / ข้อความเว็บไซต์</td><td class="wrap">เปลี่ยนรูปและข้อความบนหน้าเว็บโดยไม่ต้องแก้โค้ด</td><td>21</td></tr>
+    <tr><td>ผู้ใช้และสิทธิ์</td><td class="wrap">บทบาทและสิทธิ์รายโมดูลของทีมงาน (เฉพาะ Owner)</td><td>22</td></tr>
+  </table>
+  <p class="ui" style="color:var(--ink3);font-weight:400">ทีมงานแต่ละคนจะเห็นเฉพาะเมนูที่ตัวเองมีสิทธิ์ดู เช่น ผู้เขียนบทความเห็นแค่ "บทความ" และ "หมวด ค้นหา และหน้าแรก"</p>
+</section>
+
+<!-- ========================= PART 1 ========================= -->
+<section class="part-title">
+  <div class="k">ส่วนที่ 1</div>
+  <h1>นักเรียนและผู้ปกครอง</h1>
+  <p>บทที่ 2–8 ใช้อธิบายให้นักเรียนหรือผู้ปกครองฟังเวลามีคนถามว่าต้องทำอย่างไร ทีมงานควรอ่านเพื่อรู้ว่าฝั่งนักเรียนเห็นอะไร</p>
+</section>
+
+<!-- ========================= 2 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 2</div>
+  <h1>เข้าสู่ระบบ ข้อมูลนักเรียน และโปรไฟล์</h1>
+
+  <h2>2.1 เข้าสู่ระบบด้วย Google</h2>
+  <p>กดปุ่ม <span class="ui">เข้าสู่ระบบ</span> มุมขวาบน แล้วกด <span class="ui">ดำเนินการต่อด้วย Google</span> ไม่ต้องตั้งรหัสผ่านใหม่ ถ้าเคยซื้อคอร์สไว้ให้ใช้อีเมลเดียวกับตอนชำระเงิน ระบบจะเปิดสิทธิ์ให้อัตโนมัติ</p>
+  <p>หลังเข้าสู่ระบบ มุมขวาบนจะแสดงชื่อและ <b>ไฟสะสม</b> (ตัวเลขข้างไอคอนเปลวไฟ) กดชื่อเพื่อเปิดเมนูบัญชี: เมนูหลัก, โปรไฟล์, ประวัติข้อสอบ, เกียรติบัตร, โจทย์วันนี้ และออกจากระบบ บนมือถือเปิดเมนูจากมุมขวาบน</p>
+  <figure><div class="frame"><img src="../shots/s-login.jpg"></div><figcaption>หน้าเข้าสู่ระบบ</figcaption></figure>
+
+  <h2>2.2 กรอกข้อมูลนักเรียน (ครั้งแรกครั้งเดียว)</h2>
+  <p>ก่อนทำข้อสอบครั้งแรก ระบบให้กรอก <b>ชื่อจริง นามสกุล ชื่อเล่น</b> และ <b>โรงเรียน จภ. ที่สมัคร</b> (เลือกจาก 18 แห่ง) ข้อมูลนี้ขึ้นในผลสอบที่ทีมงานเห็นและใช้พิมพ์ชื่อบนเกียรติบัตร แก้ภายหลังได้ที่ <span class="ui">โปรไฟล์ → แก้ไขข้อมูลนักเรียน</span> ผลสอบที่ทำไปแล้วยังเก็บข้อมูล ณ วันที่สอบไว้เหมือนเดิม</p>
+  <div class="note warn"><h4>เปลี่ยนชื่อ–นามสกุลแล้วเกียรติบัตรเดิมจะถูกแทนที่</h4><p>ระบบเพิกถอนใบเดิมและออกใบฉบับใหม่ด้วยชื่อใหม่ให้อัตโนมัติ นักเรียนจะได้แจ้งเตือนให้ดาวน์โหลดใบใหม่</p></div>
+
+  <h2>2.3 โปรไฟล์: รูปและแนะนำตัว</h2>
+  <p>ที่หน้า <span class="ui">โปรไฟล์</span> นักเรียนเปลี่ยนรูปได้ (PNG, JPEG หรือ WebP ไม่เกิน 5 MB ระบบตัดเป็นสี่เหลี่ยมจัตุรัสและลบข้อมูลตำแหน่งในรูปให้) และเขียน <b>แนะนำตัว</b> ได้ไม่เกิน 300 ตัวอักษร การ์ดโปรไฟล์แสดงไฟสูงสุด จำนวนเกียรติบัตร และวันที่เข้าร่วม กด <span class="ui">ดูแบบที่เพื่อนเห็น</span> เพื่อดูหน้าโปรไฟล์สาธารณะ</p>
+  <ul>
+    <li>หน้าโปรไฟล์ (<code>/u/…</code>) เปิดได้เฉพาะ <b>สมาชิกที่เข้าสู่ระบบแล้ว</b> คนทั่วไปและเครื่องมือค้นหาไม่เห็น</li>
+    <li>เพื่อนเห็นชื่อเล่น รูป แนะนำตัว ไฟสูงสุด และจำนวนเกียรติบัตร ไม่เห็นอีเมล คะแนน หรือโรงเรียน</li>
+    <li>ทีมงานล้างรูปหรือแนะนำตัวที่ไม่เหมาะสมได้ที่เมนู <span class="ui">ตรวจความคิดเห็น</span> (บทที่ 19)</li>
+  </ul>
+  <div class="pair">
+    <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/s-profile.jpg"></div><figcaption>หน้าโปรไฟล์ของนักเรียน</figcaption></figure>
+    <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/s-u.jpg"></div><figcaption>หน้าโปรไฟล์ที่เพื่อนเห็น</figcaption></figure>
+  </div>
+
+  <h2>2.4 ลบบัญชี</h2>
+  <p>ท้ายหน้าโปรไฟล์มีส่วน <b>ลบบัญชี</b> นักเรียนเลือกได้ว่าจะ</p>
+  <ul>
+    <li><b>คงเกียรติบัตรไว้</b> พร้อมชื่อที่ลงนาม เพื่อให้ผู้อื่นยังตรวจสอบใบได้ หรือ</li>
+    <li><b>ถอนเกียรติบัตร</b> และทำชื่อเป็นแบบไม่ระบุตัวบุคคล</li>
+  </ul>
+  <p>จากนั้นอ่านขอบเขตความยินยอม พิมพ์ข้อความยืนยัน แล้วกดลบ ระบบออกจากระบบทุกเครื่องทันที ข้อความความคิดเห็นถูกลบ ผลสอบเดิมถูกทำเป็นไม่ระบุตัวบุคคล การลบบัญชีย้อนกลับไม่ได้</p>
+</section>
+
+<!-- ========================= 3 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 3</div>
+  <h1>ทำข้อสอบเสมือนจริง</h1>
+
+  <h2>3.1 เลือกชุดข้อสอบ</h2>
+  <p>เมนู <span class="ui">คลังข้อสอบ</span> แสดงทุกชุดที่เผยแพร่ พร้อมเวลาทำและจำนวนครั้งที่เหลือ ชุดที่ทำครบสิทธิ์แล้วจะมีปุ่มไปดูผลที่ประวัติแทน</p>
+  <figure><div class="frame crop" style="max-height:85mm"><img src="../shots/s-exam-list.jpg"></div><figcaption>รายการชุดข้อสอบของนักเรียน</figcaption></figure>
+
+  <h2>3.2 อ่านคำชี้แจง แล้วกดเริ่ม</h2>
+  <p>หน้าคำชี้แจงบอกจำนวนข้อ จำนวนตอน คะแนนเต็ม เวลา โครงสร้างข้อสอบรายตอน รูปแบบคำถาม และจำนวนครั้งที่เหลือ <b>เวลายังไม่เริ่มนับ</b> จนกว่าจะกด <span class="ui">เริ่มทำข้อสอบ</span> ถ้าเคยเริ่มไว้แล้วปุ่มจะเป็น <span class="ui">ทำต่อ</span> และคำตอบที่ตอบไว้ยังอยู่ครบ</p>
+  <figure><div class="frame crop" style="max-height:110mm"><img src="../shots/s-exam-intro.jpg"></div><figcaption>หน้าคำชี้แจงก่อนเริ่มทำข้อสอบ</figcaption></figure>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">3.3 ระหว่างทำข้อสอบ</h2>
+  <figure><div class="frame"><img src="../shots/s-exam-runner.jpg"></div><figcaption>หน้าทำข้อสอบ: แท็บตอนด้านบน ปุ่มเปิด PDF ด่านความคืบหน้า และตารางเลขข้อด้านขวา</figcaption></figure>
+  <ul>
+    <li><b>เปิดข้อสอบ (PDF):</b> ถ้าชุดนั้นมีลิงก์ PDF จะมีปุ่มนี้ด้านบน ขึ้นหลังกดเริ่มจับเวลาเท่านั้น PDF เปิดในแท็บใหม่</li>
+    <li><b>เซฟอัตโนมัติ:</b> ทุกคำตอบเซฟขึ้นเซิร์ฟเวอร์ทันที มุมขวาบนขึ้น "เซฟให้แล้ว"</li>
+    <li><b>ข้ามไปข้อไหนก็ได้:</b> กดแท็บตอนด้านบน หรือกดเลขข้อในตารางด้านขวา</li>
+    <li><b>ปักธงไว้ทบทวน:</b> ข้อที่ไม่แน่ใจ กดปักธง ตารางจะเป็นสีแดง</li>
+    <li><b>ด่านวันนี้:</b> แถบความคืบหน้าบอกว่าอีกกี่ข้อถึงด่านถัดไป และมีข้อความให้กำลังใจตามเวลาที่เหลือ</li>
+    <li><b>คีย์ลัด:</b> กด ก ข ค ง เพื่อเลือกคำตอบ ลูกศรซ้าย/ขวาเพื่อเปลี่ยนข้อ</li>
+    <li><b>ออกไปก่อน:</b> ออกได้ กลับมาทำต่อได้ แต่เวลายังเดินต่อ เหลือ 5 นาทีระบบเตือนหนึ่งครั้ง หมดเวลาแล้วระบบส่งคำตอบที่เซฟไว้ให้อัตโนมัติ</li>
+    <li><b>ข้อเติมคำ:</b> ตรวจแบบตรงทุกตัวอักษร ช่องว่างและรูปแบบตัวเลขมีผล (0.5 กับ 0.50 ต่างกัน) เว้นแต่ข้อนั้นตั้งคำตอบที่รับไว้หลายแบบ</li>
+  </ul>
+  <div class="note warn"><h4>ทำข้อสอบในแท็บเดียว</h4><p>ระหว่างสอบเบราว์เซอร์ส่งบันทึกเวลาทำงานจริงไปที่เซิร์ฟเวอร์เป็นระยะ ถ้าหลุดอินเทอร์เน็ต บันทึกจะเก็บในเครื่องแล้วส่งตามเมื่อกลับมาออนไลน์ การเปิดหลายแท็บหรือหลุดการเชื่อมต่อนาน ๆ ทำให้เวลาของครั้งนั้นต้องรอทีมงาน <b>ตรวจรับเวลา</b> ก่อนใช้จัดอันดับกรณีคะแนนเท่ากัน</p></div>
+
+  <h2>3.4 ส่งข้อสอบ</h2>
+  <p>ส่งได้สองทาง ปุ่มทั้งสองเป็น<b>สีส้ม</b>: ปุ่ม <span class="ui">ส่งคำตอบและตรวจ</span> ที่แถบด้านขวา (กดได้ทุกเมื่อ) หรือเมื่ออยู่ข้อสุดท้าย ปุ่ม "ข้อถัดไป" จะเปลี่ยนเป็น <span class="ui">ส่งข้อสอบ</span> ระบบจะถามยืนยันและบอกจำนวนข้อที่ยังไม่ตอบหรือปักธงไว้ <b>ส่งแล้วแก้คำตอบไม่ได้</b></p>
+  <div class="pair">
+    <figure><div class="frame phone"><img src="../shots/m-runner.jpg"></div><figcaption>หน้าทำข้อสอบบนมือถือ</figcaption></figure>
+    <div class="note" style="margin-top:3mm"><h4>บนมือถือ</h4><p>ทุกฟังก์ชันเหมือนบนคอมพิวเตอร์ ตารางเลขข้อและปุ่มส่งอยู่ด้านล่าง แนะนำให้หมุนเครื่องแนวตั้งและปิดแอปอื่นที่แจ้งเตือนบ่อยระหว่างสอบ</p></div>
+  </div>
+</section>
+
+<!-- ========================= 4 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 4</div>
+  <h1>ผลสอบ อันดับ และเมนูหลัก</h1>
+  <h2>4.1 หน้าสรุปผล</h2>
+  <p>ส่งแล้วระบบตรวจทันที หน้าสรุปผลแสดง</p>
+  <ul>
+    <li><b>คะแนนที่เผยแพร่</b> ร้อยละ จำนวนข้อที่ไม่ได้ตอบ และเวลาทำสะสมที่ตรวจรับ</li>
+    <li><b>อันดับและสถิติ</b> (ตามที่ทีมงานเปิดเผย): อันดับ เฉลี่ย SD Z-score เปอร์เซ็นไทล์ พร้อมป้ายว่าเป็น "อันดับเบื้องต้น" หรือ "ผลรับรอง"</li>
+    <li><b>คะแนนรายบท</b> เพื่อดูว่าควรเก็บบทไหนก่อน</li>
+    <li>ถ้าชุดเปิดให้ดูเฉลย จะมีผลรายข้อและเฉลยละเอียดด้านล่าง</li>
+  </ul>
+  <figure><div class="frame crop" style="max-height:100mm"><img src="../shots/s-result.jpg"></div><figcaption>หน้าสรุปผลสอบพร้อมอันดับเบื้องต้น</figcaption></figure>
+  <div class="note"><h4>ผลเบื้องต้น กับ ผลรับรอง</h4>
+    <ul>
+      <li><b>เบื้องต้น</b>: คำนวณใหม่อัตโนมัติเมื่อมีคนส่งเพิ่ม อันดับจึงเปลี่ยนได้</li>
+      <li><b>ผลรับรอง</b>: ทีมงานเผยแพร่เป็นทางการแล้ว ถ้าขึ้นว่า "รอทบทวน" ค่าที่รับรองยังคงเดิมระหว่างที่ทีมงานตรวจข้อมูลใหม่</li>
+      <li>ถ้าสอบหลายครั้ง อันดับใช้ครั้งที่เลือกตามนโยบายของชุด (ค่าเริ่มต้นคือคะแนนดีที่สุด) แต่ทุกครั้งยังเห็นคะแนนของตัวเอง</li>
+    </ul></div>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">4.2 เมนูหลัก (Dashboard)</h2>
+  <p>หน้า <span class="ui">เมนูหลัก</span> รวมทุกอย่างของนักเรียนไว้ที่เดียว</p>
+  <ul>
+    <li><b>ไฟของน้อง</b>: ไฟปัจจุบัน ไฟสูงสุด สิทธิ์กู้คงเหลือ และสถานะวันนี้ (บทที่ 6)</li>
+    <li><b>ตัวเลขสรุป</b>: จำนวนครั้งที่สอบ ชุดที่ค้างทำ คะแนนล่าสุด และวันที่เหลือถึงวันสอบ จภ.</li>
+    <li><b>ประวัติการสอบ</b>: ชื่อชุด ระดับชั้น (ม.1/ม.4) วิชา ครั้งที่ เวลาเริ่ม/ส่ง รหัสการส่ง อันดับ และคะแนน ครั้งที่ใช้จัดอันดับมีป้าย "ใช้จัดอันดับ"</li>
+    <li><b>เกียรติบัตรของฉัน</b>, <b>การแจ้งเตือน</b> (เช่น มีคนตอบความคิดเห็น หรือมีเกียรติบัตรฉบับใหม่) และทางลัดไปทุกเมนู</li>
+  </ul>
+  <div class="pair">
+    <figure><div class="frame crop" style="max-height:150mm"><img src="../shots/s-dashboard.jpg"></div><figcaption>เมนูหลักบนคอมพิวเตอร์</figcaption></figure>
+    <figure><div class="frame phone crop" style="max-height:150mm"><img src="../shots/m-dashboard.jpg"></div><figcaption>เมนูหลักบนมือถือ</figcaption></figure>
+  </div>
+</section>
+
+<!-- ========================= 5 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 5</div>
+  <h1>เกียรติบัตร และการตรวจสอบด้วย QR</h1>
+  <p>ชุดข้อสอบที่ทีมงานเปิดออกเกียรติบัตร จะออกใบให้ทุกครั้งที่ส่งข้อสอบตามเงื่อนไข (บทที่ 15) ใบสร้างบนเซิร์ฟเวอร์และลงลายเซ็นดิจิทัล ระหว่างสร้างไฟล์จะขึ้น "กำลังสร้าง" แล้วดาวน์โหลดได้ภายในไม่กี่นาที</p>
+  <ul>
+    <li>ดูทุกใบได้ที่ <span class="ui">เมนูหลัก → เกียรติบัตรของฉัน</span> กดใบเพื่อเปิด</li>
+    <li>ดาวน์โหลดได้ทั้ง <b>รูป (PNG)</b> และ <b>PDF</b> ต้นฉบับ</li>
+    <li>สอบหลายครั้งจะมีใบแยกทุกครั้ง หน้าใบแสดง "เกียรติบัตรอื่นของชุดนี้" ให้สลับดู</li>
+  </ul>
+  <figure><div class="frame crop" style="max-height:105mm"><img src="../shots/s-certificate.jpg"></div><figcaption>หน้าเกียรติบัตรของนักเรียน</figcaption></figure>
+  <h2>ตรวจสอบเกียรติบัตร (สำหรับโรงเรียนหรือผู้ปกครอง)</h2>
+  <p>สแกน QR บนใบ จะเปิดหน้าตรวจสอบสาธารณะที่บอกว่าใบ <b>เป็นของจริงและยังใช้ได้</b> หรือถูกเพิกถอน แสดงเลขที่ วันที่ออก ชุดข้อสอบ ระดับ/วิชา และผลตรวจลายเซ็นดิจิทัล <b>หน้านี้ไม่แสดงชื่อ อีเมล หรือคะแนน</b> ผู้ตรวจพิมพ์ชื่อหรือนามสกุลตามที่เห็นบนใบ ระบบตอบเพียงว่าตรงกับข้อมูลที่ออกให้หรือไม่</p>
+  <figure><div class="frame crop" style="max-height:95mm"><img src="../shots/s-cert-verify.jpg"></div><figcaption>หน้าตรวจสอบเกียรติบัตรจาก QR</figcaption></figure>
+  <div class="note"><p>การตรวจลายเซ็นยืนยันข้อมูลที่เซิร์ฟเวอร์ลงนามไว้ ไม่ได้ตรวจไฟล์รูปทีละพิกเซล ถ้าข้อความบนใบที่ได้รับไม่ตรงกับหน้าตรวจสอบ ให้ถือหน้าตรวจสอบเป็นหลัก</p></div>
+</section>
+
+<!-- ========================= 6 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 6</div>
+  <h1>โจทย์ประจำวัน และไฟ (Fire)</h1>
+  <p class="lead">โจทย์ใหม่ทุกวัน วันใหม่เริ่ม 00:00 น. และปิดรับ 23:59 น. เวลาไทย ทุกระดับชั้นใช้โจทย์เดียวกัน</p>
+  <div class="pair">
+    <div>
+      <h3 style="margin-top:0">กติกา</h3>
+      <ul>
+        <li>ต้องออนไลน์และเข้าสู่ระบบ ตอบได้ <b>ข้อละ 2 ครั้ง</b></li>
+        <li>ตอบผิดครั้งแรกอาจมี <b>คำใบ้</b> (ถ้าทีมงานเปิดไว้)</li>
+        <li>ตอบถูกครบทุกข้อของวัน = <b>ไฟ +1</b> (สูงสุดวันละ +1)</li>
+        <li>วันที่มีหลายข้อ ตอบครบแต่ยังไม่ถูกทั้งหมด = <b>รักษาไฟ</b> (ไม่เพิ่ม ไม่หาย) ถ้าแก้จนถูกครบภายในวันเดียวกันได้ไฟเพิ่ม</li>
+        <li>วันที่มีข้อเดียว ตอบผิดครั้งแรกแล้วออกไป ยังไม่นับว่ารักษาไฟ</li>
+        <li>ส่งข้อสอบในคลังที่ตอบอย่างน้อยหนึ่งข้อ ก็ช่วยรักษาไฟของวันนั้นได้</li>
+        <li>โจทย์เก่าปิดรับตอนเที่ยงคืน แล้วไปอยู่ <span class="ui">โจทย์ที่ผ่านมา</span> ฝึกซ้ำได้ไม่จำกัด เฉลยขึ้นหลังส่ง และไม่มีผลกับไฟ</li>
+      </ul>
+      <h3>ไฟและสิทธิ์กู้</h3>
+      <ul>
+        <li>การ์ดไฟแสดง <b>ไฟปัจจุบัน</b> <b>สูงสุด</b> สถานะวันนี้ และ <b>สิทธิ์กู้คงเหลือ</b></li>
+        <li>พลาดหนึ่งวัน กู้ได้ถึง 23:59 น. ของวันถัดไป</li>
+        <li>สิทธิ์กู้ต่อเดือนตามไฟปัจจุบัน: 0–9 = 3 ครั้ง, 10–29 = 4, 30–49 = 5, 50 ขึ้นไป = 6</li>
+        <li>ไฟเริ่มนับใหม่แล้ว <b>ไฟสูงสุดไม่หาย</b></li>
+      </ul>
+    </div>
+    <figure style="margin-top:0"><div class="frame phone"><img src="../shots/m-daily.jpg"></div><figcaption>โจทย์ประจำวันบนมือถือ</figcaption></figure>
+  </div>
+  <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/s-daily.jpg"></div><figcaption>หน้าโจทย์ประจำวันหลังตอบถูกครบ</figcaption></figure>
+  <div class="note"><p>ถ้าระบบขัดข้องและทีมงานขยายเวลา หน้าโจทย์วันนี้จะมีแถบแจ้งให้แตะเพื่อทำโจทย์ของเมื่อวานต่อจนถึงเวลาที่ขยาย ผลนับเป็นไฟของวันนั้น</p></div>
+</section>
+
+<!-- ========================= 7 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 7</div>
+  <h1>บทความ ข่าว และความคิดเห็น</h1>
+  <ul>
+    <li>หน้า <span class="ui">บทความ</span> อ่านและค้นหาได้โดย<b>ไม่ต้องเข้าสู่ระบบ</b> กรองได้ตามชนิด (บทเรียน/ข่าว) ระดับชั้น วิชา หมวด และวันที่ การค้นหารู้จักคำพ้องและคำสะกดผิดที่ทีมงานตั้งไว้ เช่น "ความน่าจะเปน" เจอ "ความน่าจะเป็น"</li>
+    <li>ข่าวมีแหล่งที่มา เครดิต และวันหมดเขต (ถ้ามี)</li>
+    <li><b>เขียนหรือตอบความคิดเห็นต้องเข้าสู่ระบบ</b> ข้อความที่มีคำต้องตรวจหรือลิงก์จะ<b>รอทีมงานตรวจ</b>ก่อนแสดง</li>
+    <li>เมื่อมีคนตอบความคิดเห็น เจ้าของข้อความได้แจ้งเตือนพร้อมลิงก์ไปที่ความคิดเห็นนั้น</li>
+  </ul>
+  <div class="pair">
+    <figure><div class="frame crop" style="max-height:140mm"><img src="../shots/s-articles.jpg"></div><figcaption>หน้ารวมบทความ</figcaption></figure>
+    <figure><div class="frame crop" style="max-height:140mm"><img src="../shots/s-article.jpg"></div><figcaption>บทความพร้อมความคิดเห็น</figcaption></figure>
+  </div>
+</section>
+
+<!-- ========================= 8 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 8</div>
+  <h1>คอร์สเรียน การชำระเงิน และดูดวง</h1>
+  <ul>
+    <li>หน้า <span class="ui">คอร์สเรียน</span> และการ์ดราคาบนหน้าแรกแสดงสินค้าที่เปิดขาย ราคาและรายละเอียดแก้ได้ในแผงผู้ดูแล (บทที่ 21)</li>
+    <li>ชำระเงินผ่าน Omise ด้วย <b>PromptPay</b> หรือ<b>บัตร</b> หน้าชำระเงินให้กรอกชื่อนักเรียน โรงเรียนปัจจุบัน จภ. ที่ตั้งใจสอบ Instagram เบอร์ผู้ปกครอง และอีเมลรับใบเสร็จ หลังชำระสำเร็จระบบเปิดสิทธิ์ให้อัตโนมัติ</li>
+    <li>หน้า <span class="ui">ดูดวง</span> แต่ละหัวข้อมีราคาของตัวเอง จ่ายแล้วกรอกข้อมูลเพื่อดูคำทำนาย</li>
+  </ul>
+  <div class="pair">
+    <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/s-courses.jpg"></div><figcaption>หน้าคอร์สเรียน</figcaption></figure>
+    <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/s-home.jpg"></div><figcaption>หน้าแรก (ยังไม่เข้าสู่ระบบ)</figcaption></figure>
+  </div>
+</section>
+
+<!-- ========================= PART 2 ========================= -->
+<section class="part-title">
+  <div class="k">ส่วนที่ 2</div>
+  <h1>ทีมงานผู้ดูแลระบบ</h1>
+  <p>บทที่ 9–23 อธิบายทุกเมนูของแผงผู้ดูแลที่ <code>/admin/</code> ตามลำดับที่ใช้งานจริง: เข้าระบบ → ข้อสอบ → ผลและอันดับ → เกียรติบัตร → โจทย์ประจำวัน → บทความ → ตั้งค่าเว็บ → สิทธิ์</p>
+</section>
+
+<!-- ========================= 9 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 9</div>
+  <h1>เข้าแผงผู้ดูแล และบทบาททีมงาน</h1>
+  <div class="pair">
+    <div>
+      <ol class="steps">
+        <li>เปิด <code>https://&lt;โดเมน&gt;/admin/</code></li>
+        <li>กด <span class="ui">เข้าสู่ระบบด้วย Google</span> ด้วยบัญชีที่ได้รับสิทธิ์ทีมงาน</li>
+        <li>ถ้าบัญชียังไม่มีสิทธิ์ จะขึ้นข้อความ "บัญชี … ยังไม่มีสิทธิ์ผู้ดูแลระบบ" ให้ Owner มอบสิทธิ์ที่เมนู <span class="ui">ผู้ใช้และสิทธิ์</span></li>
+      </ol>
+      <div class="note"><h4>Owner คนแรก</h4><p>ตอนเปิดระบบครั้งแรกยังไม่มีใครมีสิทธิ์ ทีมพัฒนาใส่อีเมลของ Owner ไว้ในค่า <code>OWNER_EMAILS</code> ของเซิร์ฟเวอร์ (<b>อย่างน้อย 2 บัญชี</b>) อีเมลนั้นเข้าสู่ระบบแล้วเป็น Owner ทันที จากนั้นมอบสิทธิ์คนอื่นผ่านหน้าเว็บ</p></div>
+      <div class="note danger"><h4>ทางเข้าสำรอง: API key</h4><p>ช่อง API key ใช้กรณีฉุกเฉิน เช่น Owner ทุกคนเข้า Google ไม่ได้ key นี้มีสิทธิ์เต็ม เก็บไว้กับผู้ดูแลเซิร์ฟเวอร์เท่านั้น ห้ามส่งในแชตกลุ่มหรือให้ผู้เขียนบทความ ถ้าสงสัยว่ารั่วให้ทีมพัฒนาเปลี่ยน key</p></div>
+    </div>
+    <figure style="margin-top:0"><div class="frame"><img src="../shots/a-gate.jpg" style="width:100%;object-fit:cover;height:70mm;object-position:center"></div><figcaption>หน้าเข้าสู่ระบบของแผงผู้ดูแล</figcaption></figure>
+  </div>
+
+  <h2>บทบาททีมงาน</h2>
+  <table>
+    <tr><th>บทบาท</th><th>ทำอะไรได้</th></tr>
+    <tr><td>Owner</td><td class="wrap">ทุกอย่าง รวมถึง <b>เปลี่ยนสิทธิ์ผู้อื่น</b> หมุนกุญแจลงนามเกียรติบัตร และอนุมัติระยะเก็บข้อมูล ควรมีอย่างน้อย 2 คน</td></tr>
+    <tr><td>Admin</td><td class="wrap">ทุกเมนู ยกเว้น ผู้ใช้และสิทธิ์ และงานที่ต้องเป็น Owner</td></tr>
+    <tr><td>Author</td><td class="wrap">เขียนและแก้บทความของตัวเอง ส่งตรวจได้ แต่เผยแพร่เองไม่ได้</td></tr>
+    <tr><td>Moderator</td><td class="wrap">ดูและจัดการความคิดเห็น</td></tr>
+    <tr><td>Results Viewer</td><td class="wrap">ดูผลสอบและอันดับอย่างเดียว แก้ไม่ได้</td></tr>
+    <tr><td>ไม่มีสิทธิ์ทีมงาน</td><td class="wrap">นักเรียนทั่วไป เข้าแผงผู้ดูแลไม่ได้</td></tr>
+  </table>
+  <p>นอกจากแม่แบบด้านบน Owner ยังเปิด<b>สิทธิ์กำหนดเองรายโมดูล</b> (ดู / แก้ไข / เผยแพร่ / ส่งออก) ได้ เช่น ให้ผู้เขียนคนหนึ่งดูอันดับได้ด้วย (บทที่ 22) การเปลี่ยนสิทธิ์มีผลกับคำขอถัดไปทันที ไม่ต้องออกจากระบบ</p>
+</section>
+
+<!-- ========================= 10 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 10</div>
+  <h1>ภาพรวมการใช้งาน</h1>
+  <p>หน้าแรกของแผงผู้ดูแล กด <span class="ui">รีเฟรช</span> เพื่อดึงตัวเลขล่าสุด</p>
+  <figure><div class="frame"><img src="../shots/a-overview.jpg"></div><figcaption>หน้าภาพรวม</figcaption></figure>
+  <ul>
+    <li><b>สถานะโมดูลใหม่</b>: ลิงก์ไปงานที่ค้าง เช่น คิวเกียรติบัตร บทความร่าง ความคิดเห็นรอตรวจ ธงอันดับรอตัดสิน โจทย์วันนี้ และสรุปไฟวันนี้ (เพิ่มไฟ / รักษาไฟ / รักษาด้วยข้อสอบ / รอกู้ไฟ) <b>เริ่มงานแต่ละวันจากแถวนี้</b></li>
+    <li><b>ตัวเลขรวม</b>: ผู้ใช้ รายได้ (เฉพาะชำระแล้ว) จำนวนเริ่มทำ/ส่งข้อสอบ คะแนนเฉลี่ย สิทธิ์ที่ใช้งานได้ คำสั่งซื้อรอชำระ ข้อสอบพร้อมใช้ และวันที่เหลือถึงวันสอบ</li>
+    <li><b>กราฟ 14 วันล่าสุด</b>: สมัครใหม่ เริ่มทำข้อสอบ ชำระเงินสำเร็จ</li>
+    <li><b>ชุดข้อสอบ</b> (จำนวนข้อที่ใส่แล้ว / เป้าหมาย) และ <b>คำสั่งซื้อล่าสุด</b> พร้อมสถานะ</li>
+  </ul>
+</section>
+
+<!-- ========================= 11 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 11</div>
+  <h1>คลังข้อสอบ</h1>
+  <p class="lead">ข้อสอบทุกข้อเก็บใน <b>คลังข้อสอบ</b> ก่อน แล้วค่อยเลือกเข้าชุด (บทที่ 12) หรือเข้าโจทย์ประจำวัน (บทที่ 16) ข้อเดียวใช้ซ้ำได้หลายที่ แก้ที่คลังที่เดียว ทุกที่ที่ใช้ข้อนั้นเปลี่ยนตาม</p>
+  <figure><div class="frame crop" style="max-height:62mm"><img src="../shots/a-questions.jpg"></div><figcaption>คลังข้อสอบ: กรองตามวิชา ค้นหาโจทย์หรือหัวข้อ กรองเปิด/ปิดใช้งาน แต่ละข้อบอกประเภท คะแนน และอยู่ในกี่ชุด</figcaption></figure>
+  <h2>เพิ่มข้อสอบ</h2>
+  <ol class="steps">
+    <li>กด <span class="ui">เพิ่มข้อสอบ</span> มุมขวาบน</li>
+    <li>เลือก <b>วิชา</b> (คณิตศาสตร์ วิทยาศาสตร์ ความสามารถทั่วไป ภาษาไทย ภาษาอังกฤษ) และพิมพ์ <b>บทเรียน/หัวข้อ</b> เช่น "อัตราส่วนและร้อยละ" ระบบใช้หัวข้อแยกคะแนนรายบทในผลสอบ</li>
+    <li>เลือก <b>ประเภทคำถาม</b> และใส่ <b>คะแนนข้อนี้</b> (ทศนิยมได้ เช่น 1.5 ช่วง 0–1000)</li>
+    <li>พิมพ์ <b>โจทย์</b> ถ้ามีรูปหรือลิงก์ประกอบ กด <span class="ui">เพิ่มรูป</span> หรือ <span class="ui">เพิ่มลิงก์</span> ใส่ได้หลายรายการ เลื่อนลำดับขึ้น/ลงได้ รูปอัปโหลดจากเครื่อง (PNG, JPEG, WebP, GIF ไม่เกิน 5 MB) หรือวางลิงก์ที่ขึ้นต้น <code>https://</code></li>
+    <li>ใส่ <b>ตัวเลือกและเฉลย</b> ตามประเภท (ตารางด้านล่าง)</li>
+    <li>ใส่ <b>เฉลยละเอียด</b> (นักเรียนเห็นหลังส่ง เฉพาะชุดที่เปิดให้ดูเฉลย) แล้วกดบันทึก</li>
+  </ol>
+  <table>
+    <tr><th>ประเภท</th><th>นักเรียนตอบ</th><th>ตั้งเฉลย</th></tr>
+    <tr><td>ปรนัย เลือก 1 ข้อ</td><td>เลือก 1 ตัวเลือก</td><td class="wrap">กดวงกลมหน้าตัวเลือกที่ถูก 1 ตัว</td></tr>
+    <tr><td>เลือกได้หลายข้อ</td><td>เลือกหลายตัวเลือก</td><td class="wrap">ติ๊กทุกตัวที่ถูก แล้วเลือกวิธีให้คะแนน: <b>ตรงเป๊ะ</b> (ขาดหรือเกินแม้ 1 ตัว = 0) หรือ <b>บางส่วน</b> = คะแนน × (ถูก − ผิด) ÷ จำนวนเฉลย ต่ำสุด 0</td></tr>
+    <tr><td>เติมคำตอบ</td><td>พิมพ์คำตอบเอง</td><td class="wrap">ใส่ <b>คำตอบที่ยอมรับ</b> ได้หลายแบบ เช่น <code>0.5</code>, <code>1/2</code> ตรวจแบบตรงทุกตัวอักษร</td></tr>
+  </table>
+</section>
+
+<section class="chapter">
+  <div class="pair">
+  <figure style="margin-top:0"><div class="frame crop" style="max-height:215mm"><img src="../shots/a-question-form.jpg"></div><figcaption>ฟอร์มเพิ่มข้อสอบ</figcaption></figure>
+  <div>
+  <h2 style="margin-top:0">แก้ไข ปิดใช้งาน และลบ</h2>
+  <ul>
+    <li><b>แก้ไข</b>: แก้โจทย์หรือเฉลยได้ทุกเมื่อ ถ้าแก้เฉลยหรือคะแนนหลังมีคนสอบแล้ว คะแนนเดิมจะยังไม่เปลี่ยน ต้องไปกด <span class="ui">ตรวจใหม่</span> ที่หน้าผลสอบของชุดนั้น (บทที่ 13) ถ้ามีคนตอบข้อนั้นแล้วจะเปลี่ยนประเภทคำถามไม่ได้</li>
+    <li><b>ปิดใช้งาน</b>: ซ่อนข้อนี้ไม่ให้เลือกเข้าชุดใหม่ ประวัติไม่หาย</li>
+    <li><b>ลบ</b>: กดสองครั้งเพื่อยืนยัน ลบได้เฉพาะข้อที่ไม่ได้อยู่ในชุดไหน ถ้ายังอยู่ในชุด ระบบบอกให้เอาออกจากชุดก่อน</li>
+  </ul>
+  <div class="note warn"><h4>ข้อที่ใช้ทั้งในชุดข้อสอบและโจทย์ประจำวัน</h4><p>เฉลยของโจทย์ประจำวันเปิดให้ทุกคนเห็นหลังวันโจทย์ ถ้าเลือกข้อที่อยู่ในชุดข้อสอบที่เผยแพร่อยู่ เฉลยข้อนั้นจะรั่วไปถึงคนที่ยังไม่ได้สอบชุดนั้น ระบบจะเตือนด้วยข้อความสีส้มตอนเลือก</p></div>
+  </div></div>
+</section>
+
+<!-- ========================= 12 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 12</div>
+  <h1>ชุดข้อสอบ</h1>
+  <figure><div class="frame crop" style="max-height:85mm"><img src="../shots/a-packs.jpg"></div><figcaption>หน้าชุดข้อสอบ: แต่ละการ์ดบอกจำนวนข้อเทียบเป้า เวลา คะแนนเต็ม จำนวนครั้ง ช่วงเปิด/ปิด และสถานะเผยแพร่/ซ่อน</figcaption></figure>
+  <h2>12.1 สร้างหรือแก้ชุด</h2>
+  <p>กด <span class="ui">สร้างชุดใหม่</span> หรือ <span class="ui">แก้ไขชุด</span> ชุดใหม่ยังไม่เผยแพร่จนกว่าจะติ๊ก "เผยแพร่" ระหว่างนั้นทีมงานเปิดลองทำได้</p>
+  <table>
+    <tr><th>ช่อง</th><th>ความหมาย</th></tr>
+    <tr><td>ชื่อชุด</td><td class="wrap">ชื่อที่นักเรียนเห็น เช่น "Pre-test ม.1 ครั้งที่ 1"</td></tr>
+    <tr><td>slug</td><td class="wrap">ท้ายลิงก์ ใช้ a-z 0-9 และขีดกลาง เช่น <code>pretest-m1-1</code> ได้ลิงก์ <code>/exam/pretest-m1-1</code></td></tr>
+    <tr><td>คำชี้แจง</td><td class="wrap">ข้อความก่อนกดเริ่ม (ยังไม่จับเวลา) จำนวนข้อ ตอน คะแนน เวลา ระบบแสดงเอง</td></tr>
+    <tr><td>ลิงก์ข้อสอบ PDF</td><td class="wrap">ไม่บังคับ ลิงก์ Google Drive ที่ขึ้นต้น <code>https://</code> (ดู 12.2)</td></tr>
+    <tr><td>จำนวนข้อเป้าหมาย</td><td class="wrap">จำนวนข้อที่ตั้งใจใส่ ใช้แสดงความคืบหน้า (1–500)</td></tr>
+    <tr><td>เวลาทำ (นาที)</td><td class="wrap">นักเรียนได้เวลานี้พอดี เริ่มนับเมื่อกดเริ่มทำ (1–360)</td></tr>
+    <tr><td>เปิดสอบ / ปิดรับ</td><td class="wrap">เวลาไทย เว้นว่างได้ ถึงเวลาปิดรับระบบส่งคำตอบของทุกคนที่ยังทำอยู่ทันที</td></tr>
+    <tr><td>จำนวนครั้ง</td><td class="wrap">1 ครั้ง / ไม่จำกัด / กำหนดเอง (1–100)</td></tr>
+    <tr><td>เผยแพร่</td><td class="wrap">ติ๊กแล้วนักเรียนเห็นที่หน้า <code>/exam</code> ไม่ติ๊ก = ซ่อน ประวัติไม่หาย</td></tr>
+    <tr><td>ให้ดูผลรายข้อและเฉลย</td><td class="wrap">ไม่ติ๊ก = นักเรียนเห็นเฉพาะคะแนนรวม</td></tr>
+    <tr><td>เกียรติบัตรของชุด</td><td class="wrap">เปิด/ปิดการออกใบ ระดับชั้น (ม.1/ม.4) วิชาที่พิมพ์บนใบ กรณีพิเศษที่ให้ใบ และเทมเพลต (บทที่ 15)</td></tr>
+  </table>
+</section>
+
+<section class="chapter">
+  <div class="pair">
+    <figure style="margin-top:0"><div class="frame crop" style="max-height:215mm"><img src="../shots/a-pack-form.jpg"></div><figcaption>ฟอร์มแก้ไขชุดข้อสอบ</figcaption></figure>
+    <div>
+      <h2 style="margin-top:0">12.2 ลิงก์ PDF จาก Google Drive</h2>
+      <ol class="steps">
+        <li>อัปโหลด PDF ข้อสอบขึ้น Google Drive</li>
+        <li>คลิกขวาที่ไฟล์ → แชร์ → แชร์</li>
+        <li>"การเข้าถึงทั่วไป" เปลี่ยนเป็น <b>ทุกคนที่มีลิงก์</b> สิทธิ์ <b>ผู้มีสิทธิ์อ่าน</b></li>
+        <li>คัดลอกลิงก์ วางในช่อง <b>ลิงก์ข้อสอบ PDF</b> → บันทึก</li>
+        <li>ลองเปิดลิงก์ในหน้าต่างไม่ระบุตัวตน ถ้าเปิดได้โดยไม่ต้องล็อกอินแปลว่าถูกต้อง</li>
+      </ol>
+      <div class="note warn"><p>เว็บแสดงปุ่ม PDF หลังกดเริ่มจับเวลาเท่านั้น แต่ลิงก์ Drive เปิดได้ทุกคนที่มีลิงก์ นักเรียนอาจส่งต่อให้เพื่อน ถ้าสอบพร้อมกันเป็นรอบ ให้ตั้งเวลาเปิด/ปิดรับ และหลังหมดรอบเปลี่ยนการแชร์กลับเป็น "จำกัด" ถ้าย้ายหรือลบไฟล์ ลิงก์จะเสีย ต้องวางลิงก์ใหม่ ล้างช่องให้ว่างแล้วบันทึก ปุ่ม PDF จะหายไป</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">12.3 เลือกข้อสอบเข้าชุด</h2>
+  <p>ที่การ์ดของชุด กด <span class="ui">เลือกข้อสอบ</span> หน้านี้แบ่งสองฝั่ง <b>ซ้าย</b> คือคลังข้อสอบที่ยังไม่อยู่ในชุด <b>ขวา</b> คือข้อในชุดตามลำดับ พร้อมคะแนนเต็มรวม</p>
+  <figure><div class="frame"><img src="../shots/a-pack-edit.jpg"></div><figcaption>หน้าเลือกข้อสอบเข้าชุด</figcaption></figure>
+  <ul>
+    <li>ฝั่งซ้าย กดข้อเพื่อเพิ่มทีละข้อ หรือกรองวิชา/หัวข้อ/คำค้น แล้วกด <span class="ui">เพิ่มทั้งหมดที่แสดง</span></li>
+    <li>ฝั่งขวา กดลูกศรขึ้น/ลงเพื่อเลื่อนลำดับ กด × เพื่อเอาออก หรือใช้ <span class="ui">เรียงตามวิชา</span> / <span class="ui">สุ่มลำดับ</span> / <span class="ui">เอาออกทั้งหมด</span></li>
+    <li>ช่อง <b>ตอน</b> ใต้แต่ละข้อ ใส่ชื่อตอน เช่น "ตอนที่ 1 คณิตศาสตร์" ข้อใหม่จะเข้าตอนเดียวกับข้อสุดท้ายให้อัตโนมัติ แท็บของหน้าทำข้อสอบและคะแนนจะแยกตามตอน</li>
+    <li>เสร็จแล้วกด <span class="ui">บันทึกชุด</span> มุมขวาบน</li>
+  </ul>
+  <div class="note warn"><h4>มีนักเรียนกำลังทำอยู่</h4><p>ถ้ามีคนกำลังทำชุดนี้ ระบบไม่ให้เพิ่ม ลบ หรือย้ายข้อจนกว่าทุกคนจะส่ง (มีแถบเตือนสีเหลือง) แต่ยังแก้ข้อความหรือเฉลยที่คลังข้อสอบได้ ถ้าเปลี่ยนข้อหลังมีคนสอบแล้ว ให้กด "ตรวจใหม่" ที่หน้าผลสอบ</p></div>
+  <p><b>ลบชุด</b>: ทำได้ แต่แนะนำให้<b>ซ่อน</b> (เอาติ๊กเผยแพร่ออก) แทนเพื่อเก็บผลสอบไว้</p>
+</section>
+
+<!-- ========================= 13 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 13</div>
+  <h1>ผลสอบ ส่งออก CSV ตรวจใหม่ รีเซ็ตสิทธิ์</h1>
+  <p>เมนู <span class="ui">ผลสอบ</span> → เลือกชุดจากช่องมุมขวาบน (หรือกด <span class="ui">ผลสอบ</span> ที่การ์ดของชุด) ข้อมูลนักเรียนในตารางเป็นข้อมูล ณ วันที่เริ่มสอบ</p>
+  <figure><div class="frame crop" style="max-height:115mm"><img src="../shots/a-results.jpg"></div><figcaption>หน้าผลสอบของชุด: สถิติ ปุ่มส่งออก ตรวจใหม่ และตารางรายครั้ง (เรียงตามคอลัมน์ได้)</figcaption></figure>
+  <table>
+    <tr><th>ปุ่ม</th><th>ทำอะไร</th></tr>
+    <tr><td>สรุปรายครั้ง</td><td class="wrap">CSV หนึ่งแถวต่อการสอบหนึ่งครั้ง: ชื่อ ชื่อเล่น จภ. อีเมล เวลา คะแนน</td></tr>
+    <tr><td>Wide</td><td class="wrap">คำตอบและคะแนนรายข้อเป็นคอลัมน์ เหมาะวิเคราะห์ใน Excel</td></tr>
+    <tr><td>Long</td><td class="wrap">หนึ่งแถวต่อหนึ่งคำตอบ</td></tr>
+    <tr><td>ตรวจใหม่ (ดูผลก่อน)</td><td class="wrap">ใช้หลังแก้เฉลย/คะแนนในคลัง ระบบแสดงก่อนว่าคะแนนใครเปลี่ยนเท่าไร แล้วค่อยยืนยัน คะแนนเดิมเก็บเป็นประวัติ (ตารางแสดง "เดิม …")</td></tr>
+    <tr><td>คำตอบ</td><td class="wrap">ดูคำตอบรายข้อของครั้งนั้นเทียบกับเฉลย</td></tr>
+    <tr><td>รีเซ็ต</td><td class="wrap">คืนสิทธิ์สอบ 1 ครั้งให้นักเรียนคนนั้น ครั้งเดิมยังอยู่ในประวัติ (ไม่นับสิทธิ์) ถ้ากำลังทำอยู่ ระบบส่งคำตอบของครั้งนั้นให้ก่อน</td></tr>
+  </table>
+  <p>CSV ทุกไฟล์เปิดใน Excel ได้ ภาษาไทยไม่เพี้ยน</p>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">หน้าของนักเรียนแต่ละคน</h2>
+  <p>กดชื่อนักเรียนในตารางผลสอบหรือหน้าผู้ใช้ จะเห็นจำนวนครั้งที่สอบ ชุดที่ทำ คะแนนสูงสุด วันที่สมัคร ประวัติการสอบทุกชุด คะแนนแยกตามตอน และคำตอบรายข้อ</p>
+  <figure><div class="frame crop" style="max-height:115mm"><img src="../shots/a-student.jpg"></div><figcaption>หน้าคะแนนรายบุคคล</figcaption></figure>
+  <div class="note"><h4>รีเซ็ตกับเกียรติบัตร</h4><p>ครั้งที่ถูกรีเซ็ต ใบเกียรติบัตรของครั้งนั้นจะถูกเพิกถอน เว้นแต่ชุดนั้นติ๊ก "การสอบที่ถูกรีเซ็ตสิทธิ์ให้สอบใหม่" ไว้ในการตั้งค่าเกียรติบัตร</p></div>
+</section>
+
+<!-- ========================= 14 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 14</div>
+  <h1>อันดับและสถิติ</h1>
+  <p class="lead">อันดับรวมผู้สอบทุกคนของชุด สถิติ (เฉลี่ย SD Z-score เปอร์เซ็นไทล์) คำนวณจาก <b>กลุ่มอ้างอิง</b> ที่อนุมัติ ผลรับรองเก็บแยกจากคำตอบดิบ การแก้ผลรับรองไม่แก้คำตอบของนักเรียน</p>
+  <figure><div class="frame crop" style="max-height:150mm"><img src="../shots/a-ranking.jpg"></div><figcaption>หน้าอันดับและสถิติ</figcaption></figure>
+  <h2>วิธีจัดอันดับ</h2>
+  <ul>
+    <li>เรียงคะแนนมากไปน้อย คะแนนเท่ากันใช้<b>เวลาทำสะสมที่ตรวจรับน้อยกว่า</b>ก่อน ถ้ายังเท่ากันใช้<b>เวลาเริ่มก่อน</b> ถ้าเท่ากันทุกอย่างได้อันดับร่วม (เช่น 1, 1, 3)</li>
+    <li>สอบหลายครั้ง: เลือกครั้งตาม <b>นโยบาย</b> — คะแนนดีที่สุด (ค่าเริ่มต้น), ครั้งแรก หรือครั้งล่าสุด</li>
+    <li>ถ้ากลุ่มอ้างอิงมี SD = 0 ระบบแสดง Z-score = 0.00</li>
+  </ul>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">14.1 นโยบายและการเปิดเผย</h2>
+  <ol class="steps">
+    <li>เลือกชุดข้อสอบ ดูแถบสรุป: ผู้มีอันดับ กลุ่มอ้างอิง เฉลี่ย SD เวอร์ชัน และสถานะ (เบื้องต้น/ผลรับรอง)</li>
+    <li>เลือก <b>นโยบายเลือกครั้งสอบ</b> (เปลี่ยนไม่ได้หลังเผยแพร่ผลรับรอง)</li>
+    <li>ติ๊ก <b>ตัวชี้วัดที่เปิดให้นักเรียนเห็น</b>: คะแนน อันดับ เฉลี่ย SD Z-score เปอร์เซ็นไทล์ ตัวที่ไม่ติ๊กจะไม่ถูกส่งไปที่เครื่องนักเรียนเลย</li>
+    <li>ติ๊ก <b>เผยแพร่เป็นผลรับรอง</b> เมื่อพร้อมประกาศ (หลังจากนั้นค่าอัตโนมัติยังอัปเดตเมื่อข้อมูลเปลี่ยน แต่ค่าที่รับรองเองจะคงไว้และขึ้นธง "รอทบทวน")</li>
+    <li>ใส่ <b>เหตุผล</b> (อย่างน้อย 3 ตัวอักษร) แล้วกด <span class="ui">บันทึกนโยบายและการเผยแพร่</span></li>
+  </ol>
+
+  <h2>14.2 ธงตรวจสอบ</h2>
+  <table>
+    <tr><th>ธง</th><th>ความหมาย / ต้องทำอะไร</th></tr>
+    <tr><td>เวลารอการตรวจรับ</td><td class="wrap">เวลาจากเบราว์เซอร์ยังไม่ครบหรือมีหลายแท็บ ต้อง <b>ตรวจรับเวลา</b> (14.4) ก่อนใช้ตัดสินกรณีคะแนนเท่ากัน</td></tr>
+    <tr><td>เวลาสั้นผิดปกติ</td><td class="wrap">ส่งเร็วผิดปกติ ตรวจคำตอบก่อนตัดสินใจรวมหรือคัดออกจากสถิติ</td></tr>
+    <tr><td>บัญชีทดสอบ</td><td class="wrap">บัญชีบทบาท test ควรคัดออกจากกลุ่มอ้างอิง</td></tr>
+  </table>
+  <p>ธง<b>ไม่ได้</b>คัดใครออกอัตโนมัติ ทีมงานต้องตัดสินเอง กรองตารางด้วยช่อง "ทุกสถานะ" และสลับดู <b>ผลรับรอง</b>/<b>ค่าคำนวณ</b> ได้ กด <span class="ui">ส่งออก CSV</span> เพื่อดาวน์โหลดตารางอันดับ</p>
+
+  <h2>14.3 คัดออก รวมเข้า รับรองค่าเอง และนำเข้า</h2>
+  <ul>
+    <li><b>คัดออก/รวมเข้ากลุ่มอ้างอิง</b>: ติ๊กผู้สอบ ใส่เหตุผล กด <span class="ui">ตัวอย่างคัดออกจากสถิติ</span> หรือ <span class="ui">ตัวอย่างรวมเข้ากลุ่ม</span> → ตรวจ "ก่อน/หลัง" → <span class="ui">ยืนยันรายการที่ตรวจแล้ว</span> ผู้ถูกคัดออกยังมีอันดับ แต่ไม่ถูกนับในค่าเฉลี่ย/SD</li>
+    <li><b>รับรองค่าเอง</b>: ที่แถวผู้สอบ เลือกตัวชี้วัดและใส่ค่าที่รับรอง → แสดงตัวอย่าง → ยืนยัน กด <span class="ui">คืนค่าคำนวณ</span> เพื่อยกเลิก</li>
+    <li><b>นำเข้า XLSX/CSV</b>: นำเข้าผลรับรองจากไฟล์ (ตัวอย่างไฟล์ <code>ranking-template.csv</code> ทีมพัฒนาส่งให้พร้อมคู่มือ) ระบบตรวจทุกแถวและแสดงตัวอย่างก่อน แถวผิดแม้แถวเดียวจะปฏิเสธทั้งไฟล์</li>
+  </ul>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">14.4 ตรวจรับเวลาสอบ</h2>
+  <p>ทุกแถวมีปุ่ม <span class="ui">ตรวจรับเวลา</span> ให้เริ่มจากแถวที่มีธง "เวลารอการตรวจรับ" หน้าต่างแสดงหลักฐานจากทุกแท็บ: เวลาที่ใช้งานจริง เวลา offline ที่เบราว์เซอร์บันทึก จุด checkpoint และเวลาที่เซิร์ฟเวอร์ได้รับ</p>
+  <ol class="steps">
+    <li>อ่านหลักฐาน ถ้ามีคำเตือน "พบหลายแท็บ" ให้ตรวจช่วงเวลาที่ซ้อนกัน <b>อย่าบวกเวลาทุกแท็บรวมกัน</b></li>
+    <li>กรอก <b>เวลาสะสมที่ตรวจรับ</b> (วินาที ไม่เกินช่วงเริ่มถึงส่งที่เซิร์ฟเวอร์บันทึก) พร้อมเหตุผลและหลักฐาน</li>
+    <li>กดแสดงผลก่อนรับรอง แล้วยืนยัน ระบบคำนวณอันดับใหม่และไม่รับหลักฐานใหม่ของครั้งนั้นอีก</li>
+  </ol>
+  <div class="note danger"><p>ห้ามใช้ "เวลาส่ง − เวลาเริ่ม" แทนเวลาที่ตรวจรับแบบเดา ตรวจได้เมื่อการสอบครั้งนั้นสิ้นสุดแล้วเท่านั้น</p></div>
+
+  <h2>14.5 ประวัติผลรับรอง และย้อนเวอร์ชัน</h2>
+  <p>ทุกครั้งที่ข้อมูลเปลี่ยน ระบบสร้างเวอร์ชันใหม่ (v1, v2, …) พร้อมเหตุที่เปลี่ยนและจำนวนคนที่กระทบ กด <span class="ui">ดูเวอร์ชันนี้</span> เพื่อดูค่าในอดีต และ <span class="ui">ยืนยันย้อนเวอร์ชัน</span> เพื่อกลับไปใช้ผลรับรองเวอร์ชันนั้น ประวัติทั้งหมดยังเก็บไว้</p>
+
+  <div class="note warn"><h4>ความเป็นส่วนตัว</h4><p>ห้ามแชร์ตารางผลรายบุคคลต่อสาธารณะ ถ้าทำภาพประกาศอันดับ ต้องปิดชื่อและอีเมลเอง นักเรียนแต่ละคนเห็นเฉพาะอันดับและสถิติของตัวเองเท่านั้น</p></div>
+</section>
+
+<!-- ========================= 15 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 15</div>
+  <h1>เกียรติบัตร และเทมเพลต</h1>
+  <p class="lead">กำหนดว่าชุดใดออกเกียรติบัตร ดูใบที่ออกแล้ว เพิกถอน ออกใหม่ ออกแบบเทมเพลต และจัดการกุญแจลงลายเซ็นดิจิทัล</p>
+  <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/a-certificates.jpg"></div><figcaption>หน้าเกียรติบัตร: การตั้งค่ารายชุด และแถบความคืบหน้าการสร้างไฟล์</figcaption></figure>
+  <h2>15.1 ตั้งค่าการออกใบรายชุด</h2>
+  <ul>
+    <li>ติ๊ก <b>ชุดนี้ออกเกียรติบัตรให้ผู้ที่ส่งข้อสอบ</b> แล้วเลือก <b>ระดับชั้น</b> และ <b>วิชา</b> ที่จะพิมพ์บนใบ</li>
+    <li><b>กรณีพิเศษ</b> (นอกจากกดส่งเอง): หมดเวลาแล้วระบบส่งให้, ถูกตัดที่เวลาปิดรับของชุด, การสอบที่ถูกรีเซ็ตสิทธิ์ (ไม่ติ๊ก = ใบของครั้งนั้นถูกเพิกถอน)</li>
+    <li>เลือก <b>เทมเพลต</b> เปลี่ยนแล้วมีผลกับใบที่ออกใหม่เท่านั้น</li>
+    <li><span class="ui">ออกใบที่ยังขาด</span>: ตรวจทุกการสอบของชุดแล้วส่งใบที่ขาดเข้าคิว</li>
+    <li><span class="ui">ออกใบใหม่ตามเทมเพลต</span>: ออกฉบับใหม่ (รหัสใหม่) แทนใบที่ใช้ได้อยู่ทั้งหมด เลือกว่าใบเดิม "ยังตรวจสอบได้ในฐานะฉบับก่อนหน้า" หรือ "ใช้ไม่ได้แล้ว" และใส่เหตุผล</li>
+  </ul>
+  <p>การเปลี่ยนเงื่อนไขของชุดจะออกใบให้การสอบที่เข้าเงื่อนไข และเพิกถอนใบที่ไม่เข้าเงื่อนไขอัตโนมัติ</p>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">15.2 เกียรติบัตรที่ออกแล้ว</h2>
+  <p>รายการใบทั้งหมด กรองตามชุด สถานะ (รอสร้างไฟล์ / ใช้ได้ / สร้างไม่สำเร็จ / เพิกถอน …) หรือค้นชื่อ อีเมล เลขที่ <code>PT-000123</code> แต่ละใบมีปุ่ม</p>
+  <ul>
+    <li><span class="ui">หน้าตรวจสอบ</span> และ <span class="ui">ดูไฟล์</span></li>
+    <li><span class="ui">สร้างไฟล์ใหม่</span>: ใช้เมื่อสถานะ "สร้างไม่สำเร็จ" (ระบบลองเองสูงสุด 8 ครั้ง) ใบและเลขที่เดิม</li>
+    <li><span class="ui">เพิกถอน</span>: ใส่เหตุผล หน้าตรวจสอบจะขึ้นว่าใบถูกเพิกถอน</li>
+    <li><span class="ui">ออกใบใหม่</span>: ออกฉบับใหม่ของการสอบครั้งนั้นพร้อมเหตุผล</li>
+  </ul>
+  <p>เหตุที่ใบถูกเพิกถอนที่ระบบแสดง: นักเรียนเปลี่ยนชื่อ–นามสกุล, เปลี่ยนเทมเพลต, ไม่เข้าเงื่อนไขของชุดแล้ว (เช่น ถูกรีเซ็ตสิทธิ์), หรือผู้ดูแลเพิกถอน</p>
+
+  <h2>15.3 เทมเพลตเกียรติบัตร</h2>
+  <p>กด <span class="ui">เทมเพลตเกียรติบัตร</span> → ตั้งชื่อ → <span class="ui">สร้าง</span> (เริ่มจากแบบมาตรฐาน) หรือ <span class="ui">คัดลอก</span> จากเทมเพลตเดิม</p>
+  <figure><div class="frame crop" style="max-height:78mm"><img src="../shots/a-cert-template-edit.jpg"></div><figcaption>หน้าแก้ไขเทมเพลต ภาพตัวอย่างคือผลลัพธ์จริงจากเซิร์ฟเวอร์</figcaption></figure>
+  <ul>
+    <li><b>กระดาษและพื้นหลัง</b>: A4 แนวนอน/แนวตั้ง แสดงหรือไม่แสดงกรอบมาตรฐาน อัปโหลดภาพพื้นหลัง (PNG/JPEG ≤ 5 MB) ปรับซูมและตำแหน่ง</li>
+    <li><b>ชิ้นส่วน</b>: เลือกชิ้นจากรายการแล้วคลิกหรือลากบนภาพตัวอย่างเพื่อวาง เพิ่ม <span class="ui">ข้อความ</span> หรือ <span class="ui">รูป / โลโก้ / ลายเซ็น</span> ปรับขนาด สี แบบอักษร (Mitr/Anuphan) ความหนา จัดแนว ความกว้าง และลำดับการวาด</li>
+    <li><b>ข้อมูลผู้รับ</b>: ข้อความแทรกตัวแปรได้ เช่น <code>{recipient_full_name}</code> <code>{exam_title}</code> <code>{issue_date}</code> <code>{certificate_id}</code> บรรทัดที่ข้อมูลว่างทั้งบรรทัดจะไม่ถูกพิมพ์ ติ๊ก "บรรทัดเดียว ย่อให้พอดี" สำหรับชื่อยาว</li>
+    <li><b>QR ตรวจสอบ</b> ไม่ควรเล็กกว่า 8% ของความกว้างกระดาษ</li>
+    <li>ติ๊ก "ทดสอบด้วยชื่อภาษาอังกฤษยาว" และกด <span class="ui">ดาวน์โหลดตัวอย่าง PDF</span> ก่อนเผยแพร่</li>
+    <li><span class="ui">บันทึกฉบับร่าง</span> ไม่กระทบใบจริง <span class="ui">เผยแพร่เวอร์ชันใหม่</span> แล้วใบที่ออกใหม่ใช้เวอร์ชันนี้ ใบเดิมไม่เปลี่ยนจนกว่าจะกด "ออกใบใหม่ตามเทมเพลต"</li>
+  </ul>
+  <h2>15.4 กุญแจลงลายเซ็นดิจิทัล (Owner)</h2>
+  <p>กุญแจส่วนตัวเก็บเป็นไฟล์บนเซิร์ฟเวอร์เท่านั้น ไม่อยู่ในฐานข้อมูลและไม่แสดงบนหน้าเว็บ ระบบสร้างกุญแจให้เองตอนออกใบแรก Owner กด <span class="ui">เปลี่ยนกุญแจ (Key rotation)</span> พร้อมเหตุผลได้ กุญแจเก่าเลิกใช้ลงนามแต่ยังตรวจใบเดิมได้เสมอ <b>ห้ามลบไฟล์กุญแจเก่า</b></p>
+</section>
+
+<!-- ========================= 16 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 16</div>
+  <h1>โจทย์ประจำวัน / Fire</h1>
+  <p class="lead">ตั้งโจทย์แบบ <b>วันที่แน่นอน</b> หรือ <b>คิวสำรอง</b> สำหรับวันที่ไม่มีโจทย์ วันที่ตรงมีสิทธิ์ก่อนคิว ถ้าไม่มีโจทย์เลยระบบรักษาไฟให้ทุกคนอัตโนมัติ</p>
+  <figure><div class="frame crop" style="max-height:95mm"><img src="../shots/a-daily.jpg"></div><figcaption>รายการชุดโจทย์ประจำวัน: วันที่/ลำดับคิว สถานะ จำนวนข้อ</figcaption></figure>
+  <h2>16.1 สร้างชุดโจทย์ (วิธีที่แนะนำ)</h2>
+  <ol class="steps">
+    <li>เขียนโจทย์เก็บไว้ใน <span class="ui">คลังข้อสอบ</span> ก่อน (ใส่รูปได้)</li>
+    <li>กด <span class="ui">สร้างชุดโจทย์ประจำวัน</span> ตั้งชื่อ</li>
+    <li>ใส่ <b>วันที่</b> หรือเว้นว่างเป็น <b>คิวสำรอง</b> พร้อม <b>ลำดับคิว</b></li>
+    <li>เลือก <b>สถานะ</b>: <b>พร้อมใช้</b> (ระบบดึงไปใช้ตามวัน/คิว) หรือ <b>ฉบับร่าง</b> (ยังไม่ถูกใช้)</li>
+    <li>ที่ "เลือกจากคลังข้อสอบ" ค้นหาแล้วกด <span class="ui">เพิ่มเข้าชุดนี้</span> (สูงสุด 30 ข้อ) หรือกด <span class="ui">เขียนโจทย์ใหม่</span> ซึ่งจะบันทึกเข้าคลังและเพิ่มเข้าชุดพร้อมกัน</li>
+    <li>แต่ละข้อตั้ง <b>คำใบ้</b> และติ๊ก "เปิดคำใบ้หลังผิดครั้งแรก" ได้ และเลือก <b>เวลาเผยเฉลย</b>: วันถัดไป หรือเมื่อหมดโอกาส/ทำถูกแล้ว</li>
+    <li>กด <span class="ui">บันทึกชุดโจทย์</span></li>
+  </ol>
+  <p>ปุ่ม <span class="ui">คัดลอก</span> ทำสำเนาชุดเดิมเพื่อแก้ต่อ ปุ่ม <span class="ui">แก้ไขโจทย์ / เฉลยข้อนี้</span> ในชุดจะแก้ข้อนั้นในคลังข้อสอบโดยตรง (ถ้าข้ออยู่ในชุดข้อสอบที่เผยแพร่ ระบบเตือนก่อน) แล้วต้องกดบันทึกชุดอีกครั้ง</p>
+</section>
+
+<section class="chapter">
+  <figure style="margin-top:0"><div class="frame crop" style="max-height:130mm"><img src="../shots/a-daily-edit.jpg"></div><figcaption>ฟอร์มแก้ไขชุดโจทย์ประจำวัน พร้อมส่วนเลือกจากคลังข้อสอบ</figcaption></figure>
+  <h2>16.2 แก้เฉลยหลังมีคนตอบแล้ว</h2>
+  <p>ถ้าชุดมีนักเรียนตอบแล้ว ก่อนบันทึกระบบจะแสดงจำนวนผู้ใช้และคำตอบที่กระทบ แล้วให้เลือก</p>
+  <ul>
+    <li><b>คง Current Fire เดิมเมื่อเปลี่ยนเฉลย</b> — ไม่ให้ใครเสียไฟเพราะเฉลยผิดของทีมงาน</li>
+    <li><b>คืนโอกาส</b> โดยสร้างรหัสโจทย์ฉบับใหม่ (คำตอบเก่ายังเก็บไว้)</li>
+    <li>ใส่ <b>เหตุผลที่แก้</b> แล้วกด <span class="ui">ยืนยันบันทึกและตรวจใหม่</span></li>
+  </ul>
+  <h2>16.3 นำเข้าไฟล์ CSV/XLSX</h2>
+  <p>เปิด "เครื่องมือเพิ่มเติม" → กด <span class="ui">ดาวน์โหลดเทมเพลต CSV</span> กรอกตามคอลัมน์ (วันที่ ชื่อชุด ประเภท โจทย์ ตัวเลือก A–D เฉลย วิชา หัวข้อ คำใบ้ เวลาเผยเฉลย ลำดับ) รองรับ CSV ภาษาไทยและ XLSX ใส่เหตุผล เลือกไฟล์ ระบบตรวจทุกแถวและแสดงตัวอย่างก่อนยืนยัน แถวผิดแม้แถวเดียวจะปฏิเสธทั้งไฟล์</p>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">16.4 รักษาหรือชดเชยไฟเมื่อระบบขัดข้อง</h2>
+  <p>ใช้เมื่อเว็บล่มหรือมีปัญหาจนนักเรียนทำโจทย์ไม่ได้ เลือกช่วงวันที่ (ไม่เกิน 31 วัน) ผู้ได้รับผล (เว้นว่าง = ทุกคน) วิธีชดเชย และเหตุผล แล้วกด <span class="ui">แสดงจำนวนผู้ใช้ที่ได้รับผลกระทบ</span> → ตรวจ → ยืนยัน</p>
+  <table>
+    <tr><th>วิธี</th><th>ผล</th></tr>
+    <tr><td>รักษา</td><td class="wrap">ไม่เพิ่ม ไม่เสียไฟ ในวันที่เลือก</td></tr>
+    <tr><td>กู้ให้ทั้งหมด</td><td class="wrap">คืนไฟให้คนที่ไฟเริ่มนับใหม่เพราะวันนั้น โดยไม่ใช้โควตากู้ของนักเรียน</td></tr>
+    <tr><td>ชดเชย +1</td><td class="wrap">เพิ่มไฟ +1 ต่อวันที่เลือก</td></tr>
+    <tr><td>ขยายเวลาปิดรับโจทย์วันนี้</td><td class="wrap">ใช้ได้เฉพาะ<b>ก่อน 23:59:59 น. ของวันนั้น</b> ขยายได้ไม่เกิน 24 ชม. ระหว่างนั้นเฉลยยังไม่เปิดและโจทย์ยังไม่เข้าคลังย้อนหลัง ถ้าเลยเที่ยงคืนไปแล้วให้ใช้วิธีอื่น</td></tr>
+  </table>
+  <h2>16.5 สรุปผลและประวัติ Fire</h2>
+  <p>กด <span class="ui">ผลตอบและประวัติ Fire</span> เพื่อดู</p>
+  <ul>
+    <li><b>รายวัน</b>: ผู้ส่งคำตอบ ได้ไฟเพิ่ม และอัตราสำเร็จ</li>
+    <li><b>รายข้อ</b>: ผู้ตอบ ตอบถูก ถูกครั้งแรก เปิดคำใบ้</li>
+    <li><b>หัวข้อที่ตอบผิดบ่อย</b> — ใช้วางแผนสอนเสริม</li>
+    <li><b>ผลตอบรายคน</b> รายการ Fire รายวัน และประวัติใช้สิทธิ์กู้ไฟ ใช้ตรวจเมื่อนักเรียนแจ้งว่าไฟหาย</li>
+  </ul>
+</section>
+
+<!-- ========================= 17 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 17</div>
+  <h1>บทความ</h1>
+  <figure><div class="frame crop" style="max-height:70mm"><img src="../shots/a-articles.jpg"></div><figcaption>รายการบทความ: เผยแพร่แล้ว / ฉบับร่าง วันที่ ปุ่มแก้ไข ดูหน้าเว็บ ลบ</figcaption></figure>
+  <h2>17.1 ขั้นตอนงาน</h2>
+  <p><b>ฉบับร่าง → ส่งตรวจ → อนุมัติ → เผยแพร่ หรือตั้งเวลา</b> ผู้เขียน (Author) ทำได้ถึง "ส่งตรวจ" ผู้มีสิทธิ์เผยแพร่จึงอนุมัติและเผยแพร่ได้ การแก้ฉบับร่างของบทความที่เผยแพร่แล้ว<b>ไม่เปลี่ยนหน้าเว็บ</b>จนกว่าจะอนุมัติและเผยแพร่ใหม่</p>
+  <ul>
+    <li><span class="ui">ตั้งเวลา</span>: เลือกวันเวลาในอนาคต ระบบเผยแพร่ให้เอง</li>
+    <li><span class="ui">เก็บเข้าคลัง</span>: ซ่อนจากหน้าเว็บ <span class="ui">ลบ (กู้คืนได้)</span> และ <span class="ui">กู้คืนเป็นฉบับร่าง</span></li>
+    <li>ลิงก์ของบทความที่ถูกลบจะตอบว่า "ถูกลบแล้ว" (410) ไม่ใช่หาไม่เจอ</li>
+  </ul>
+  <h2>17.2 ช่องข้อมูล</h2>
+  <ul>
+    <li><b>ชื่อบทความ</b>, <b>ลิงก์ (slug)</b> — เปลี่ยนลิงก์แล้วลิงก์เก่าพาไปลิงก์ใหม่ให้อัตโนมัติ, <b>คำอธิบาย</b> สำหรับหน้ารวมและ SEO, <b>ภาพปก</b></li>
+    <li><b>ชนิด</b>: บทเรียน / ข่าวสาร จภ. — ข่าวมี URL แหล่งข่าว เครดิต วันที่ของแหล่งข่าว และวันหมดเขต</li>
+    <li><b>ยอดอ่าน</b>: ไม่แสดง / แสดงยอดอ่าน / แสดงป้ายยอดนิยม</li>
+    <li><b>ระดับชั้น</b> ม.1/ม.4 (เลือกทั้งสองได้ ลิงก์เดียว), <b>วิชา</b>, <b>แท็ก</b>, <b>หมวดหมู่</b> (เลือกได้หลายหมวด)</li>
+  </ul>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">17.3 เนื้อหาแบบบล็อก</h2>
+  <figure><div class="frame crop" style="max-height:120mm"><img src="../shots/a-article-edit.jpg"></div><figcaption>หน้าแก้ไขบทความ: ปุ่มขั้นตอนงานด้านบน แท็บแก้ไข / Preview คอมพิวเตอร์ / Preview มือถือ</figcaption></figure>
+  <p>กด <span class="ui">เพิ่มบล็อก</span> เลือกชนิด: หัวข้อ, ข้อความ, ข้อความจัดรูปแบบ, รูปภาพ, รายการ, ข้อความอ้างอิง, โค้ด, ข้อความเน้น, สมการ LaTeX, เส้นแบ่ง, ปุ่มลิงก์, เอกสารแนบ (PDF/Office), YouTube / TikTok, คอลัมน์, ตาราง แต่ละบล็อกเลื่อนขึ้น/ลงหรือลบได้</p>
+  <ul>
+    <li>ในข้อความใช้ <code>**ตัวหนา**</code> <code>*ตัวเอียง*</code> <code>__ขีดเส้นใต้__</code> <code>$สมการ$</code> <code>[ข้อความ](https://…)</code></li>
+    <li>รูปภาพต้องมี <b>คำอธิบายภาพ (alt)</b> ใส่คำบรรยาย ความกว้าง และการจัดวางได้ มีคลังสื่อให้เลือกรูปที่เคยอัปโหลด</li>
+    <li>ตารางรวมช่องได้ (rowspan/colspan)</li>
+    <li>ดู <b>Preview คอมพิวเตอร์/มือถือ</b> ก่อนส่งตรวจทุกครั้ง</li>
+  </ul>
+  <h2>17.4 ประวัติและเปรียบเทียบ</h2>
+  <p>ท้ายหน้าเลือกเวอร์ชัน (เช่น v3 · approve) เพื่อเทียบกับฉบับปัจจุบันแบบซ้าย–ขวา</p>
+</section>
+
+<!-- ========================= 18 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 18</div>
+  <h1>หมวด ค้นหา และหน้าแรก</h1>
+  <figure><div class="frame crop" style="max-height:110mm"><img src="../shots/a-cms.jpg"></div><figcaption>หน้าหมวดหมู่ ค้นหา และหน้าแรก</figcaption></figure>
+  <ul>
+    <li><b>สร้างหมวด</b>: ชื่อ slug ชนิด (วิชา / หมวด / บท / หัวข้อย่อย) และหมวดหลัก ทำเป็นหลายระดับได้ แก้ชื่อ ลำดับ หมวดหลัก แล้วกดบันทึกในแถว</li>
+    <li><b>ลบหมวดว่าง</b>: ลบได้เฉพาะหมวดที่ไม่มีบทความ ต้องใส่เหตุผล</li>
+    <li><b>รวมหมวดและย้ายบทความ</b>: เลือก "จากหมวด" → "เข้าหมวด" ใส่เหตุผล → <span class="ui">แสดงผลกระทบ</span> (จำนวนบทความที่ย้าย) → ยืนยัน รวมหมวดแม่เข้าหมวดลูกของตัวเองไม่ได้</li>
+    <li><b>คำค้นพ้อง</b>: หนึ่งกลุ่มต่อบรรทัด เช่น <code>ความน่าจะเปน = ความน่าจะเป็น | probability</code></li>
+    <li><b>คำที่ต้องตรวจความคิดเห็นก่อนเผยแพร่</b>: หนึ่งคำต่อบรรทัด ความคิดเห็นที่มีคำเหล่านี้ (หรือลิงก์) จะรอตรวจ</li>
+    <li><b>ลำดับส่วนแสดงผลหน้าแรก</b>: ส่วนแนะนำ ข่าวล่าสุด บทเรียนแนะนำ คอร์สเรียน คลังข้อสอบ โจทย์ประจำวัน เปิด/ปิด เลื่อนขึ้น/ลง และเลือกบทความแนะนำ แล้วกด <span class="ui">บันทึกการค้นหา คัดกรอง และหน้าแรก</span></li>
+    <li><b>ยอดอ่านและแหล่งที่มา</b>: บทความ กิจกรรม แหล่งที่มา (เช่น มาจาก Facebook หรือเข้าตรง) และจำนวน</li>
+  </ul>
+</section>
+
+<!-- ========================= 19 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 19</div>
+  <h1>ตรวจความคิดเห็น และโปรไฟล์นักเรียน</h1>
+  <p>ข้อความที่ถูกแจ้ง (มีคำต้องตรวจหรือลิงก์) จะถูกซ่อนจนกว่าจะอนุมัติ การจัดการทุกครั้งบันทึกเหตุผลและผู้ดำเนินการ</p>
+  <figure><div class="frame crop" style="max-height:70mm"><img src="../shots/a-comments.jpg"></div><figcaption>ความคิดเห็นที่รอตรวจ พร้อมเหตุที่ถูกแจ้ง (risky_word)</figcaption></figure>
+  <ol class="steps">
+    <li>เลือกสถานะ: รอตรวจ / เผยแพร่ / ปฏิเสธ / ซ่อน / ลบแล้ว / ทั้งหมด</li>
+    <li>พิมพ์ <b>เหตุผล</b> (อย่างน้อย 3 ตัวอักษร) ในช่องด้านบน</li>
+    <li>กด <span class="ui">อนุมัติ</span> / <span class="ui">ปฏิเสธ</span> / <span class="ui">ซ่อน</span> / <span class="ui">ลบ</span> ที่ความคิดเห็น กด "ดูบริบทจากหน้าบทความ" เพื่อดู thread ก่อนตัดสิน</li>
+  </ol>
+  <p>เฉพาะข้อความที่อนุมัติแล้วจึงแสดงสาธารณะ</p>
+  <h2>โปรไฟล์นักเรียน (รูปและแนะนำตัว)</h2>
+  <p>เลือก "โปรไฟล์นักเรียน" ในช่องสถานะ จะเห็นโปรไฟล์ที่มีรูปหรือแนะนำตัว เรียงตามที่แก้ล่าสุด ใส่เหตุผลแล้วกด <span class="ui">ล้างรูป</span> หรือ <span class="ui">ล้างแนะนำตัว</span> สำหรับเนื้อหาที่ไม่เหมาะสม</p>
+</section>
+
+<!-- ========================= 20 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 20</div>
+  <h1>ประวัติ ข้อผิดพลาด และระยะเก็บข้อมูล</h1>
+  <figure><div class="frame crop" style="max-height:55mm"><img src="../shots/a-operations.jpg"></div><figcaption>หน้าประวัติ ข้อผิดพลาด และระยะเก็บข้อมูล</figcaption></figure>
+  <h2>ดูประวัติ (Audit log)</h2>
+  <p>พิมพ์โมดูลที่ต้องการกรอง (เช่น <code>ranking</code>, <code>daily</code>, <code>article</code>, <code>certificate</code>, <code>users</code>) แล้วกด <span class="ui">ดูประวัติ</span> แต่ละรายการแสดง</p>
+  <ul>
+    <li><b>ผู้กระทำ</b> (ชื่อทีมงาน, "ระบบอัตโนมัติ" หรือ "ผู้ดูแลผ่าน API key") การกระทำ เหตุผล และผล</li>
+    <li>เวอร์ชัน แหล่งรายการ รหัสคำขอ เป้าหมาย และกด <span class="ui">ข้อมูลก่อนและหลัง</span> เพื่อดูค่าที่เปลี่ยน</li>
+  </ul>
+  <h2>ข้อผิดพลาด</h2>
+  <p>กด <span class="ui">ข้อผิดพลาด</span> เพื่อดูบันทึก error ของระบบ เมื่อนักเรียนแจ้งปัญหาพร้อม "รหัสคำขอ" (requestId) ใช้รหัสนั้นค้นหาได้</p>
+  <h2>ระยะเก็บข้อมูล (Owner อนุมัติ)</h2>
+  <p>กด <span class="ui">ระยะเก็บข้อมูล</span> ระบบเสนอ technical logs 30 วัน และหมวดอื่น 365 วัน Owner แก้จำนวนวัน (เว้นว่าง = เก็บต่อ) ใส่เหตุผล แล้วกด <span class="ui">อนุมัติ</span></p>
+  <ul>
+    <li>เมื่ออนุมัติแล้ว ระบบ<b>ลบอัตโนมัติทุกชั่วโมง</b>เฉพาะ <code>technical_logs</code> (error log) และ <code>learning_events</code> (ยอดเข้าชม/คลิกบทความ) ที่เก่ากว่ากำหนด และบันทึกจำนวนที่ลบใน Audit</li>
+    <li>หมวดอื่น (โปรไฟล์ ผลสอบ revision เกียรติบัตร ความคิดเห็น Audit) มีข้อมูลเชื่อมโยง ระบบบันทึกนโยบายไว้แต่<b>ไม่ลบเอง</b> ต้องวางแผนและทดสอบกู้คืนเป็นงานแยก</li>
+  </ul>
+</section>
+
+<!-- ========================= 21 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 21</div>
+  <h1>สินค้าและราคา วันสอบ รูปภาพ ข้อความเว็บไซต์</h1>
+  <h2>สินค้าและราคา</h2>
+  <figure><div class="frame crop" style="max-height:80mm"><img src="../shots/a-products.jpg"></div><figcaption>สินค้าและราคา</figcaption></figure>
+  <ul>
+    <li>ประเภท: ชุดข้อสอบ, คอร์ส, แพ็กรวม (คอร์ส + ชุดข้อสอบ), ดูดวง (หัวข้อ) ประเภทและ slug เปลี่ยนไม่ได้หลังสร้าง</li>
+    <li>ราคาเป็นบาทเต็ม <b>ขั้นต่ำ 20 บาท</b> (ข้อกำหนดของ Omise) ราคาใหม่ใช้กับคำสั่งซื้อที่สร้างหลังบันทึก คำสั่งซื้อที่รอชำระอยู่ใช้ราคาเดิม</li>
+    <li><b>การ์ดราคา</b> (หน้าแรกและหน้าคอร์ส): ป้ายบนการ์ด หน่วยราคา ข้อความปุ่ม สิ่งที่ได้ (บรรทัดละข้อ ไม่เกิน 20) ลำดับ (น้อยขึ้นก่อน) และการ์ดเด่นพื้นสีม่วง</li>
+    <li><b>ปิดขาย</b>: ซ่อนจากหน้าเว็บ ใช้กับสินค้าที่มีคนซื้อแล้ว สิทธิ์ของคนที่ซื้อไม่หาย <b>ลบ</b>: ได้เฉพาะสินค้าที่ยังไม่มีใครเคยสั่งซื้อ</li>
+    <li>สินค้าดูดวงที่เปิดขายทุกตัวเป็นหัวข้อหนึ่งในหน้าดูดวงพร้อมราคาของตัวเอง</li>
+  </ul>
+</section>
+
+<section class="chapter">
+  <h2 style="margin-top:0">วันสอบ</h2>
+  <p>ตั้ง <b>วันสอบ</b> (นับถอยหลังถึงเที่ยงคืนของวันนั้น เวลาไทย) <b>วันปิดรับสมัครคอร์ส</b> (สิ้นสุด 23:59) <b>ชื่อสนามสอบ</b> และ <b>เตือนสีส้มเมื่อเหลือไม่เกินกี่วัน</b> บันทึกแล้วหน้าแรกเปลี่ยนทันที ถึงวันสอบแล้วหน้าแรกแสดง "รอประกาศรอบถัดไป" เวลาทำข้อสอบไม่ได้ตั้งที่นี่ แต่ตั้งในแต่ละชุด</p>
+  <figure><div class="frame crop" style="max-height:80mm"><img src="../shots/a-settings.jpg"></div><figcaption>ตั้งค่าวันสอบ</figcaption></figure>
+  <h2>รูปภาพเว็บไซต์ / ข้อความเว็บไซต์</h2>
+  <p>เปลี่ยนโลโก้ favicon รูปในหน้าแรก หน้ารู้จักพี่ที และหน้าคอร์ส และแก้หัวข้อ คำโปรย ปุ่ม รายการต่าง ๆ รวมถึงท้ายเว็บ โดยไม่ต้องแก้โค้ด บันทึกแล้วหน้าเว็บเปลี่ยนทันที ช่องที่ไม่ได้ตั้งจะใช้ค่าเริ่มต้น</p>
+  <ul>
+    <li>รูปใส่ <b>คำอธิบายรูป (alt)</b> สำหรับผู้ใช้ screen reader เว้นว่างได้ถ้าเป็นรูปตกแต่ง</li>
+    <li>หน้าข้อความมีช่อง <b>ค้นหาข้อความ (ค้นทุกหน้า)</b> ข้อความที่แก้แล้วมีป้าย "แก้แล้ว" และปุ่ม <span class="ui">คืนค่าเริ่มต้น</span></li>
+  </ul>
+  <div class="pair">
+    <figure><div class="frame crop" style="max-height:80mm"><img src="../shots/a-images.jpg"></div><figcaption>รูปภาพเว็บไซต์</figcaption></figure>
+    <figure><div class="frame crop" style="max-height:80mm"><img src="../shots/a-texts.jpg"></div><figcaption>ข้อความเว็บไซต์</figcaption></figure>
+  </div>
+</section>
+
+<!-- ========================= 22 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 22</div>
+  <h1>ผู้ใช้และสิทธิ์</h1>
+  <p>เฉพาะ <b>Owner</b> เปิดเมนูนี้ได้ ทุกคนที่เข้าสู่ระบบด้วย Google เป็นนักเรียนก่อน ค้นหาด้วยอีเมลหรือชื่อ (แสดง 50 รายการแรก) กดชื่อเพื่อไปหน้าคะแนนรายบุคคล</p>
+  <h2>22.1 บทบาทพื้นฐานของบัญชี</h2>
+  <table>
+    <tr><th>บทบาท</th><th>ใช้กับ</th></tr>
+    <tr><td>ผู้ดูแลระบบ (admin)</td><td class="wrap">ทีมงาน ถ้ายังไม่ตั้งสิทธิ์โมดูล จะมีสิทธิ์แบบ Admin</td></tr>
+    <tr><td>นักพัฒนา (dev)</td><td class="wrap">ทีมพัฒนา สิทธิ์เหมือน admin</td></tr>
+    <tr><td>ผู้ทดสอบ (test)</td><td class="wrap">บัญชีทดสอบ ใช้งานเหมือนนักเรียน แต่เปิดชุดที่ยังซ่อนและดูดวงได้โดยไม่ต้องจ่าย ถูกติดธง "บัญชีทดสอบ" ในอันดับ</td></tr>
+    <tr><td>นักเรียน (student)</td><td class="wrap">ค่าเริ่มต้นของทุกคน</td></tr>
+  </table>
+  <h2>22.2 สิทธิ์โมดูล</h2>
+  <ol class="steps">
+    <li>กดปุ่ม <span class="ui">สิทธิ์โมดูล: …</span> ใต้ชื่อผู้ใช้</li>
+    <li>เลือก <b>แม่แบบบทบาท</b>: Owner, Admin, Author, Moderator, Results Viewer หรือไม่มีสิทธิ์ทีมงาน (บทที่ 9)</li>
+    <li>ถ้าต้องการต่างจากแม่แบบ ติ๊ก <b>กำหนดเอง</b> ที่โมดูลนั้น แล้วเลือก ดู / แก้ไข / เผยแพร่ / ส่งออก โมดูล: ข้อสอบ, เกียรติบัตร, อันดับ, บทความ, ความคิดเห็น, โจทย์ประจำวัน, ประวัติ, เว็บไซต์</li>
+    <li>ใส่ <b>เหตุผล</b> แล้วกด <span class="ui">บันทึกสิทธิ์โมดูล</span> มีผลกับคำขอถัดไปทันที</li>
+  </ol>
+  <figure><div class="frame crop" style="max-height:110mm"><img src="../shots/a-user-perm.jpg"></div><figcaption>ตั้งสิทธิ์โมดูลของผู้ใช้</figcaption></figure>
+  <div class="note warn"><h4>ให้สิทธิ์เท่าที่จำเป็น</h4><p>ผู้มีสิทธิ์ข้อสอบเห็นเฉลยทุกข้อ ผู้มีสิทธิ์ผลสอบเห็นข้อมูลนักเรียนทุกคน เก็บ Owner สำรองอย่างน้อยสองบัญชี เมื่อทีมงานลาออกให้เปลี่ยนเป็น "ไม่มีสิทธิ์ทีมงาน" ทันที</p></div>
+</section>
+
+<!-- ========================= 23 ========================= -->
+<section class="chapter">
+  <div class="eyebrow">บทที่ 23</div>
+  <h1>งานประจำ คำถามที่พบบ่อย และการติดต่อ</h1>
+  <h2>รายการตรวจประจำวัน (สัปดาห์แรกหลังเปิดใช้)</h2>
+  <ul>
+    <li>หน้า <b>ภาพรวม</b> แถว "สถานะโมดูลใหม่": คิวเกียรติบัตร ความคิดเห็นรอตรวจ ธงอันดับรอตัดสิน</li>
+    <li><b>โจทย์ประจำวัน</b>: พรุ่งนี้มีโจทย์หรือมีคิวสำรองพร้อมใช้หรือยัง ดูสรุปไฟของเมื่อวาน</li>
+    <li><b>เกียรติบัตร</b>: ใบ "สร้างไม่สำเร็จ" กดสร้างไฟล์ใหม่</li>
+    <li><b>บทความ</b> ที่ตั้งเวลาไว้ขึ้นตามเวลาไหม</li>
+    <li><b>ประวัติ</b>: การเปลี่ยนสิทธิ์ และ<b>ข้อผิดพลาด</b>ใหม่</li>
+  </ul>
+  <p>หลังสัปดาห์แรกตรวจสัปดาห์ละครั้งได้</p>
+
+  <h2>คำถามที่พบบ่อย</h2>
+  <div class="avoid"><h3>นักเรียนบอกว่าเน็ตหลุดระหว่างสอบ คำตอบหายไหม</h3><p>ไม่หาย คำตอบที่ขึ้น "เซฟให้แล้ว" อยู่บนเซิร์ฟเวอร์ เข้าหน้าเดิมแล้วกด "ทำต่อ" แต่เวลาเดินต่อระหว่างที่หลุด เวลาของครั้งนั้นอาจขึ้นธงรอตรวจรับ (บทที่ 14.4)</p></div>
+  <div class="avoid"><h3>นักเรียนกดส่งผิด หรือสอบไม่ทัน อยากสอบใหม่</h3><p>ผลสอบ → หาชื่อ → <span class="ui">รีเซ็ต</span> ได้สิทธิ์คืน 1 ครั้ง ผลครั้งเดิมยังเก็บไว้</p></div>
+  <div class="avoid"><h3>เฉลยผิด แก้แล้วคะแนนคนที่สอบไปแล้วเปลี่ยนไหม</h3><p>ยังไม่เปลี่ยนทันที แก้เฉลยที่คลังข้อสอบ แล้วไปหน้าผลสอบของชุด → <span class="ui">ตรวจใหม่ (ดูผลก่อน)</span> → ยืนยัน อันดับคำนวณใหม่ให้เอง ถ้าเป็นโจทย์ประจำวันให้แก้ที่หน้า Daily (บทที่ 16.2)</p></div>
+  <div class="avoid"><h3>นักเรียนบอกว่าไฟหาย</h3><p>โจทย์ประจำวัน → ผลตอบและประวัติ Fire → ดู "รายการ Fire รายวัน" ของนักเรียนคนนั้น ถ้าเป็นความผิดของระบบ ใช้ "รักษาหรือชดเชย Fire" กับผู้ใช้คนนั้น</p></div>
+  <div class="avoid"><h3>เกียรติบัตรชื่อผิด</h3><p>ให้นักเรียนแก้ชื่อที่โปรไฟล์ ระบบออกใบใหม่และเพิกถอนใบเดิมให้เอง</p></div>
+  <div class="avoid"><h3>ผู้เขียนบทความเผยแพร่เองไม่ได้</h3><p>ถูกต้อง Author ส่งตรวจได้เท่านั้น ผู้ที่มีสิทธิ์ "เผยแพร่" ของโมดูลบทความต้องอนุมัติและเผยแพร่</p></div>
+  <div class="avoid"><h3>ปุ่มเปิด PDF ไม่ขึ้น หรือขึ้นว่าต้องขอสิทธิ์</h3><p>ตรวจว่าใส่ลิงก์ในชุดแล้ว และใน Google Drive ตั้งเป็น "ทุกคนที่มีลิงก์ · ผู้มีสิทธิ์อ่าน" ปุ่มขึ้นหลังกดเริ่มทำข้อสอบเท่านั้น</p></div>
+  <div class="avoid"><h3>อยากซ่อนชุดข้อสอบชั่วคราว</h3><p>แก้ไขชุด → เอาติ๊ก "เผยแพร่" ออก ประวัติและคะแนนไม่หาย ทีมงานยังเปิดทดสอบได้</p></div>
+
+  <div class="note"><h4>ติดต่อทีมพัฒนา</h4><p>แจ้งปัญหาพร้อมภาพหน้าจอ เวลาที่เกิด อีเมลของบัญชีที่เจอปัญหา และ "รหัสคำขอ" ถ้าหน้าจอแสดง จะช่วยให้ตรวจสอบได้เร็วขึ้น ช่องทางและระยะรับประกันเป็นไปตามสัญญา ขั้นตอน deploy, backup และกู้คืนอยู่ในคู่มือ Deploy แยกต่างหาก</p></div>
+</section>
+
+</body>
+</html>
