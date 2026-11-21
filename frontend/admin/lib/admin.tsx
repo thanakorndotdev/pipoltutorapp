@@ -56,14 +56,14 @@ function storeKey(key: string) {
   }
 }
 
-type Verify = { ok: boolean; via?: "key" | "session"; user?: AdminUser | null; error?: string };
+type Verify = { ok: boolean; via?: "key" | "session"; user?: AdminUser | null; error?: string; status?: number };
 
 /** With a key checks the key; without one checks the session cookie. */
 async function verify(key: string | null): Promise<Verify> {
   const r = await fetch(`${API_BASE}/settings/admin/verify`, { headers: key ? { "x-admin-key": key } : {} });
   const text = await r.text();
   try {
-    return text ? (JSON.parse(text) as Verify) : { ok: r.ok };
+    return { ...(text ? (JSON.parse(text) as Verify) : { ok: r.ok }), status: r.status };
   } catch {
     return { ok: false };
   }
@@ -86,7 +86,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       const v = await verify(null);
       if (v.ok && v.via === "session" && v.user) return { via: "session", key: null, user: v.user } as const;
-      if (v.error) setSessionError(v.error);
+      // 401 = nobody signed in yet; only a signed-in account without staff rights (403) needs the warning.
+      if (v.error && v.status === 403) setSessionError(v.error);
       return null;
     })()
       .then((a) => !cancelled && setAuth(a))
